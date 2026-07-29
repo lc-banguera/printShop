@@ -11,5 +11,14 @@ export default defineConfig({
     alias: {
       '@': '/src'
     }
+  },
+  // Vite optimisation: pre‑bundle three.js and the React‑Three Fiber/Drei packages
+  // to avoid "Could not resolve 'three'" errors when the 3‑D viewer is used.
+  optimizeDeps: {
+    include: [
+      'three',
+      '@react-three/fiber',
+      '@react-three/drei'
+    ]
   }
 });

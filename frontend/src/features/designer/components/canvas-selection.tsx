@@ -52,7 +52,8 @@ export function CanvasSelection() {
       anchorSize={8}
       anchorCornerRadius={2}
       rotateEnabled={false}
-      resizeEnabled={false}
+      resizeEnabled={true}
+      enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
     />
   );
 }

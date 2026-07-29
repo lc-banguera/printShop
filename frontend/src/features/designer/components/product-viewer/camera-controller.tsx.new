@@ -1,0 +1,89 @@
+import { useThree } from '@react-three/fiber';
+import { useEffect, useMemo, useRef } from 'react';
+import { OrbitControls } from '@react-three/drei';
+import { useViewerStore } from '@/store/viewer-store';
+import * as THREE from 'three';
+
+const MIN_DISTANCE = 1.4;
+const MAX_DISTANCE = 20;
+const FOV = 42;
+
+function getModelBounds(scene: THREE.Object3D) {
+  const box = new THREE.Box3();
+  box.setFromObject(scene);
+  return box;
+}
+
+function getFitSetup(bounds: THREE.Box3) {
+  const center = bounds.getCenter(new THREE.Vector3());
+  const sphere = bounds.getBoundingSphere(new THREE.Sphere());
+  const distance = (sphere.radius * 1.9) / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
+  return {
+    center,
+    radius: sphere.radius,
+    distance: Math.max(MIN_DISTANCE, Math.min(MAX_DISTANCE, distance)),
+  };
+}
+
+/**
+ * CameraController – fits the loaded model once after the GLB is ready.
+ */
+export function CameraController() {
+  const { camera, scene } = useThree();
+  const fitRequested = useViewerStore((s) => s.fitRequested);
+  const activeProduct = useViewerStore((s) => s.activeProduct);
+  const clearFit = useViewerStore((s) => s.clearFitRequest);
+  const controlsRef = useRef<any>(null);
+
+  const bounds = useMemo(() => getModelBounds(scene), [scene, activeProduct.modelUrl]);
+
+  useEffect(() => {
+    if (!bounds || bounds.isEmpty()) return;
+    const setup = getFitSetup(bounds);
+    const position = new THREE.Vector3(setup.center.x, setup.center.y + setup.radius * 0.35, setup.center.z + setup.distance);
+    camera.position.copy(position);
+    camera.lookAt(setup.center);
+    camera.updateProjectionMatrix();
+
+    if (controlsRef.current) {
+      controlsRef.current.target.copy(setup.center);
+      controlsRef.current.update();
+    }
+  }, [activeProduct.modelUrl, bounds, camera]);
+
+  useEffect(() => {
+    if (!controlsRef.current) return;
+    controlsRef.current.minDistance = MIN_DISTANCE;
+    controlsRef.current.maxDistance = MAX_DISTANCE;
+    controlsRef.current.enableDamping = false;
+    controlsRef.current.rotateSpeed = 0.7;
+    controlsRef.current.panSpeed = 0.7;
+    controlsRef.current.zoomSpeed = 0.8;
+  }, []);
+
+  useEffect(() => {
+    if (!fitRequested || !bounds || bounds.isEmpty() || !controlsRef.current) return;
+    const setup = getFitSetup(bounds);
+    const position = new THREE.Vector3(setup.center.x, setup.center.y + setup.radius * 0.35, setup.center.z + setup.distance);
+    camera.position.copy(position);
+    camera.lookAt(setup.center);
+    controlsRef.current.target.copy(setup.center);
+    controlsRef.current.update();
+    clearFit();
+  }, [fitRequested, bounds, camera, clearFit]);
+
+  return (
+    <OrbitControls
+      ref={controlsRef}
+      enableZoom
+      enablePan
+      enableRotate
+      minDistance={MIN_DISTANCE}
+      maxDistance={MAX_DISTANCE}
+      enableDamping={false}
+      rotateSpeed={0.7}
+      panSpeed={0.7}
+      zoomSpeed={0.8}
+    />
+  );
+}

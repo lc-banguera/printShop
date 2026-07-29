@@ -18,6 +18,9 @@
     "@radix-ui/react-slot": "^1.0.0",
     "@radix-ui/react-tabs": "^1.0.0",
     "@radix-ui/react-tooltip": "^1.0.0",
+    "@react-three/drei": "^9.122.0",
+    "@react-three/fiber": "^8.18.0",
+    "@types/three": "^0.185.1",
     "class-variance-authority": "^0.6.1",
     "clsx": "^2.1.1",
     "konva": "^10.3.0",
@@ -26,6 +29,7 @@
     "react-dom": "^18.2.0",
     "react-konva": "^18.2.16",
     "tailwind-merge": "^1.14.0",
+    "three": "^0.185.1",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

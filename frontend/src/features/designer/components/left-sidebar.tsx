@@ -1,71 +1,213 @@
-import { Button } from '@/shared/ui/button';
+import { useState, useMemo } from 'react';
+import type { DragEvent } from 'react';
+import {
+  LayoutTemplate,
+  Type,
+  Image as ImageIcon,
+  Sparkles,
+  ShieldCheck,
+  Smile,
+  Shapes,
+  Disc,
+  QrCode,
+  Layers,
+  Search,
+  SlidersHorizontal,
+  ArrowRight,
+} from 'lucide-react';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/shared/ui/tooltip';
-import { useActiveTool } from '../hooks/use-active-tool';
-import { TOOLS_ORDER } from '../services/tools-config';
+import { getDesignResources } from '../services';
+import { DESIGN_DRAG_MIME_TYPE, type DesignDragPayload, type DesignResource } from '@/types/design-resource';
 
-const templates = [
-  { id: 1, name: 'Flyer A4', icon: '📄' },
-  { id: 2, name: 'Tarjeta', icon: '💳' },
-  { id: 3, name: 'Póster', icon: '📋' },
-  { id: 4, name: 'Banner Web', icon: '🖼️' },
-  { id: 5, name: 'Social Media', icon: '📱' },
-  { id: 6, name: 'Folleto', icon: '📑' },
+const designResources = getDesignResources();
+
+const PRESET_CATEGORIES = ['Todas', 'Minimalista', 'Vintage', 'Anime', 'Deporte'];
+
+function createDesignDragPayload(resource: DesignResource): DesignDragPayload {
+  return {
+    type: 'design-resource',
+    resource,
+  };
+}
+
+/** Designer modules for Left Sidebar toolbar */
+const DESIGNER_MODULES = [
+  { id: 'plantillas', name: 'Plantillas', icon: LayoutTemplate },
+  { id: 'texto', name: 'Texto', icon: Type },
+  { id: 'imagenes', name: 'Imágenes', icon: ImageIcon },
+  { id: 'ia', name: 'IA Generar', icon: Sparkles },
+  { id: 'logos', name: 'Logos', icon: ShieldCheck },
+  { id: 'stickers', name: 'Stickers', icon: Smile },
+  { id: 'formas', name: 'Formas', icon: Shapes },
+  { id: 'bordado', name: 'Bordado', icon: Disc },
+  { id: 'qr', name: 'Código QR', icon: QrCode },
+  { id: 'capas', name: 'Capas', icon: Layers },
 ];
 
 export function LeftSidebar() {
-  const { setActiveTool, isToolActive } = useActiveTool();
+  const [activeModule, setActiveModule] = useState('plantillas');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('Todas');
+
+  const handleDesignDragStart = (event: DragEvent<HTMLButtonElement>, resource: DesignResource) => {
+    const payload = createDesignDragPayload(resource);
+
+    event.dataTransfer.effectAllowed = 'copy';
+    event.dataTransfer.setData(DESIGN_DRAG_MIME_TYPE, JSON.stringify(payload));
+    event.dataTransfer.setData('text/plain', resource.id);
+  };
+
+  const filteredResources = useMemo(() => {
+    let results = designResources;
+
+    if (activeCategory !== 'Todas') {
+      results = results.filter((r) => r.category.toLowerCase() === activeCategory.toLowerCase());
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      results = results.filter((r) => r.name.toLowerCase().includes(query));
+    }
+
+    return results;
+  }, [activeCategory, searchQuery]);
 
   return (
     <TooltipProvider>
-      <aside className="w-20 border-r border-border bg-surface shadow-xs">
-        <div className="flex h-full flex-col gap-4 px-3 py-6">
-          {/* Tool Navigation */}
-          <nav className="flex flex-col gap-2">
-            {TOOLS_ORDER.map((tool) => {
-              const isActive = isToolActive(tool.id);
+      <aside className="flex h-full border-r border-[#e8e8f0] bg-surface select-none">
+       {/* ── Left Toolbar (~60px) ── */}
+        <div className="flex w-[60px] shrink-0 flex-col items-center border-r border-[#e8e8f0] bg-white py-3">
+          <ScrollArea className="w-full flex-1">
+            <nav className="flex flex-col items-center gap-1.5 px-2 py-1">
+              {DESIGNER_MODULES.map((mod) => {
+                const isActive = activeModule === mod.id;
+                const ModIcon = mod.icon;
 
+                return (
+                  <Tooltip key={mod.id}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => setActiveModule(mod.id)}
+                        className={`group flex h-[42px] w-[42px] items-center justify-center rounded-xl transition-all duration-200 ${
+                          isActive
+                            ? 'bg-[#5046e5] text-white shadow-sm'
+                            : 'text-[#5e5d72] hover:bg-[#f5f4fb] hover:text-[#5046e5]'
+                        }`}
+                      >
+                        <ModIcon 
+                          className={`transition-all duration-200 stroke-[1.7] ${
+                            isActive ? 'h-5 w-5' : 'h-[22px] w-[22px]'
+                          }`} 
+                        />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="right" className="text-xs font-medium">
+                      {mod.name}
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </nav>
+          </ScrollArea>
+        </div>
+
+        {/* ── Resource Panel (~280px) ── */}
+        <div className="flex w-[315px] shrink-0 flex-col overflow-hidden bg-[#fafafc]">          {/* Search bar & filter button */}
+          <div className="flex items-center gap-2 p-2.5 pb-1">
+            <div className="relative flex-1">
+              <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#908fa3]" />
+              <input
+                type="text"
+                placeholder="Buscar plantillas..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-7 w-full rounded-xl border border-[#e4e4ee] bg-white pl-8 pr-2.5 text-[11px] text-[#171421] placeholder:text-[#908fa3] shadow-2xs transition-all focus:border-[#5046e5]/40 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#5046e5]/15"
+              />
+            </div>
+            <button
+              type="button"
+              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border border-[#e4e4ee] bg-white text-[#5e5d72] shadow-2xs transition-all hover:bg-[#f5f4fb] hover:text-[#171421]"
+              title="Filtrar"
+            >
+              <SlidersHorizontal className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          {/* Category Chips - No Horizontal Overflow */}
+          <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap px-2 py-1">
+            {PRESET_CATEGORIES.map((cat) => {
+              const isSelected = activeCategory === cat;
               return (
-                <Tooltip key={tool.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={isActive ? 'default' : 'ghost'}
-                      size="sm"
-                      className="w-full justify-center font-semibold"
-                      onClick={() => setActiveTool(tool.id)}
-                      title={tool.description}
-                    >
-                      {tool.icon}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="right">{tool.name}</TooltipContent>
-                </Tooltip>
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => setActiveCategory(cat)}
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium transition-all duration-150 whitespace-nowrap ${isSelected
+                    ? 'bg-[#5046e5] text-white shadow-2xs'
+                    : 'bg-[#eeeef5] text-[#5e5d72] hover:bg-[#e4e4ee] hover:text-[#171421]'
+                    }`}
+                >
+                  {cat}
+                </button>
               );
             })}
-          </nav>
-
-          <div className="my-2 h-px bg-border" />
-
-          {/* Templates */}
-          <div className="flex-1 overflow-hidden">
-            <p className="px-1 text-xs font-semibold text-text-secondary">TEMPLATES</p>
-            <ScrollArea className="mt-3 h-full">
-              <div className="flex flex-col gap-2 px-1">
-                {templates.map((template) => (
-                  <Tooltip key={template.id}>
-                    <TooltipTrigger asChild>
-                      <Button variant="ghost" size="sm" className="w-full justify-center text-lg">
-                        {template.icon}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent side="right">{template.name}</TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-            </ScrollArea>
           </div>
+
+          {/* Design 2-Column Grid */}
+          <ScrollArea className="flex-1">
+            <div className="grid grid-cols-2 gap-2.5 p-2.5">
+              {filteredResources.map((resource) => (
+                <Tooltip key={resource.id}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      className="group relative flex h-[118px] w-full flex-col items-center justify-center overflow-hidden rounded-xl border border-[#e5e5ee] bg-white p-2 shadow-2xs transition-all duration-150 hover:border-[#5046e5]/50 hover:shadow-md active:cursor-grabbing cursor-grab"
+                      draggable
+                      onDragStart={(event) => handleDesignDragStart(event, resource)}
+                    >
+                      <img
+                        src={resource.image}
+                        alt={resource.name}
+                        className="h-full w-full rounded-lg object-contain transition-transform duration-200 group-hover:scale-[1.03]"
+                        draggable={false}
+                      />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="text-xs font-medium">
+                    <div className="flex flex-col">
+                      <span>{resource.name}</span>
+                      <span className="text-xs text-text-muted">{resource.category}</span>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+
+            {filteredResources.length === 0 && (
+              <div className="px-3 py-10 text-center text-xs font-medium text-[#908fa3]">
+                No se encontraron diseños
+              </div>
+            )}
+
+            {/* Bottom button */}
+            <div className="p-2.5 pt-0.5">
+              <button
+                type="button"
+                className="flex h-7 w-full items-center justify-center gap-1.5 rounded-xl border border-[#e2e2ec] bg-white text-[11px] font-semibold text-[#5046e5] shadow-2xs transition-all hover:border-[#5046e5]/30 hover:bg-[#f5f5fc]"
+              >
+                <span>Ver más plantillas</span>
+                <ArrowRight className="h-3 w-3" />
+              </button>
+            </div>
+          </ScrollArea>
         </div>
       </aside>
     </TooltipProvider>
   );
 }
+
+
+
+

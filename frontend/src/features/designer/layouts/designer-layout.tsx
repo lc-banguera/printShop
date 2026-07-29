@@ -1,13 +1,12 @@
 import { DesignerHeader } from '../components/header';
 import { LeftSidebar } from '../components/left-sidebar';
 import { RightSidebar } from '../components/right-sidebar';
-import { Canvas } from '../components/canvas';
+import { CanvasArea } from '../components/canvas';
 import { BottomPanel } from '../components/bottom-panel';
-import { StatusBar } from '../components/status-bar';
 
 export function DesignerLayout() {
   return (
-    <div className="flex h-screen flex-col bg-background">
+    <div className="flex h-screen flex-col bg-[#fafafc]">
       {/* Header */}
       <DesignerHeader />
 
@@ -17,7 +16,7 @@ export function DesignerLayout() {
         <LeftSidebar />
 
         {/* Canvas Area with React-Konva */}
-        <Canvas />
+        <CanvasArea />
 
         {/* Right Sidebar */}
         <RightSidebar />
@@ -25,9 +24,7 @@ export function DesignerLayout() {
 
       {/* Bottom Panel */}
       <BottomPanel />
-
-      {/* Status Bar */}
-      <StatusBar />
     </div>
   );
 }
+

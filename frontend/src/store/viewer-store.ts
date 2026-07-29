@@ -1,0 +1,166 @@
+import { create } from 'zustand';
+import type { PrintableZoneId, ProductDefinition, ProductMaterial } from '@/types/product';
+import { DEFAULT_PRODUCT } from '@/features/catalog/data/products';
+
+const GARMENT_COLOR_PRESETS = [
+  '#ffffff',
+  '#111111',
+  '#8b8b8b',
+  '#d94a3d',
+  '#f08a2b',
+  '#f2d04b',
+  '#4f9e47',
+  '#1f9bd6',
+  '#3f5bd2',
+  '#7e3fc3',
+  '#d96aa5',
+  '#8c5a2b',
+];
+const GARMENT_SLOT_COUNT = GARMENT_COLOR_PRESETS.length;
+
+function buildInitialGarmentColors() {
+  return [...GARMENT_COLOR_PRESETS];
+}
+
+function normalizeColorIndex(index: number) {
+  return Math.max(0, Math.min(GARMENT_SLOT_COUNT - 1, index));
+}
+
+function findMaterialForColor(product: ProductDefinition, color: string) {
+  return product.materials.find((material) => material.color.toLowerCase() === color.toLowerCase()) ?? product.materials[0];
+}
+
+/**
+ * Viewer state managed by Zustand. All interactions with the 3D product viewer
+ * should read from or write to this store. It is the single source of truth for
+ * viewer‑related data.
+ */
+export interface ViewerState {
+  /** Currently selected product definition */
+  activeProduct: ProductDefinition;
+  /** Currently active printable zone (e.g., front, back, sleeve) */
+  activeZoneId: PrintableZoneId;
+  /** Zoom level (0.5 – 2.0) */
+  zoom: number;
+  /** Material selected for the product */
+  selectedMaterial: ProductMaterial;
+  /** Hex colour applied to the product */
+  productColor: string;
+  /** Flag indicating that a fit‑to‑view operation has been requested */
+  fitRequested: boolean;
+  /** Index of the currently active garment color slot */
+  selectedColorIndex: number;
+  /** Fixed garment color palette */
+  garmentColors: string[];
+  /** The active garment color currently applied to the product */
+  currentGarmentColor: string;
+
+  // Actions ---------------------------------------------------------------
+  setActiveProduct: (product: ProductDefinition) => void;
+  setActiveZone: (zoneId: PrintableZoneId) => void;
+  setZoom: (zoom: number | ((prev: number) => number)) => void;
+  setSelectedMaterial: (material: ProductMaterial) => void;
+  setProductColor: (color: string) => void;
+  requestFit: () => void;
+  clearFitRequest: () => void;
+  setSelectedColorIndex: (index: number) => void;
+  selectGarmentColor: (index: number) => void;
+  updateGarmentColor: (index: number, color: string) => void;
+}
+
+/** Rotation angles (in degrees) for each printable zone. Used by ProductPivot. */
+export const ZONE_ROTATION_MAP: Record<PrintableZoneId, number> = {
+  front: 0,
+  back: 180,
+  sleeve_left: 90,
+  sleeve_right: 270,
+  label: 0,
+};
+
+/** Zustand store instance */
+export const useViewerStore = create<ViewerState>((set) => ({
+  activeProduct: DEFAULT_PRODUCT,
+  activeZoneId: 'front',
+  zoom: 1.0,
+  selectedMaterial: DEFAULT_PRODUCT.materials[0],
+  productColor: '#ffffff',
+  fitRequested: false,
+  selectedColorIndex: 0,
+  garmentColors: buildInitialGarmentColors(),
+  currentGarmentColor: '#ffffff',
+
+  setActiveProduct: (product) =>
+    set((state) => {
+      const currentColor = state.garmentColors.includes(state.currentGarmentColor)
+        ? state.currentGarmentColor
+        : state.garmentColors[0] ?? '#ffffff';
+      const material = findMaterialForColor(product, currentColor) ?? product.materials[0] ?? state.selectedMaterial;
+
+      return {
+        activeProduct: product,
+        selectedMaterial: material,
+        productColor: currentColor,
+        currentGarmentColor: currentColor,
+        garmentColors: state.garmentColors,
+        selectedColorIndex: state.selectedColorIndex,
+      };
+    }),
+
+  setActiveZone: (zoneId) => set({ activeZoneId: zoneId }),
+
+  setZoom: (zoom) =>
+    set((state) => ({
+      zoom: typeof zoom === 'function' ? zoom(state.zoom) : zoom,
+    })),
+
+  setSelectedMaterial: (material) => set({ selectedMaterial: material }),
+
+  setProductColor: (color) =>
+    set((state) => {
+      const resolvedColor = color || state.currentGarmentColor;
+      const material = findMaterialForColor(state.activeProduct, resolvedColor) ?? state.selectedMaterial;
+      return {
+        productColor: resolvedColor,
+        currentGarmentColor: resolvedColor,
+        selectedMaterial: material,
+      };
+    }),
+
+  requestFit: () => set({ fitRequested: true }),
+
+  clearFitRequest: () => set({ fitRequested: false }),
+
+  setSelectedColorIndex: (index) =>
+    set((state) => {
+      const safeIndex = normalizeColorIndex(index);
+      const color = state.garmentColors[safeIndex] ?? state.currentGarmentColor;
+      return { selectedColorIndex: safeIndex, currentGarmentColor: color, productColor: color };
+    }),
+
+  selectGarmentColor: (index) =>
+    set((state) => {
+      const safeIndex = normalizeColorIndex(index);
+      const color = state.garmentColors[safeIndex] ?? state.currentGarmentColor;
+      const material = findMaterialForColor(state.activeProduct, color) ?? state.selectedMaterial;
+      return {
+        selectedColorIndex: safeIndex,
+        currentGarmentColor: color,
+        productColor: color,
+        selectedMaterial: material,
+      };
+    }),
+
+  updateGarmentColor: (index, color) =>
+    set((state) => {
+      const safeIndex = normalizeColorIndex(index);
+      const nextColors = [...state.garmentColors];
+      nextColors[safeIndex] = color;
+      return {
+        garmentColors: nextColors,
+        selectedColorIndex: safeIndex,
+        currentGarmentColor: color,
+        productColor: color,
+        selectedMaterial: findMaterialForColor(state.activeProduct, color) ?? state.selectedMaterial,
+      };
+    }),
+}));

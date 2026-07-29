@@ -1,35 +1,59 @@
+/**
+ * Canvas configuration for the PrintShop designer.
+ *
+ * All dimensions are in Konva coordinate units (artboard pixels).
+ * Physical print dimensions are handled server-side at export time.
+ */
 export const CANVAS_CONFIG = {
-  // Canvas dimensions (A4 size in pixels at 96 DPI)
+  // ── Artboard ─────────────────────────────────────────────────
+  // T-shirt artboard dimensions (px at 96 DPI equivalent)
   ARTBOARD_WIDTH: 794,
   ARTBOARD_HEIGHT: 1123,
 
-  // Stage configuration
-  STAGE_SCALE: 0.7, // Initial zoom level
+  // ── Stage ────────────────────────────────────────────────────
+  STAGE_SCALE: 0.7,
   STAGE_BACKGROUND: '#ffffff',
-
-  // Container configuration
   CONTAINER_PADDING: 20,
 
-  // Accepted file types for future image uploads
-  ACCEPTED_FILE_TYPES: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
-
-  // Maximum file size (5MB)
-  MAX_FILE_SIZE: 5 * 1024 * 1024,
-
-  // Layer names
-  LAYERS: {
-    BACKGROUND: 'background',
-    CONTENT: 'content',
-    SELECTION: 'selection',
+  // ── Printable Area ───────────────────────────────────────────
+  // The region where user objects (images, text, logos, stickers) can live.
+  // Relative to the artboard origin (top-left = 0,0).
+  // Can be overridden per-product via setPrintableArea() in the store.
+  PRINTABLE_AREA: {
+    x: 197,
+    y: 180,
+    width: 400,
+    height: 500,
   },
+
+  // ── Upload limits ────────────────────────────────────────────
+  ACCEPTED_FILE_TYPES: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
+  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5 MB
+
+  // ── Konva Layer names ─────────────────────────────────────────
+  // Render order (bottom → top): MOCKUP → USER_OBJECTS → SELECTION
+  LAYERS: {
+    BACKGROUND:   'background',   // unused — kept for backwards compat
+    MOCKUP:       'mockup',       // locked t-shirt shape, never interactive
+    CONTENT:      'content',      // alias for USER_OBJECTS (backwards compat)
+    USER_OBJECTS: 'user-objects', // images, text, logos, stickers
+    GUIDES:       'guides',       // printable-area border + future rulers
+    SELECTION:    'selection',    // Konva Transformer
+  },
+
+  // ── Snapping ─────────────────────────────────────────────────
+  // Reserved for future snap-to-grid / snap-to-guide implementation.
+  SNAP_THRESHOLD: 8, // px
 } as const;
 
-// Design system colors
+// Design system colors (CSS variables — do not use raw hex here)
 export const CANVAS_COLORS = {
-  BACKGROUND: 'var(--background)',
-  SURFACE: 'var(--surface)',
-  BORDER: 'var(--border)',
-  TEXT_PRIMARY: 'var(--text-primary)',
+  BACKGROUND:     'var(--background)',
+  SURFACE:        'var(--surface)',
+  BORDER:         'var(--border)',
+  TEXT_PRIMARY:   'var(--text-primary)',
   TEXT_SECONDARY: 'var(--text-secondary)',
-  ACCENT_TEAL: 'var(--accent-teal)',
+  ACCENT_TEAL:    'var(--accent-teal)',
+  PRINTABLE_AREA: '#10b981', // emerald-500 — dashed guide border
 } as const;
+
