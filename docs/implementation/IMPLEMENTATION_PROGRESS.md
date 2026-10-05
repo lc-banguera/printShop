@@ -17,7 +17,7 @@
 | BLOCK 06 — Tool Registry + Tool Context | DONE | Registry del Design Core, filtrado explícito por capabilities y transición de ciclo de vida conectada al hook; configuración y Zustand legacy preservados. |
 | BLOCK 07 — Product Surface | BLOCKED | Límites y operaciones 2D leen la superficie/zona del producto activo; el decal frontal toma el printable area del producto. El GLB solo ofrece calibración física etiquetada `FRONT`; no hay evidencia para proyectar con fidelidad los decals en espalda, mangas o etiqueta. |
 | BLOCK 08 — 2D Renderer Adapter | DONE | Contrato 2D independiente de Konva y adapter Konva integrado al canvas; filtra elementos por la superficie activa. No realiza proyección 3D ni cambia el estado de BLOCK 07. |
-| BLOCK 09 — 3D Renderer Adapter | PENDING | No iniciado. |
+| BLOCK 09 — 3D Renderer Adapter | DONE | Contrato 3D neutral al framework y adapter Three.js integrado al flujo de decals. Emite descriptores únicamente para `front`; las zonas no calibradas siguen excluidas y BLOCK 07 continúa `BLOCKED`. |
 | BLOCK 10 — Asset System | PENDING | No iniciado. |
 | BLOCK 11 — Image Processing Foundation | PENDING | No iniciado. |
 | BLOCK 12 — Designer 2 Integration | PENDING | No iniciado. |
@@ -171,4 +171,19 @@
 - `git diff --check`: **PASS**.
 - Decisión: ADR-015 registra que el adapter 2D depende del contrato de superficie, no de la calibración física 3D pendiente.
 - Commit: `feat(renderer): add 2d renderer adapter`.
-- Siguiente análisis: BLOCK 09 — determinar si el adapter Three.js puede encapsular de forma real la ruta de decals actualmente calibrada sin ampliar el soporte más allá del frente.
+- Siguiente bloque: **BLOCK 09 — 3D Renderer Adapter** (completado a continuación; ver su registro). El bloque pendiente de análisis es BLOCK 10.
+
+## Registro de BLOCK 09 — 3D Renderer Adapter
+
+- Archivos: `frontend/src/core/design/renderer/renderer-3d.ts`, `frontend/src/core/design/renderer/index.ts`, `frontend/src/features/designer/renderer/threejs-renderer.ts` y `frontend/src/features/designer/components/product-viewer/artwork-decals.tsx`.
+- Cambio: se añadió un contrato neutral a Three.js y un adapter de feature integrado al flujo real de decals. La elegibilidad de elementos y la resolución de su fuente pasan por el adapter; el renderer de Three.js conserva la conversión geométrica existente y sus interacciones.
+- Límite deliberado: el adapter solo acepta la superficie frontal (`front`), para la que ya existe calibración física verificable. Devuelve `null` para espalda, ambas mangas y etiqueta; no añade coordenadas, UVs, decals ni estimaciones nuevas. BLOCK 07 sigue `BLOCKED`.
+- Arquitectura: `frontend/src/core/design` no importa Three.js, `@react-three/fiber` ni `@react-three/drei`; el contrato usa únicamente tipos del documento compartido. ADR-016 registra este límite.
+- Build frontend (`npm run build --prefix frontend`): **PASS** (`tsc` y `vite build`).
+- ESLint focalizado en contrato, adapter y componente de decals: **PASS**.
+- Checks runtime aislados: **PASS** — decal frontal, zonas no calibradas, tipos no soportados y fuente ausente.
+- Navegador: `/designer/advanced` recargó con el viewer 3D funcional; no se observaron errores críticos nuevos. Permanecen advertencias conocidas deprecadas de Three.js y un request externo bloqueado por el navegador.
+- Tests del repo: no hay runner/suite frontend configurado.
+- `git diff --check`: **PASS**.
+- Commit: `feat(renderer): add 3d renderer adapter`.
+- Siguiente análisis: BLOCK 10 — Asset System; revisar si el AssetManager y registro local pueden integrarse al upload/biblioteca actuales sin introducir persistencia, cache o servicios simulados.

@@ -290,7 +290,7 @@ Responsable del canvas artboard 2D. Actualmente implementado en:
 - `canvas-elements.tsx` — Renderizado de CanvasElement
 - `canvas-selection.tsx` — Konva Transformer para selección
 
-Contratos: recibe `elements[]` del store, despacha acciones al store. Sin lógica de negocio.
+`Renderer2DAdapter` vive en `core/design/renderer` y describe elementos renderizables sin importar Konva ni React. `konva-renderer.ts` adapta los elementos de la feature Designer y recibe explícitamente el ID de superficie activa. El consumidor Konva preserva selección, interacciones y despacho al store.
 
 #### 3D Renderer (Three.js)
 
@@ -302,6 +302,8 @@ Responsable de la visualización del producto 3D con artwork como decals. Implem
 - `artwork-decals.tsx` — Proyección de elementos 2D como Decals 3D
 
 Contratos: lee del store, no modifica estado.
+
+`Renderer3DAdapter` vive en `core/design/renderer` y no importa Three.js. `threejs-renderer.ts` transforma elementos elegibles en descriptores de decal consumidos por `ArtworkDecals`. La implementación habilita únicamente `front`, cuya calibración física está verificada; las otras superficies no producen descriptores y permanecen bloqueadas según BLOCK 07.
 
 ### 6.10 Product Mapping / Decals
 

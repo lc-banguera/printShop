@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { ArtworkFilters, CanvasElement } from '@/types/canvas';
 import type { PrintableZoneConfig } from '@/types/product';
+import { threeJsRenderer } from '../../renderer/threejs-renderer';
 
 const DEFAULT_ARTWORK_FILTERS: ArtworkFilters = {
   brightness: 100,
@@ -353,29 +354,27 @@ export function ArtworkDecals({
   onSelect,
   onMove,
 }: ArtworkDecalsProps) {
+  const renderableArtwork = elements.flatMap((element) => {
+    const renderable = threeJsRenderer.renderElement(element, { id: 'front' });
+    return renderable ? [renderable] : [];
+  });
+
   return (
     <>
       {showPrintArea && <PrintableAreaOutline mesh={mesh} printableArea={printableArea} />}
-      {elements
-        .filter(
-          (element) =>
-            element.zoneId === 'front' &&
-            (element.type === 'image' || element.type === 'text') &&
-            Boolean(element.originalImageSrc ?? element.image),
-        )
-        .map((element) => (
-          <ArtworkDecal
-            key={element.id}
-            element={element}
-            image={element.originalImageSrc ?? element.image!}
-            mesh={mesh}
-            printableArea={printableArea}
-            selected={showSelection && element.id === selectedElementId}
-            interactive={showSelection && Boolean(onSelect && onMove)}
-            onSelect={onSelect}
-            onMove={onMove}
-          />
-        ))}
+      {renderableArtwork.map(({ element, source }) => (
+        <ArtworkDecal
+          key={element.id}
+          element={element}
+          image={source}
+          mesh={mesh}
+          printableArea={printableArea}
+          selected={showSelection && element.id === selectedElementId}
+          interactive={showSelection && Boolean(onSelect && onMove)}
+          onSelect={onSelect}
+          onMove={onMove}
+        />
+      ))}
     </>
   );
 }

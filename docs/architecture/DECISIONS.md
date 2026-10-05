@@ -315,4 +315,26 @@ Completar BLOCK 08 usando un contrato de renderer 2D libre de Konva y pasando ex
 
 ---
 
+## ADR-016 — Adapter 3D limitado a superficies calibradas
+
+**Estado**: ACCEPTED
+**Fecha**: 2026-10-05
+
+### Contexto
+BLOCK 09 debe desacoplar el Design Core de Three.js y encaminar los elementos de diseño al renderer 3D. El producto GLB actual solo tiene calibración física verificable para `front`; el resto de las superficies sigue bloqueado en BLOCK 07.
+
+### Decisión
+Definir un contrato 3D neutral a Three.js en el Core y una implementación en la feature Designer que solo emite descriptores de decal para elementos con imagen en la superficie calibrada `front`. El cálculo geométrico y el renderizado Three.js existentes permanecen en `ArtworkDecals`. El adapter devuelve `null` para cualquier otra superficie o tipo de elemento no compatible.
+
+### Consecuencias
+- El Core permanece independiente de Three.js, React Three Fiber y Drei.
+- La ruta real de decals consume el adapter, manteniendo su calibración e interacciones actuales.
+- BLOCK 09 puede completarse para el alcance actualmente verificable sin marcar BLOCK 07 como completo ni habilitar zonas no calibradas.
+
+### Alternativas consideradas
+- Rechazar todos los decals hasta que existan cinco calibraciones (rechazado: impediría aislar la ruta frontal que ya funciona).
+- Estimar mapeos para las demás zonas (rechazado: no hay evidencia física y está prohibido inventarla).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

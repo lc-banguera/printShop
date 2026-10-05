@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08 puede completarse independientemente porque su adapter solo consume el ID de la superficie 2D y no proyecta artwork al modelo — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08 y BLOCK 09 se completaron dentro de sus límites verificables, sin desbloquear otras superficies — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -277,7 +277,11 @@
 - La sincronización 2D→3D (artwork como Decals) se gestiona a través del adapter
 - El Core no importa Three.js
 
+**Límite**: el adapter solo entrega decals para la superficie `front`, que es la única con calibración física verificable. No habilita espalda, mangas ni etiqueta y no cierra BLOCK 07.
+
 **Siguiente bloque**: BLOCK 10
+
+**Estado**: COMPLETADO para la superficie frontal calibrada; las zonas no calibradas siguen excluidas.
 
 ---
 
