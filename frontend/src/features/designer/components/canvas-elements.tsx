@@ -3,12 +3,11 @@ import { Image as KonvaImage } from 'react-konva';
 import Konva from 'konva';
 import { useCanvasSelection } from '../hooks';
 import type { CanvasElement } from '@/types/canvas';
-import { useCanvasStore } from '@/store/canvas-store';
 import { useViewerStore } from '@/store/viewer-store';
 
 interface CanvasElementsProps {
   elements: CanvasElement[];
-  onElementClick: (elementId: string) => void;
+  onElementClick: (elementId: string, additive: boolean) => void;
   onElementDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
   onElementDragEnd: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
 }
@@ -16,7 +15,7 @@ interface CanvasElementsProps {
 interface CanvasImageElementProps {
   element: CanvasElement;
   isSelected: boolean;
-  onElementClick: (elementId: string) => void;
+  onElementClick: (elementId: string, additive: boolean) => void;
   onElementDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
   onElementDragEnd: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
 }
@@ -29,7 +28,6 @@ function CanvasImageElement({
   onElementDragEnd,
 }: CanvasImageElementProps) {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const updateElement = useCanvasStore((state) => state.updateElement);
 
   useEffect(() => {
     // High-resolution image quality guarantee:
@@ -72,30 +70,16 @@ function CanvasImageElement({
       visible={element.visible ?? true}
       stroke={isSelected ? '#5046e5' : undefined}
       strokeWidth={isSelected ? 1 : 0}
-      draggable={isSelected}
-      onClick={() => onElementClick(element.id)}
-      onTap={() => onElementClick(element.id)}
+      draggable={isSelected && !element.locked}
+      onClick={(event) =>
+        onElementClick(
+          element.id,
+          event.evt.shiftKey || event.evt.ctrlKey || event.evt.metaKey
+        )
+      }
+      onTap={() => onElementClick(element.id, false)}
       onDragMove={(e) => onElementDragMove(element.id, e)}
       onDragEnd={(e) => onElementDragEnd(element.id, e)}
-      onTransformEnd={(e) => {
-        const node = e.target;
-        const newWidth = Math.round(node.width() * node.scaleX());
-        const newHeight = Math.round(node.height() * node.scaleY());
-        const newX = Math.round(node.x());
-        const newY = Math.round(node.y());
-
-        node.scaleX(1);
-        node.scaleY(1);
-
-        updateElement(element.id, {
-          x: newX,
-          y: newY,
-          width: newWidth,
-          height: newHeight,
-          scaleX: 1,
-          scaleY: 1,
-        });
-      }}
     />
   );
 }
@@ -106,7 +90,7 @@ export function CanvasElements({
   onElementDragMove,
   onElementDragEnd,
 }: CanvasElementsProps) {
-  const { selectedElementId } = useCanvasSelection();
+  const { selectedElementIds } = useCanvasSelection();
   const activeZoneId = useViewerStore((state) => state.activeZoneId);
 
   // Filter elements to display ONLY those belonging to the currently active zone/surface
@@ -118,7 +102,7 @@ export function CanvasElements({
     <>
       {visibleElements.map((element) => {
         if (element.type === 'image') {
-          const isSelected = element.id === selectedElementId;
+          const isSelected = selectedElementIds.includes(element.id);
           return (
             <CanvasImageElement
               key={element.id}

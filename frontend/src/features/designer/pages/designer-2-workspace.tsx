@@ -309,16 +309,23 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
 
   const addElement = useCanvasStore((state) => state.addElement);
   const updateElement = useCanvasStore((state) => state.updateElement);
+  const updateElements = useCanvasStore((state) => state.updateElements);
   const removeElement = useCanvasStore((state) => state.removeElement);
+  const removeElements = useCanvasStore((state) => state.removeElements);
   const selectElement = useCanvasStore((state) => state.selectElement);
-  const duplicateElement = useCanvasStore((state) => state.duplicateElement);
+  const toggleElementSelection = useCanvasStore((state) => state.toggleElementSelection);
+  const duplicateElements = useCanvasStore((state) => state.duplicateElements);
   const reorderElement = useCanvasStore((state) => state.reorderElement);
+  const rotateElements = useCanvasStore((state) => state.rotateElements);
+  const flipElements = useCanvasStore((state) => state.flipElements);
+  const centerElements = useCanvasStore((state) => state.centerElements);
   const toggleElementLock = useCanvasStore((state) => state.toggleElementLock);
   const toggleElementVisibility = useCanvasStore((state) => state.toggleElementVisibility);
   const undo = useCanvasStore((state) => state.undo);
   const redo = useCanvasStore((state) => state.redo);
   const allElements = useCanvasStore((state) => state.elements);
   const selectedElementId = useCanvasStore((state) => state.selectedElementId);
+  const selectedElementIds = useCanvasStore((state) => state.selectedElementIds);
   const elements = useMemo(
     () => allElements.filter((element) => element.id.startsWith('designer-2-')),
     [allElements],
@@ -449,11 +456,8 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
     });
   };
 
-  const centerArtwork = (id: string, width: number, height: number) => {
-    updateElement(id, {
-      x: Math.round(197 + (400 - width) / 2),
-      y: Math.round(180 + (500 - height) / 2),
-    });
+  const centerArtwork = () => {
+    centerElements(selectedElementIds, { x: 197, y: 180, width: 400, height: 500 });
   };
 
   const updateArtworkFilter = (key: keyof typeof defaultArtworkFilters, value: number) => {
@@ -924,9 +928,19 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                   {elements.map((element, index) => (
                     <div
                       key={element.id}
-                      className={`flex items-center gap-2 rounded-control border px-2 py-2 transition-colors ${selectedElementId === element.id ? 'border-primary bg-[var(--accent-muted)]' : 'border-border bg-surfaceMuted'}`}
+                      className={`flex items-center gap-2 rounded-control border px-2 py-2 transition-colors ${selectedElementIds.includes(element.id) ? 'border-primary bg-[var(--accent-muted)]' : 'border-border bg-surfaceMuted'}`}
                     >
-                      <button type="button" onClick={() => selectElement(element.id)} className="min-w-0 flex-1 text-left">
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          if (event.shiftKey || event.ctrlKey || event.metaKey) {
+                            toggleElementSelection(element.id);
+                          } else {
+                            selectElement(element.id);
+                          }
+                        }}
+                        className="min-w-0 flex-1 text-left"
+                      >
                         <div className="truncate text-xs font-medium text-foreground">{element.name || 'Elemento'}</div>
                         <div className="mt-0.5 text-[10px] uppercase tracking-[0.12em] text-foregroundSubtle">{element.type}</div>
                       </button>
@@ -943,7 +957,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                         <button type="button" aria-label="Bajar capa" onClick={() => reorderElement(element.id, 'down')} disabled={index === 0} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-surface hover:text-foreground disabled:opacity-30">
                           <ChevronDown className="h-3.5 w-3.5" />
                         </button>
-                        <button type="button" aria-label="Eliminar capa" onClick={() => { removeElement(element.id); if (selectedElementId === element.id) selectElement(null); }} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-danger-muted hover:text-danger">
+                        <button type="button" aria-label="Eliminar capa" onClick={() => removeElement(element.id)} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-danger-muted hover:text-danger">
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
@@ -1006,22 +1020,32 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
 
             {selectedArtwork && (
               <div className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-surface/95 px-2 py-1.5 shadow-subtle">
-                <button type="button" onClick={() => centerArtwork(selectedArtwork.id, selectedArtwork.width, selectedArtwork.height)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Centrar diseño">
+                <button type="button" onClick={centerArtwork} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Centrar diseño">
                   <Move className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" onClick={() => updateElement(selectedArtwork.id, { width: Math.min(320, Math.max(80, selectedArtwork.width + 12)), height: Math.min(320, Math.max(80, selectedArtwork.height + 12)) })} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Aumentar tamaño">
+                <button type="button" onClick={() => updateElements(
+                  elements
+                    .filter((element) => selectedElementIds.includes(element.id))
+                    .map((element) => ({
+                      elementId: element.id,
+                      updates: {
+                        width: Math.min(320, Math.max(80, element.width + 12)),
+                        height: Math.min(320, Math.max(80, element.height + 12)),
+                      },
+                    }))
+                )} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Aumentar tamaño">
                   <Plus className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" onClick={() => updateElement(selectedArtwork.id, { rotation: (selectedArtwork.rotation ?? 0) + 15 })} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Rotar 15°">
+                <button type="button" onClick={() => rotateElements(selectedElementIds, 15)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Rotar 15°">
                   <RotateCcw className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" onClick={() => duplicateElement(selectedArtwork.id)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Duplicar diseño">
+                <button type="button" onClick={() => duplicateElements(selectedElementIds)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Duplicar diseño">
                   <Copy className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" onClick={() => updateElement(selectedArtwork.id, { scaleX: (selectedArtwork.scaleX ?? 1) * -1 })} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Voltear horizontal">
+                <button type="button" onClick={() => flipElements(selectedElementIds, 'horizontal')} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Voltear horizontal">
                   <FlipHorizontal className="h-3.5 w-3.5" />
                 </button>
-                <button type="button" onClick={() => updateElement(selectedArtwork.id, { scaleY: (selectedArtwork.scaleY ?? 1) * -1 })} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Voltear vertical">
+                <button type="button" onClick={() => flipElements(selectedElementIds, 'vertical')} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Voltear vertical">
                   <FlipVertical className="h-3.5 w-3.5" />
                 </button>
                 <label className="flex items-center gap-1 rounded-full border border-border bg-surfaceMuted px-2 py-1 text-[10px] font-medium text-foregroundMuted" title="Opacidad">
@@ -1042,7 +1066,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                 <button type="button" onClick={() => toggleElementVisibility(selectedArtwork.id)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title={selectedArtwork.visible === false ? 'Mostrar capa' : 'Ocultar capa'}>
                   {selectedArtwork.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
-                <button type="button" onClick={() => { removeElement(selectedArtwork.id); selectElement(null); }} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-danger-muted hover:text-danger" title="Eliminar diseño">
+                <button type="button" onClick={() => removeElements(selectedElementIds)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-danger-muted hover:text-danger" title="Eliminar diseño">
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>

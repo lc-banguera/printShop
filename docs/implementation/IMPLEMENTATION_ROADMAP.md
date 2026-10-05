@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 04 completado; BLOCK 05 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 05 completado; BLOCK 06 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -168,7 +168,9 @@
 **Archivos potenciales**:
 - `src/core/design/selection/selection-manager.ts`
 - `src/core/design/transform/transform-system.ts`
-- Comandos: MoveElement, ScaleElement, RotateElement, AlignElement, FlipElement, DuplicateElement, DeleteElement
+- `src/core/design/commands/composite.command.ts`
+- `src/store/canvas-store.ts`
+- Bridge Konva ↔ store y controles de selección de Designer 2
 
 **Resultado esperado**:
 - Todas las transformaciones son undoables
@@ -177,6 +179,8 @@
 **Riesgos**:
 - El Konva Transformer actual maneja algunos transforms directamente sin pasar por el store
 - Requiere refactor del bridge Konva ↔ store
+
+**Estado**: COMPLETADO — selección múltiple, transformaciones y operaciones de lote pasan por managers compartidos y comandos undoables.
 
 **Siguiente bloque**: BLOCK 06
 

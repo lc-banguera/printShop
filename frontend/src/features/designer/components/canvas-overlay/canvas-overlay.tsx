@@ -12,7 +12,7 @@ interface CanvasOverlayProps {
   stageX: number;
   stageY: number;
   onStageClick: (e: Konva.KonvaEventObject<MouseEvent>) => void;
-  onElementClick: (elementId: string) => void;
+  onElementClick: (elementId: string, additive: boolean) => void;
   onDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
   onDragEnd: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
 }

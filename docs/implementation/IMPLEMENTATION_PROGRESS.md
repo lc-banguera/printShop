@@ -13,7 +13,7 @@
 | BLOCK 02 — Document Model | DONE | Creación/versionado, validación, JSON serializer y adaptador de canvas; build, lint focalizado y pruebas runtime pasan. Commit independiente. |
 | BLOCK 03 — Command System + History | DONE | CommandSystem y comandos add/update/remove/reorder integrados al store; undo/redo y ramificación verificados. Build/lint/runtime pasan. Commit independiente. |
 | BLOCK 04 — Layers | DONE | LayerManager y comandos undoables de reorder/lock/visibility conectados al canvasStore y a las acciones de capas de Designer 2. |
-| BLOCK 05 — Selection + Transform | PENDING | No iniciado. |
+| BLOCK 05 — Selection + Transform | DONE | SelectionManager y TransformSystem integrados al store, Designer 2 y bridge Konva; operaciones múltiples atómicas y undoables. |
 | BLOCK 06 — Tool Registry + Tool Context | PENDING | No iniciado. |
 | BLOCK 07 — Product Surface | PENDING | No iniciado. |
 | BLOCK 08 — 2D Renderer Adapter | PENDING | No iniciado. |
@@ -97,6 +97,23 @@
 - Commit: cierre independiente con mensaje `feat(layers): add undoable layer operations`.
 - Siguiente bloque: **BLOCK 05 — Selection + Transform**.
 
+## Registro de BLOCK 05 — Selection + Transform
+
+- Archivos: `frontend/src/core/design/{selection,transform}`, `frontend/src/core/design/commands/{composite.command.ts,index.ts}`, `frontend/src/store/canvas-store.ts`, `frontend/src/types/canvas.ts`, `frontend/src/features/designer/components/{canvas,canvas-elements,canvas-selection}.tsx`, `frontend/src/features/designer/components/canvas-overlay/canvas-overlay.tsx`, `frontend/src/features/designer/hooks/{use-canvas-selection,use-canvas-drag}.ts` y `frontend/src/features/designer/pages/designer-2-workspace.tsx`.
+- Cambio: `SelectionManager` unifica selección simple/múltiple; shift/control/command selecciona varios elementos desde el canvas y las capas D2. `TransformSystem` centraliza update, move, scale, rotate, flip, align y center; `CompositeCommand` hace atómicas las transformaciones, duplicaciones y eliminaciones por lote.
+- Bridge Konva: el Transformer enlaza todos los nodos seleccionados; un cambio de tamaño se registra como una sola operación undoable. Arrastrar un miembro mueve el conjunto seleccionado de la misma zona manteniendo sus posiciones relativas.
+- Lock: elementos bloqueados no se arrastran, no se adjuntan al Transformer ni reciben transformaciones del manager; se pueden desbloquear con la acción de capas.
+- Fidelidad: elementos siguen siendo entidades individuales; alineación y centrado de selección múltiple trasladan el bounding box del conjunto sin crear grupos persistentes. El centrado mantiene el área legacy del canvas; la abstracción del producto sigue pendiente de BLOCK 07.
+- Build frontend: **PASS** (`tsc` y `vite build`).
+- ESLint focalizado en core, store, hooks y componentes salvo `CanvasArea`: **PASS**. Los 9 diagnósticos de ESLint de `CanvasArea` (import `Box`, `any`, bloques vacíos y punto y coma) también se reproducen en el archivo de `HEAD`; no los introdujo este bloque.
+- Runtime aislado del `canvasStore` real: **PASS** para selección, transformaciones simples/múltiples, alineación de grupo, lock, duplicación/eliminación múltiple y undo/redo atómico.
+- Browser smoke en `/designer/new?product=camisetas` a 1440×900: selección aditiva de `Img1` y `Img2` desde capas, rotación conjunta y verificación visual de 15° en ambas; undo restauró 0° en ambas y redo restauró 15° en ambas. La ruta no generó errores de página; Three.js registró warnings deprecados existentes. No se verificó móvil.
+- Tests del repo: no hay runner/suite frontend configurada.
+- `git diff --check`: **PASS** antes del commit.
+- Decisión: operaciones de grupo son composites temporales; no se introduce una capa de agrupación persistente ni se cambia el dominio. ADR-014.
+- Commit: cierre independiente con mensaje `feat(selection): add shared selection and transform systems`.
+- Siguiente bloque: **BLOCK 06 — Tool Registry + Tool Context**.
+
 ## Historial
 
 | Fecha | Bloque | Cambio |
@@ -106,3 +123,4 @@
 | 2026-10-05 | BLOCK 02 | Se implementaron creación, validación, serialización JSON y adaptación del canvas; build, lint y checks runtime aprobados. |
 | 2026-10-05 | BLOCK 03 | Se integraron comandos compartidos al canvasStore; undo/redo y ramificación validados sin retirar el historial legacy. |
 | 2026-10-05 | BLOCK 04 | Se implementaron reorder, lock y visibility de capas mediante comandos undoables e integración con Designer 2. |
+| 2026-10-05 | BLOCK 05 | Se integraron selección múltiple y transformaciones de grupo mediante commands undoables y managers compartidos. |

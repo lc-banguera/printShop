@@ -1,4 +1,10 @@
 import type { PrintableZoneId } from './product';
+import type {
+  CanvasAlignment,
+  ElementUpdate,
+  FlipAxis,
+  TransformBounds,
+} from '@/core/design/transform';
 
 /**
  * Canvas element types and interfaces
@@ -69,16 +75,26 @@ export interface CanvasState {
   selectElement: (id: string | null) => void;
   toggleElementSelection: (id: string) => void;
   clearSelection: () => void;
+  selectElements: (ids: string[]) => void;
   addElement: (element: CanvasElement) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  updateElements: (updates: ElementUpdate[]) => void;
   removeElement: (id: string) => void;
+  removeElements: (ids: string[]) => void;
   getElement: (id: string) => CanvasElement | undefined;
   duplicateElement: (id: string) => void;
+  duplicateElements: (ids: string[]) => void;
   undo: () => void;
   redo: () => void;
   reorderElement: (id: string, direction: 'up' | 'down') => void;
   toggleElementLock: (id: string) => void;
   toggleElementVisibility: (id: string) => void;
+  moveElements: (ids: string[], delta: { x: number; y: number }) => void;
+  scaleElements: (ids: string[], scaleX: number, scaleY: number) => void;
+  rotateElements: (ids: string[], degrees: number) => void;
+  flipElements: (ids: string[], axis: FlipAxis) => void;
+  alignElements: (ids: string[], alignment: CanvasAlignment, bounds: TransformBounds) => void;
+  centerElements: (ids: string[], bounds: TransformBounds) => void;
   alignSelectedElement: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
   groupSelectedElements: () => void;
   ungroupSelectedElements: () => void;

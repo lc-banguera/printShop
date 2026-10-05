@@ -2,12 +2,14 @@ import { create } from 'zustand';
 import type { CanvasState, CanvasElement } from '@/types/canvas';
 import {
   AddElementCommand,
+  CompositeCommand,
   CommandSystem,
   RemoveElementCommand,
-  UpdateElementCommand,
   type CanvasCommandContext,
 } from '@/core/design/commands';
 import { LayerManager } from '@/core/design/layers';
+import { SelectionManager } from '@/core/design/selection';
+import { TransformSystem } from '@/core/design/transform';
 
 function cloneElements(elements: CanvasElement[]) {
   return elements.map((element) => ({ ...element }));
@@ -20,6 +22,8 @@ export const useCanvasStore = create<CanvasState>(
   ) => {
     const commandSystem = new CommandSystem<CanvasCommandContext>();
     const layerManager = new LayerManager(commandSystem);
+    const selectionManager = new SelectionManager();
+    const transformSystem = new TransformSystem(commandSystem);
 
     function executeOperation(
       operation: (context: CanvasCommandContext) => void | boolean,
@@ -49,6 +53,43 @@ export const useCanvasStore = create<CanvasState>(
       executeOperation((context) => commandSystem.execute(command, context), nextState);
     }
 
+    function removeElements(elementIds: string[]) {
+      const state = get();
+      const ids = [...new Set(elementIds)].filter((id) =>
+        state.elements.some((element) => element.id === id)
+      );
+      if (ids.length === 0) return;
+
+      const commands = ids.map((id) => new RemoveElementCommand(id));
+      const command = commands.length === 1
+        ? commands[0]
+        : new CompositeCommand('Remove elements', commands);
+      executeCommand(command, selectionManager.remove(state, ids));
+    }
+
+    function duplicateElements(elementIds: string[]) {
+      const state = get();
+      const selected = new Set(elementIds);
+      const duplicates = state.elements
+        .filter((element) => selected.has(element.id))
+        .map((element) => ({
+          ...element,
+          id: `${element.id}-copy-${Date.now()}`,
+          x: element.x + 24,
+          y: element.y + 24,
+        }));
+      if (duplicates.length === 0) return;
+
+      const commands = duplicates.map((element) => new AddElementCommand(element));
+      const command = commands.length === 1
+        ? commands[0]
+        : new CompositeCommand('Duplicate elements', commands);
+      executeCommand(
+        command,
+        selectionManager.selectMany(duplicates.map((element) => element.id))
+      );
+    }
+
     return {
       selectedElementId: null,
       selectedElementIds: [],
@@ -57,23 +98,19 @@ export const useCanvasStore = create<CanvasState>(
       _historyIndex: -1,
 
       selectElement: (id: string | null) => {
-        set({ selectedElementId: id, selectedElementIds: id ? [id] : [] });
+        set(selectionManager.select(id));
+      },
+
+      selectElements: (ids: string[]) => {
+        set(selectionManager.selectMany(ids));
       },
 
       toggleElementSelection: (id: string) => {
-        const state = get();
-        const isSelected = state.selectedElementIds.includes(id);
-        const nextIds = isSelected
-          ? state.selectedElementIds.filter((item) => item !== id)
-          : [...state.selectedElementIds, id];
-        set({
-          selectedElementId: nextIds[0] ?? null,
-          selectedElementIds: nextIds,
-        });
+        set(selectionManager.toggle(get(), id));
       },
 
       clearSelection: () => {
-        set({ selectedElementId: null, selectedElementIds: [] });
+        set(selectionManager.select(null));
       },
 
       addElement: (element: CanvasElement) => {
@@ -81,15 +118,21 @@ export const useCanvasStore = create<CanvasState>(
       },
 
       updateElement: (id: string, updates: Partial<CanvasElement>) => {
-        executeCommand(new UpdateElementCommand(id, updates));
+        executeOperation((context) =>
+          transformSystem.updateElements([{ elementId: id, updates }], context)
+        );
+      },
+
+      updateElements: (updates) => {
+        executeOperation((context) => transformSystem.updateElements(updates, context));
       },
 
       removeElement: (id: string) => {
-        const state = get();
-        executeCommand(new RemoveElementCommand(id), {
-          selectedElementId: state.selectedElementId === id ? null : state.selectedElementId,
-          selectedElementIds: state.selectedElementIds.filter((elementId) => elementId !== id),
-        });
+        removeElements([id]);
+      },
+
+      removeElements: (ids) => {
+        removeElements(ids);
       },
 
       getElement: (id: string) => {
@@ -98,21 +141,11 @@ export const useCanvasStore = create<CanvasState>(
       },
 
       duplicateElement: (id: string) => {
-        const state = get();
-        const elementToDuplicate = state.elements.find((el) => el.id === id);
-        if (!elementToDuplicate) return;
+        duplicateElements([id]);
+      },
 
-        const duplicated: CanvasElement = {
-          ...elementToDuplicate,
-          id: `${elementToDuplicate.id}-copy-${Date.now()}`,
-          x: elementToDuplicate.x + 24,
-          y: elementToDuplicate.y + 24,
-        };
-
-        executeCommand(new AddElementCommand(duplicated), {
-          selectedElementId: duplicated.id,
-          selectedElementIds: [duplicated.id],
-        });
+      duplicateElements: (ids) => {
+        duplicateElements(ids);
       },
 
       undo: () => {
@@ -149,36 +182,40 @@ export const useCanvasStore = create<CanvasState>(
         executeOperation((context) => layerManager.toggleVisibility(id, context));
       },
 
+      moveElements: (ids, delta) => {
+        executeOperation((context) => transformSystem.move(ids, delta, context));
+      },
+
+      scaleElements: (ids, scaleX, scaleY) => {
+        executeOperation((context) => transformSystem.scale(ids, scaleX, scaleY, context));
+      },
+
+      rotateElements: (ids, degrees) => {
+        executeOperation((context) => transformSystem.rotate(ids, degrees, context));
+      },
+
+      flipElements: (ids, axis) => {
+        executeOperation((context) => transformSystem.flip(ids, axis, context));
+      },
+
+      alignElements: (ids, alignment, bounds) => {
+        executeOperation((context) => transformSystem.align(ids, alignment, bounds, context));
+      },
+
+      centerElements: (ids, bounds) => {
+        executeOperation((context) => transformSystem.center(ids, bounds, context));
+      },
+
       alignSelectedElement: (alignment) => {
         const state = get();
-        const selected = state.selectedElementId
-          ? state.elements.find((el) => el.id === state.selectedElementId)
-          : null;
-        if (!selected) return;
-
-        let updates: Partial<CanvasElement>;
-        switch (alignment) {
-          case 'left':
-            updates = { x: 197 };
-            break;
-          case 'center':
-            updates = { x: 197 + (400 - selected.width) / 2 };
-            break;
-          case 'right':
-            updates = { x: 197 + 400 - selected.width };
-            break;
-          case 'top':
-            updates = { y: 180 };
-            break;
-          case 'middle':
-            updates = { y: 180 + (500 - selected.height) / 2 };
-            break;
-          case 'bottom':
-            updates = { y: 180 + 500 - selected.height };
-            break;
-        }
-
-        executeCommand(new UpdateElementCommand(selected.id, updates));
+        executeOperation((context) =>
+          transformSystem.align(state.selectedElementIds, alignment, {
+            x: 197,
+            y: 180,
+            width: 400,
+            height: 500,
+          }, context)
+        );
       },
 
       groupSelectedElements: () => {

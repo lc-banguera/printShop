@@ -37,14 +37,16 @@ export function CanvasArea() {
 
   const addElement = useCanvasStore((state: CanvasState) => state.addElement);
   const selectElement = useCanvasStore((state: CanvasState) => state.selectElement);
-  const duplicateElement = useCanvasStore((state: CanvasState) => state.duplicateElement);
-  const removeElement = useCanvasStore((state: CanvasState) => state.removeElement);
+  const toggleElementSelection = useCanvasStore((state: CanvasState) => state.toggleElementSelection);
+  const duplicateElements = useCanvasStore((state: CanvasState) => state.duplicateElements);
+  const removeElements = useCanvasStore((state: CanvasState) => state.removeElements);
   const undo = useCanvasStore((state: CanvasState) => state.undo);
   const redo = useCanvasStore((state: CanvasState) => state.redo);
   const alignSelectedElement = useCanvasStore((state: CanvasState) => state.alignSelectedElement);
   const groupSelectedElements = useCanvasStore((state: CanvasState) => state.groupSelectedElements);
   const ungroupSelectedElements = useCanvasStore((state: CanvasState) => state.ungroupSelectedElements);
   const selectedElementId = useCanvasStore((state: CanvasState) => state.selectedElementId);
+  const selectedElementIds = useCanvasStore((state: CanvasState) => state.selectedElementIds);
   const elements = useCanvasStore((state: CanvasState) => state.elements);
 
   const activeProduct = useViewerStore((state) => state.activeProduct);
@@ -148,8 +150,12 @@ export function CanvasArea() {
     }
   };
 
-  const handleElementClick = (elementId: string) => {
-    selectElement(elementId);
+  const handleElementClick = (elementId: string, additive: boolean) => {
+    if (additive) {
+      toggleElementSelection(elementId);
+    } else {
+      selectElement(elementId);
+    }
   };
 
   const handleZoom = (direction: 'in' | 'out') => {
@@ -228,11 +234,11 @@ export function CanvasArea() {
           <span className="text-[9px]">Rehacer</span>
         </button>
         <div className="h-px w-5 bg-[#e4e4ee]" />
-        <button type="button" onClick={() => selectedElementId && duplicateElement(selectedElementId)} disabled={!selectedElementId} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={() => duplicateElements(selectedElementIds)} disabled={selectedElementIds.length === 0} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Copy className="h-3.5 w-3.5" />
           <span className="text-[9px]">Duplicar</span>
         </button>
-        <button type="button" onClick={() => selectedElementId && removeElement(selectedElementId)} disabled={!selectedElementId} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={() => removeElements(selectedElementIds)} disabled={selectedElementIds.length === 0} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Trash2 className="h-3.5 w-3.5" />
           <span className="text-[9px]">Eliminar</span>
         </button>

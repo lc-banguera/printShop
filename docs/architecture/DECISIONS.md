@@ -83,6 +83,7 @@ Reemplazar el sistema de snapshots por un Command System formal en BLOCK 03. Cad
 ### Estado de implementación
 - BLOCK 03 añade `CommandSystem` y comandos de add/update/remove/reorder; el `canvasStore` conserva sus acciones públicas.
 - BLOCK 04 integra las operaciones de reorder, lock y visibility de capas en el mismo historial de comandos.
+- BLOCK 05 utiliza `CompositeCommand` para que una acción sobre varios elementos genere un único paso de undo/redo.
 - `_history` y `_historyIndex` siguen disponibles como proyección legacy, pero no son la fuente de verdad de undo/redo. Se retirarán solo después de validación en producción.
 
 ---
@@ -261,6 +262,26 @@ BLOCK 04 implementa `LayerManager` sobre el contexto plano existente de `CanvasE
 - Las acciones actuales de Designer 2 conservan su comportamiento y pasan a ser undoables.
 - Los diseñadores futuros pueden reutilizar la capacidad compartida; la adaptación a capas estructurales queda para la integración del modelo de documento.
 - No se duplican stores ni se introducen abstracciones de agrupación que la UI actual no representa.
+
+---
+
+## ADR-014 — Selección múltiple y transformaciones por lote
+
+**Estado**: ACCEPTED
+**Fecha**: 2026-10-05
+
+### Contexto
+El canvas mantenía `selectedElementIds`, pero el bridge Konva y las acciones del workspace operaban solo sobre un elemento. Las actualizaciones múltiples separadas también producirían varios pasos en el historial para una sola transformación visual.
+
+### Decisión
+La selección aditiva usa Shift, Control o Command en las superficies de selección existentes. Transformaciones y acciones por lote usan comandos composites como un paso undoable; la alineación/centrado mueve el bounding box del conjunto y conserva la relación entre sus elementos. Un elemento con lock no participa de las transformaciones ni del Transformer.
+
+Los elementos continúan siendo registros independientes: no se agrega agrupación persistente. El grupo existe solo mientras se ejecuta una operación sobre la selección.
+
+### Consecuencias
+- La selección múltiple es reutilizable entre UI y core mediante `SelectionManager`.
+- `TransformSystem` comparte las operaciones de movimiento, escala, rotación, flip, alineación y centrado.
+- La experiencia actual de agrupación persistente mantiene su estado previo; no se redefine como parte de este bloque.
 
 ---
 
