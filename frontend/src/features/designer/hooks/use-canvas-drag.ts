@@ -6,12 +6,7 @@ export function useCanvasDrag() {
   const activeProduct = useViewerStore((state) => state.activeProduct);
   const activeZoneId = useViewerStore((state) => state.activeZoneId);
 
-  const activeZone = activeProduct.printableAreas[activeZoneId] || {
-    x: 197,
-    y: 180,
-    width: 400,
-    height: 500,
-  };
+  const activeZone = activeProduct.printableAreas[activeZoneId];
 
   const handleElementDrag = (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target as Konva.Shape;

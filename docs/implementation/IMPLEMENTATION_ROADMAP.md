@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 06 completado; BLOCK 07 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 06 completado; BLOCK 07 tiene avance parcial y está bloqueado por falta de calibración 3D verificable — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -215,14 +215,17 @@
 
 ## BLOCK 07 — Product Surface
 
-**Objetivo**: Eliminar el printable area hardcoded. Implementar `ProductSurface` que lea de `ProductDefinition`.
+**Objetivo**: Eliminar bounds hardcoded y usar el `ProductSurface` existente junto con `ProductDefinition.printableAreas` como fuente del runtime.
 
 **Dependencias**: BLOCK 06
 
 **Archivos a modificar**:
 - `src/store/canvas-store.ts` — `alignSelectedElement` usa coordenadas hardcoded
-- `src/features/designer/components/product-viewer/artwork-decals.tsx` — `PRINT_AREA` hardcoded
+- `src/features/designer/pages/designer-2-workspace.tsx` — alta/centrado de artwork usa bounds del producto/zona
+- `src/features/designer/components/product-viewer/artwork-decals.tsx` — `PRINT_AREA` debe recibir coordenadas desde el producto
+- `src/features/designer/components/product-viewer/product-model.tsx` y `product-pivot.tsx` — propagar el área frontal calibrada
 - `src/features/designer/components/canvas.tsx` — fallback hardcoded
+- `src/features/designer/hooks/use-canvas-drag.ts` — fallback hardcoded
 - `src/features/designer/services/canvas-config.ts` — `PRINTABLE_AREA` hardcoded
 
 **Resultado esperado**:
@@ -230,7 +233,9 @@
 - Los Decals 3D se posicionan correctamente según el producto activo
 - El sistema soporta correctamente las 5 zonas de la camiseta
 
-**Riesgos**: Alto — cambio de coordenadas puede desposicionar artwork existente. Validar visualmente en las 5 zonas.
+**Límite de evidencia**: La inspección del GLB disponible encontró superficies/materiales textiles etiquetados como `FRONT`, pero ninguna calibración semántica verificable para espalda, mangas o etiqueta. No derivar posiciones físicas 3D desde coordenadas 2D ni desde `cameraTarget`. Hasta disponer de calibración real por zona, registrar el soporte 3D de esas zonas como `BLOCKED`; no cerrar este bloque ni comenzar BLOCK 08.
+
+**Riesgos**: Alto — un cambio de coordenadas puede desposicionar artwork existente. Validar visualmente las zonas que tengan calibración real y conservar explícita cualquier limitación.
 
 **Siguiente bloque**: BLOCK 08
 

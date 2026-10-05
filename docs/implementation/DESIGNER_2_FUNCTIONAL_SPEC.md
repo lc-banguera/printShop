@@ -24,7 +24,7 @@ La única `ProductDefinition` registrada y el único GLB funcional documentados 
 | Área | Estado documentado |
 |---|---|
 | Viewer 3D de camiseta, órbita libre, zoom, reset de vista, guías y grid | `IMPLEMENTED` |
-| Proyección de artwork como decals 3D | `IMPLEMENTED` |
+| Proyección de artwork como decals 3D | `PARTIAL`; solo el frente tiene calibración física verificable en el GLB disponible |
 | Biblioteca local con búsqueda y tabs documentados | `IMPLEMENTED` |
 | Subida de imagen por selección o drag & drop y validación de tipo/tamaño documentada | `IMPLEMENTED` |
 | Creación de texto rasterizado y controles tipográficos descritos en inventario | `IMPLEMENTED` |
@@ -42,7 +42,8 @@ Los estados reflejan la evidencia existente y deben corregirse solo con verifica
 - La ruta `/designer/new?product=camisetas` debe seguir resolviendo el workspace de Designer 2.
 - El GLB de camiseta no se reutiliza como modelo de otro producto.
 - No se inventan rutas de assets ni se altera el asset original del usuario; transformaciones y filtros se mantienen no destructivos, según [DECISIONS.md](../architecture/DECISIONS.md).
-- El área imprimible debe tratarse como específica del producto/zona. El hardcoding existente está registrado como deuda para BLOCK 07; no debe propagarse.
+- El área imprimible se trata como específica del producto/zona y sus bounds 2D se leen desde `ProductDefinition.printableAreas`.
+- Las zonas 2D usan `ProductDefinition.printableAreas`; la proyección física 3D fuera del frente no se considera implementada hasta contar con calibración real por zona.
 - No se declara que guardar, descargar, producir, IA o procesamiento estén conectados mientras no exista evidencia de la operación real.
 - Se conservan las responsabilidades actuales de `canvasStore`, `viewerStore` y `toolsStore` hasta que un bloque aprobado cambie su implementación de forma compatible.
 

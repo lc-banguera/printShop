@@ -31,6 +31,7 @@
 | **Printable Areas** | front: (197, 180, 400×500), back: (197, 180, 400×500), sleeves: (270, 250, 250×350), label: (320, 150, 150×150) |
 | **Materiales** | Blanco (#ffffff), Negro (#171421) |
 | **Estado 3D** | ✅ DISPONIBLE — GLB real y funcional |
+| **Calibración de decals 3D** | Frente verificado; no se encontró identificación/calibración física verificable para espalda, mangas o etiqueta |
 | **Estado Designer 2** | ✅ HABILITADO |
 
 ---

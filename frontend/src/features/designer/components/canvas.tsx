@@ -61,12 +61,7 @@ export function CanvasArea() {
   const updateGarmentColor = useViewerStore((state) => state.updateGarmentColor);
 
 
-  const activeZone = activeProduct.printableAreas[activeZoneId] || {
-    x: 197,
-    y: 180,
-    width: 400,
-    height: 500,
-  };
+  const activeZone = activeProduct.printableAreas[activeZoneId];
 
   const { handleDragMove, handleDragEnd } = useCanvasDrag();
 
@@ -109,19 +104,24 @@ export function CanvasArea() {
       const canvasX = (event.clientX - containerBounds.left - stageX) / stageScale;
       const canvasY = (event.clientY - containerBounds.top - stageY) / stageScale;
 
-      const halfW = DEFAULT_DROPPED_IMAGE_SIZE / 2;
-      const halfH = DEFAULT_DROPPED_IMAGE_SIZE / 2;
+      const droppedImageSize = Math.min(
+        DEFAULT_DROPPED_IMAGE_SIZE,
+        activeZone.width,
+        activeZone.height
+      );
+      const halfW = droppedImageSize / 2;
+      const halfH = droppedImageSize / 2;
 
       const clampedX = Math.round(
         Math.min(
           Math.max(canvasX - halfW, activeZone.x),
-          activeZone.x + activeZone.width - DEFAULT_DROPPED_IMAGE_SIZE
+          activeZone.x + activeZone.width - droppedImageSize
         )
       );
       const clampedY = Math.round(
         Math.min(
           Math.max(canvasY - halfH, activeZone.y),
-          activeZone.y + activeZone.height - DEFAULT_DROPPED_IMAGE_SIZE
+          activeZone.y + activeZone.height - droppedImageSize
         )
       );
 
@@ -132,8 +132,8 @@ export function CanvasArea() {
         zoneId: activeZoneId,
         x: clampedX,
         y: clampedY,
-        width: DEFAULT_DROPPED_IMAGE_SIZE,
-        height: DEFAULT_DROPPED_IMAGE_SIZE,
+        width: droppedImageSize,
+        height: droppedImageSize,
         image: payload.resource.image,
         originalImageSrc: payload.resource.image,
       };
@@ -254,7 +254,7 @@ export function CanvasArea() {
         {showAlignmentMenu && selectedElementId ? (
           <div className="absolute left-full ml-2 flex flex-col gap-1 rounded-xl border border-[#e4e4ee] bg-white p-2 shadow-lg">
             {(['left','center','right','top','middle','bottom'] as const).map((alignment) => (
-              <button key={alignment} type="button" onClick={() => { alignSelectedElement(alignment); setShowAlignmentMenu(false); }} className="rounded-lg px-2 py-1 text-left text-[10px] hover:bg-[#f5f4fb]">
+              <button key={alignment} type="button" onClick={() => { alignSelectedElement(alignment, activeZone); setShowAlignmentMenu(false); }} className="rounded-lg px-2 py-1 text-left text-[10px] hover:bg-[#f5f4fb]">
                 {alignment === 'left' ? 'Izquierda' : alignment === 'center' ? 'Centro' : alignment === 'right' ? 'Derecha' : alignment === 'top' ? 'Arriba' : alignment === 'middle' ? 'Medio' : 'Abajo'}
               </button>
             ))}

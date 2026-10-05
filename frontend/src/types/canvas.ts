@@ -95,7 +95,10 @@ export interface CanvasState {
   flipElements: (ids: string[], axis: FlipAxis) => void;
   alignElements: (ids: string[], alignment: CanvasAlignment, bounds: TransformBounds) => void;
   centerElements: (ids: string[], bounds: TransformBounds) => void;
-  alignSelectedElement: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
+  alignSelectedElement: (
+    alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom',
+    bounds: TransformBounds
+  ) => void;
   groupSelectedElements: () => void;
   ungroupSelectedElements: () => void;
 }

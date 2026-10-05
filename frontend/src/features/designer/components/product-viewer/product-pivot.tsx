@@ -64,6 +64,7 @@ function ProductColorApplier({ color, modelUrl, materialBrightness, children }: 
  */
 export function ProductPivot({ showPrintArea, showSelection, ...artworkProps }: Designer2ArtworkProps) {
   const activeZoneId = useViewerStore((s) => s.activeZoneId);
+  const frontPrintableArea = useViewerStore((s) => s.activeProduct.printableAreas.front);
   const productColor = useViewerStore((s) => s.currentGarmentColor);
   const materialBrightness = useViewerStore((s) => s.materialBrightness);
   const modelUrl = useViewerStore((s) => s.activeProduct.modelUrl ?? '');
@@ -89,6 +90,7 @@ export function ProductPivot({ showPrintArea, showSelection, ...artworkProps }: 
           {modelUrl ? (
             <ProductModel
               modelUrl={modelUrl}
+              printableArea={frontPrintableArea}
               showPrintArea={showPrintArea}
               showSelection={showSelection}
               {...artworkProps}

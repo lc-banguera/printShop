@@ -15,7 +15,7 @@
 | BLOCK 04 — Layers | DONE | LayerManager y comandos undoables de reorder/lock/visibility conectados al canvasStore y a las acciones de capas de Designer 2. |
 | BLOCK 05 — Selection + Transform | DONE | SelectionManager y TransformSystem integrados al store, Designer 2 y bridge Konva; operaciones múltiples atómicas y undoables. |
 | BLOCK 06 — Tool Registry + Tool Context | DONE | Registry del Design Core, filtrado explícito por capabilities y transición de ciclo de vida conectada al hook; configuración y Zustand legacy preservados. |
-| BLOCK 07 — Product Surface | PENDING | No iniciado. |
+| BLOCK 07 — Product Surface | BLOCKED | Límites y operaciones 2D leen la superficie/zona del producto activo; el decal frontal toma el printable area del producto. El GLB solo ofrece calibración física etiquetada `FRONT`; no hay evidencia para proyectar con fidelidad los decals en espalda, mangas o etiqueta. |
 | BLOCK 08 — 2D Renderer Adapter | PENDING | No iniciado. |
 | BLOCK 09 — 3D Renderer Adapter | PENDING | No iniciado. |
 | BLOCK 10 — Asset System | PENDING | No iniciado. |
@@ -142,3 +142,18 @@
 | 2026-10-05 | BLOCK 04 | Se implementaron reorder, lock y visibility de capas mediante comandos undoables e integración con Designer 2. |
 | 2026-10-05 | BLOCK 05 | Se integraron selección múltiple y transformaciones de grupo mediante commands undoables y managers compartidos. |
 | 2026-10-05 | BLOCK 06 | Se añadió el Tool Registry compartido con filtrado por capabilities y puente de compatibilidad para la configuración y el estado legacy. |
+
+## Registro de BLOCK 07 — Product Surface (avance parcial; bloqueado)
+
+- Archivos funcionales: `frontend/src/features/designer/components/canvas.tsx`, `frontend/src/features/designer/components/product-viewer/artwork-decals.tsx`, `frontend/src/features/designer/components/product-viewer/product-model.tsx`, `frontend/src/features/designer/components/product-viewer/product-pivot.tsx`, `frontend/src/features/designer/hooks/use-canvas-drag.ts`, `frontend/src/features/designer/pages/designer-2-workspace.tsx`, `frontend/src/features/designer/services/canvas-config.ts`, `frontend/src/store/canvas-store.ts` y `frontend/src/types/canvas.ts`.
+- Cambio seguro completado: drag, drop, alineación/centrado, alta de artwork y límites 2D toman `activeProduct.printableAreas[activeZoneId]`; los elementos nuevos se limitan al tamaño disponible de su superficie. Se eliminó la constante de printable area de `canvas-config.ts`. El decal y el contorno de la superficie frontal consumen el printable area de `ProductDefinition`; se conservó sin cambios la calibración física frontal existente.
+- Arquitectura: se reutiliza `PrintableZoneConfig` como fuente de coordenadas del producto y el `ProductSurface` existente del modelo documental; no se crea un esquema paralelo ni se inventan `safeArea`, `bleed` o calibraciones.
+- Evidencia del asset: lectura del GLB real mediante `@gltf-transform/core`; los materiales textiles disponibles están etiquetados `FRONT` y no se hallaron regiones etiquetadas como espalda, mangas o etiqueta. No es seguro estimar la geometría imprimible de esas zonas a partir de rectángulos 2D o de objetivos de cámara.
+- Límite: la proyección de decal 3D continúa soportada solo en la superficie frontal calibrada. Las otras cuatro zonas no se declaran completadas. BLOCK 07 queda `BLOCKED`; por la secuencia obligatoria, BLOCK 08 no puede comenzar hasta obtener y validar calibración real por zona.
+- Build base (`npm run build --prefix frontend`): **PASS** (`tsc` y `vite build`). Build posterior: **PASS**.
+- ESLint focalizado: reporta 14 errores en `canvas.tsx` y `product-pivot.tsx`, en código preexistente ajeno a las líneas de este cambio; no se limpiaron problemas fuera del alcance. Diagnósticos del editor en los nueve archivos funcionales modificados: **sin errores**.
+- Tests: no hay suite/runner frontend configurado. La ruta `/designer/new?product=camisetas` cargó en navegador; se observaron solo warnings deprecados de Three.js, sin error crítico de ejecución. No se declara validación visual 3D de las cinco zonas.
+- `git diff --check`: **PASS**.
+- Decisión: ADR-005 aceptada para reutilizar el modelo de superficie existente y mantener bloqueada cualquier proyección 3D sin calibración verificable.
+- Commit: `feat(design-core): derive 2d bounds from product surfaces` (avance parcial; no cierra BLOCK 07).
+- Siguiente paso: obtener calibraciones/identificadores de superficie reales para espalda, ambas mangas y etiqueta; después validar sus decals antes de cerrar BLOCK 07 y comenzar BLOCK 08.

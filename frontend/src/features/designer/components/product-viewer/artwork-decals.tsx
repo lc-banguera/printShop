@@ -4,6 +4,7 @@ import { useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { ArtworkFilters, CanvasElement } from '@/types/canvas';
+import type { PrintableZoneConfig } from '@/types/product';
 
 const DEFAULT_ARTWORK_FILTERS: ArtworkFilters = {
   brightness: 100,
@@ -15,11 +16,8 @@ const DEFAULT_ARTWORK_FILTERS: ArtworkFilters = {
   blur: 0,
 };
 
-const PRINT_AREA = {
-  x: 197,
-  y: 180,
-  width: 400,
-  height: 500,
+// The GLB currently has a verified physical calibration for its front fabric only.
+const FRONT_MODEL_CALIBRATION = {
   modelWidth: 0.31,
   modelHeight: 0.49,
   modelCenterY: 1.245,
@@ -41,6 +39,7 @@ interface ArtworkDecalsProps {
   elements: CanvasElement[];
   selectedElementId: string | null;
   mesh: THREE.Mesh;
+  printableArea: PrintableZoneConfig;
   showPrintArea: boolean;
   showSelection: boolean;
   onSelect?: (id: string) => void;
@@ -52,6 +51,7 @@ interface ArtworkDecalProps {
   image: string;
   selected: boolean;
   mesh: THREE.Mesh;
+  printableArea: PrintableZoneConfig;
   interactive: boolean;
   onSelect?: (id: string) => void;
   onMove?: (id: string, x: number, y: number) => void;
@@ -63,11 +63,15 @@ interface ArtworkPointerEvent {
   stopPropagation: () => void;
 }
 
-function getModelPosition(element: CanvasElement, mesh: THREE.Mesh) {
+function getModelPosition(
+  element: CanvasElement,
+  mesh: THREE.Mesh,
+  printableArea: PrintableZoneConfig
+) {
   const x = element.x + element.width / 2;
   const y = element.y + element.height / 2;
-  const localX = ((x - PRINT_AREA.x - PRINT_AREA.width / 2) / PRINT_AREA.width) * PRINT_AREA.modelWidth;
-  const localY = PRINT_AREA.modelCenterY + PRINT_AREA.modelHeight / 2 - ((y - PRINT_AREA.y) / PRINT_AREA.height) * PRINT_AREA.modelHeight;
+  const localX = ((x - printableArea.x - printableArea.width / 2) / printableArea.width) * FRONT_MODEL_CALIBRATION.modelWidth;
+  const localY = FRONT_MODEL_CALIBRATION.modelCenterY + FRONT_MODEL_CALIBRATION.modelHeight / 2 - ((y - printableArea.y) / printableArea.height) * FRONT_MODEL_CALIBRATION.modelHeight;
   mesh.updateWorldMatrix(true, false);
   const localOrigin = mesh.worldToLocal(new THREE.Vector3(localX, localY, 0));
   localOrigin.z += 100;
@@ -82,16 +86,20 @@ function getModelPosition(element: CanvasElement, mesh: THREE.Mesh) {
   return mesh.worldToLocal(hit.point.clone()).addScaledVector(normal, 0.2);
 }
 
-function getModelScale(element: CanvasElement, mesh: THREE.Mesh): [number, number, number] {
+function getModelScale(
+  element: CanvasElement,
+  mesh: THREE.Mesh,
+  printableArea: PrintableZoneConfig
+): [number, number, number] {
   const origin = mesh.worldToLocal(new THREE.Vector3(0, 0, 0));
   const width = mesh.worldToLocal(new THREE.Vector3(
-    (element.width / PRINT_AREA.width) * PRINT_AREA.modelWidth,
+    (element.width / printableArea.width) * FRONT_MODEL_CALIBRATION.modelWidth,
     0,
     0,
   ));
   const height = mesh.worldToLocal(new THREE.Vector3(
     0,
-    (element.height / PRINT_AREA.height) * PRINT_AREA.modelHeight,
+    (element.height / printableArea.height) * FRONT_MODEL_CALIBRATION.modelHeight,
     0,
   ));
   const depth = mesh.worldToLocal(new THREE.Vector3(0, 0, 0.08));
@@ -104,23 +112,29 @@ function getModelScale(element: CanvasElement, mesh: THREE.Mesh): [number, numbe
   ];
 }
 
-function PrintableAreaOutline({ mesh }: { mesh: THREE.Mesh }) {
+function PrintableAreaOutline({
+  mesh,
+  printableArea,
+}: {
+  mesh: THREE.Mesh;
+  printableArea: PrintableZoneConfig;
+}) {
   const points = useMemo(() => {
     const boundary: THREE.Vector3[] = [];
     const edgeSteps = 12;
     const edges = [
-      (step: number) => [PRINT_AREA.x + (PRINT_AREA.width * step) / edgeSteps, PRINT_AREA.y],
-      (step: number) => [PRINT_AREA.x + PRINT_AREA.width, PRINT_AREA.y + (PRINT_AREA.height * step) / edgeSteps],
-      (step: number) => [PRINT_AREA.x + PRINT_AREA.width - (PRINT_AREA.width * step) / edgeSteps, PRINT_AREA.y + PRINT_AREA.height],
-      (step: number) => [PRINT_AREA.x, PRINT_AREA.y + PRINT_AREA.height - (PRINT_AREA.height * step) / edgeSteps],
+      (step: number) => [printableArea.x + (printableArea.width * step) / edgeSteps, printableArea.y],
+      (step: number) => [printableArea.x + printableArea.width, printableArea.y + (printableArea.height * step) / edgeSteps],
+      (step: number) => [printableArea.x + printableArea.width - (printableArea.width * step) / edgeSteps, printableArea.y + printableArea.height],
+      (step: number) => [printableArea.x, printableArea.y + printableArea.height - (printableArea.height * step) / edgeSteps],
     ];
 
     mesh.updateMatrixWorld(true);
     for (const getPoint of edges) {
       for (let step = 0; step <= edgeSteps; step += 1) {
         const [x, y] = getPoint(step);
-        const localX = ((x - PRINT_AREA.x - PRINT_AREA.width / 2) / PRINT_AREA.width) * PRINT_AREA.modelWidth;
-        const localY = PRINT_AREA.modelCenterY + PRINT_AREA.modelHeight / 2 - ((y - PRINT_AREA.y) / PRINT_AREA.height) * PRINT_AREA.modelHeight;
+        const localX = ((x - printableArea.x - printableArea.width / 2) / printableArea.width) * FRONT_MODEL_CALIBRATION.modelWidth;
+        const localY = FRONT_MODEL_CALIBRATION.modelCenterY + FRONT_MODEL_CALIBRATION.modelHeight / 2 - ((y - printableArea.y) / printableArea.height) * FRONT_MODEL_CALIBRATION.modelHeight;
         mesh.updateWorldMatrix(true, false);
         const localOrigin = mesh.worldToLocal(new THREE.Vector3(localX, localY, 0));
         localOrigin.z += 100;
@@ -138,7 +152,7 @@ function PrintableAreaOutline({ mesh }: { mesh: THREE.Mesh }) {
     }
     if (boundary[0]) boundary.push(boundary[0].clone());
     return boundary;
-  }, [mesh]);
+  }, [mesh, printableArea]);
 
   const color = useMemo(
     () => getComputedStyle(document.documentElement).getPropertyValue('--primary').trim(),
@@ -172,7 +186,16 @@ function buildFilterString(filters: Partial<ArtworkFilters> | undefined) {
   ].join(' ');
 }
 
-function ArtworkDecal({ element, image, selected, mesh, interactive, onSelect, onMove }: ArtworkDecalProps) {
+function ArtworkDecal({
+  element,
+  image,
+  selected,
+  mesh,
+  printableArea,
+  interactive,
+  onSelect,
+  onMove,
+}: ArtworkDecalProps) {
   const { gl } = useThree();
   const dragStart = useRef<{ pointerId: number; clientX: number; clientY: number; x: number; y: number } | null>(null);
   const [dragPosition, setDragPosition] = useState<{ x: number; y: number } | null>(null);
@@ -180,12 +203,12 @@ function ArtworkDecal({ element, image, selected, mesh, interactive, onSelect, o
   const [processedTexture, setProcessedTexture] = useState<THREE.Texture | null>(null);
   const meshRef = useMemo(() => ({ current: mesh }), [mesh]);
   const position = useMemo(
-    () => getModelPosition({ ...element, ...dragPosition }, mesh),
-    [dragPosition, element, mesh],
+    () => getModelPosition({ ...element, ...dragPosition }, mesh, printableArea),
+    [dragPosition, element, mesh, printableArea],
   );
   const scale = useMemo(
-    () => getModelScale(element, mesh),
-    [element, mesh],
+    () => getModelScale(element, mesh, printableArea),
+    [element, mesh, printableArea],
   );
 
   useEffect(() => {
@@ -255,17 +278,17 @@ function ArtworkDecal({ element, image, selected, mesh, interactive, onSelect, o
     const bounds = gl.domElement.getBoundingClientRect();
     const next = {
       x: Math.max(
-        PRINT_AREA.x,
+        printableArea.x,
         Math.min(
-          PRINT_AREA.x + PRINT_AREA.width - element.width,
-          start.x + ((event.nativeEvent.clientX - start.clientX) / bounds.width) * PRINT_AREA.width,
+          printableArea.x + printableArea.width - element.width,
+          start.x + ((event.nativeEvent.clientX - start.clientX) / bounds.width) * printableArea.width,
         ),
       ),
       y: Math.max(
-        PRINT_AREA.y,
+        printableArea.y,
         Math.min(
-          PRINT_AREA.y + PRINT_AREA.height - element.height,
-          start.y + ((event.nativeEvent.clientY - start.clientY) / bounds.height) * PRINT_AREA.height,
+          printableArea.y + printableArea.height - element.height,
+          start.y + ((event.nativeEvent.clientY - start.clientY) / bounds.height) * printableArea.height,
         ),
       ),
     };
@@ -324,6 +347,7 @@ export function ArtworkDecals({
   elements,
   selectedElementId,
   mesh,
+  printableArea,
   showPrintArea,
   showSelection,
   onSelect,
@@ -331,7 +355,7 @@ export function ArtworkDecals({
 }: ArtworkDecalsProps) {
   return (
     <>
-      {showPrintArea && <PrintableAreaOutline mesh={mesh} />}
+      {showPrintArea && <PrintableAreaOutline mesh={mesh} printableArea={printableArea} />}
       {elements
         .filter(
           (element) =>
@@ -345,6 +369,7 @@ export function ArtworkDecals({
             element={element}
             image={element.originalImageSrc ?? element.image!}
             mesh={mesh}
+            printableArea={printableArea}
             selected={showSelection && element.id === selectedElementId}
             interactive={showSelection && Boolean(onSelect && onMove)}
             onSelect={onSelect}

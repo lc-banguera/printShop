@@ -15,17 +15,6 @@ export const CANVAS_CONFIG = {
   STAGE_BACKGROUND: '#ffffff',
   CONTAINER_PADDING: 20,
 
-  // ── Printable Area ───────────────────────────────────────────
-  // The region where user objects (images, text, logos, stickers) can live.
-  // Relative to the artboard origin (top-left = 0,0).
-  // Can be overridden per-product via setPrintableArea() in the store.
-  PRINTABLE_AREA: {
-    x: 197,
-    y: 180,
-    width: 400,
-    height: 500,
-  },
-
   // ── Upload limits ────────────────────────────────────────────
   ACCEPTED_FILE_TYPES: ['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'],
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5 MB
@@ -56,4 +45,3 @@ export const CANVAS_COLORS = {
   ACCENT_TEAL:    'var(--accent-teal)',
   PRINTABLE_AREA: '#10b981', // emerald-500 — dashed guide border
 } as const;
-

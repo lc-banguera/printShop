@@ -2,10 +2,12 @@
 import { useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
 import { useMemo } from 'react';
+import type { PrintableZoneConfig } from '@/types/product';
 import { ArtworkDecals, type Designer2ArtworkProps } from './artwork-decals';
 
 interface ProductModelProps extends Designer2ArtworkProps {
   modelUrl: string;
+  printableArea: PrintableZoneConfig;
 }
 
 /**
@@ -14,6 +16,7 @@ interface ProductModelProps extends Designer2ArtworkProps {
  */
 export function ProductModel({
   modelUrl,
+  printableArea,
   artwork = [],
   selectedArtworkId = null,
   onSelectArtwork,
@@ -64,6 +67,7 @@ export function ProductModel({
             elements={artwork}
             selectedElementId={selectedArtworkId}
             mesh={printableMesh}
+            printableArea={printableArea}
             showPrintArea={shouldShowPrintArea}
             showSelection={showSelection}
             onSelect={onSelectArtwork}

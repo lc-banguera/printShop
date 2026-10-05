@@ -141,17 +141,10 @@ El asset original cargado por el usuario nunca se modifica. Todas las transforma
 `canvas-config.ts` define:
 - `ARTBOARD_WIDTH: 794`, `ARTBOARD_HEIGHT: 1123` (artboard en px @ 96 DPI equiv)
 - `STAGE_SCALE: 0.7`
-- `PRINTABLE_AREA: { x: 197, y: 180, width: 400, height: 500 }` (hardcoded para camiseta)
 - `LAYERS`: background, mockup, content/user-objects, guides, selection
 - `SNAP_THRESHOLD: 8px`
 
-**PROBLEMA IDENTIFICADO**: El printable area está hardcoded en múltiples lugares:
-- `canvas-config.ts` (constante)
-- `canvas-store.ts` (en `alignSelectedElement`, coordenadas literales)
-- `artwork-decals.tsx` (constante `PRINT_AREA` local)
-- `canvas.tsx` (fallback hardcoded con las mismas coordenadas)
-
-Este hardcoding debe resolverse en BLOCK 07 (Product Surface).
+El bounds 2D de canvas, drag/drop, alineación y centrado se deriva ahora de `activeProduct.printableAreas[activeZoneId]`; el decal frontal también recibe el área configurada en `ProductDefinition`. La calibración física disponible en el GLB solo identifica material textil `FRONT`. La proyección 3D de espalda, mangas y etiqueta permanece `BLOCKED` hasta disponer de calibración verificable por zona.
 
 ### 5.4 Herramientas existentes
 
@@ -239,7 +232,7 @@ interface ProductSurface {
 └─────────────────────────────────────────┘
 ```
 
-**Estado actual**: Solo existe `printableArea` (hardcoded). SafeArea y Bleed son PLANNED.
+**Estado actual**: `ProductSurface.printableArea` y sus bounds 2D provienen de `ProductDefinition`. SafeArea y Bleed siguen PLANNED; no se infieren.
 
 ### 6.6 Command System (objetivo)
 
@@ -314,7 +307,7 @@ Contratos: lee del store, no modifica estado.
 
 Los elementos del canvas 2D se proyectan sobre la malla 3D del producto como Decals (@react-three/drei). La conversión de coordenadas 2D → UV ocurre en `artwork-decals.tsx`.
 
-**PROBLEMA IDENTIFICADO**: `PRINT_AREA` en `artwork-decals.tsx` está hardcoded. Debe derivarse de `ProductDefinition.printableAreas[activeZoneId]`.
+El decal y contorno frontal reciben las coordenadas desde `ProductDefinition.printableAreas.front` y conservan la calibración física frontal existente. Las zonas sin calibración física verificable no se proyectan como decals 3D; no se extrapolan coordenadas 2D ni objetivos de cámara.
 
 ### 6.11 Persistence
 

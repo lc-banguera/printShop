@@ -69,7 +69,7 @@
 | **Reset view (double click)** | ❓ | ✅ | ➖ | BLOCK 09 |
 | **Guides overlay 3D** | ❓ | ✅ | ➖ | BLOCK 09 |
 | **Grid overlay 3D** | ❓ | ✅ | ➖ | BLOCK 09 |
-| **Artwork as decals 3D** | ❓ | ✅ | ➖ | BLOCK 09 |
+| **Artwork as decals 3D** | ❓ | 🟡 | ➖ | Solo frente calibrado; otras zonas bloqueadas por falta de mapeo físico verificable |
 | **Product color** | ❓ | ✅ | ➖ | BLOCK 07 |
 | **Garment color palette** | ❓ | ✅ | ➖ | BLOCK 07 |
 | **Material brightness** | ❓ | ✅ | ➖ | BLOCK 07 |

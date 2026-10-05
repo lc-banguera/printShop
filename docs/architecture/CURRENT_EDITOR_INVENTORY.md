@@ -58,7 +58,7 @@
 
 | Archivo | Función |
 |---|---|
-| `services/canvas-config.ts` | Configuración del artboard (dimensiones, layers, printable area hardcoded) |
+| `services/canvas-config.ts` | Configuración del artboard (dimensiones y layers) |
 | `services/tools-config.ts` | Definición estática de herramientas |
 | `services/design-resources.ts` | Carga dinámica de imágenes desde `src/resources/designs/` |
 | `data/designer-2-product-models.ts` | Registry de productos habilitados (solo camiseta) |
@@ -72,7 +72,7 @@
 ✅ Zoom 3D  
 ✅ Reset de vista (doble clic)  
 ✅ Guides y grid en 3D (toggle)  
-✅ Artwork como Decals 3D sobre el modelo  
+🟡 Artwork como Decals 3D sobre el frente calibrado; otras zonas no tienen calibración física verificable
 ✅ Panel izquierdo con tabs: Diseños, Subir, Texto, Capas, Producir  
 ✅ Biblioteca de diseños con búsqueda (filtro por nombre)  
 ✅ Tabs de biblioteca: Todos, PrintShop, Mis subidas  
@@ -110,7 +110,7 @@
 ❌ Exportación de alta resolución  
 ❌ Command System formal (undo/redo se basa en snapshots)  
 ❌ Tool Registry formal con ciclo de vida  
-❌ Sincronización de printable area entre 2D y 3D  
+🟡 Sincronización parcial de printable area: bounds 2D por zona y área frontal 3D leen `ProductDefinition`; las demás proyecciones 3D están bloqueadas por falta de calibración
 ❌ SafeArea y Bleed  
 ❌ AI processing (background removal, enhancement)  
 ❌ Motor de producción (CMYK, preflight)  

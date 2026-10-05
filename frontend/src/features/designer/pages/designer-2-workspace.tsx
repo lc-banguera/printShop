@@ -37,6 +37,7 @@ import { useViewerStore } from '@/store/viewer-store';
 import { useCanvasStore } from '@/store/canvas-store';
 import { getDesigner2ProductModel } from '../data/designer-2-product-models';
 import type { CanvasElement } from '@/types/canvas';
+import type { PrintableZoneConfig } from '@/types/product';
 
 const tools = [
   { id: 'designs', label: 'Diseños', icon: Sparkles },
@@ -99,16 +100,19 @@ function createArtwork(
   name: string,
   image: string,
   activeZoneId: CanvasElement['zoneId'],
+  printableArea: PrintableZoneConfig,
 ): CanvasElement {
+  const size = Math.min(190, printableArea.width, printableArea.height);
+
   return {
     id,
     type: 'image',
     layer: 'user',
     zoneId: activeZoneId,
-    x: 300,
-    y: 270,
-    width: 190,
-    height: 190,
+    x: Math.max(printableArea.x, Math.min(300, printableArea.x + printableArea.width - size)),
+    y: Math.max(printableArea.y, Math.min(270, printableArea.y + printableArea.height - size)),
+    width: size,
+    height: size,
     image,
     originalImageSrc: image,
     name,
@@ -218,6 +222,8 @@ function createTextLayer(
   config: {
     x?: number;
     y?: number;
+    zoneId: CanvasElement['zoneId'];
+    printableArea: PrintableZoneConfig;
     size?: number;
     weight?: string | number;
     align?: 'left' | 'center' | 'right';
@@ -226,7 +232,7 @@ function createTextLayer(
     letterSpacing?: number;
     lineHeight?: number;
     opacity?: number;
-  } = {},
+  },
 ): CanvasElement {
   const fontSize = config.size ?? 52;
   const rendered = createTextImage(value, {
@@ -238,16 +244,37 @@ function createTextLayer(
     letterSpacing: config.letterSpacing ?? 0,
     lineHeight: config.lineHeight ?? 1.2,
   });
+  const width = Math.max(180, rendered.width * 0.42);
+  const height = Math.max(90, rendered.height * 0.42);
+  const fitScale = Math.min(
+    1,
+    config.printableArea.width / width,
+    config.printableArea.height / height,
+  );
+  const fittedWidth = width * fitScale;
+  const fittedHeight = height * fitScale;
 
   return {
     id,
     type: 'text',
     layer: 'user',
-    zoneId: 'front',
-    x: config.x ?? 300,
-    y: config.y ?? 250,
-    width: Math.max(180, rendered.width * 0.42),
-    height: Math.max(90, rendered.height * 0.42),
+    zoneId: config.zoneId,
+    x: Math.max(
+      config.printableArea.x,
+      Math.min(
+        config.x ?? 300,
+        config.printableArea.x + config.printableArea.width - fittedWidth,
+      ),
+    ),
+    y: Math.max(
+      config.printableArea.y,
+      Math.min(
+        config.y ?? 250,
+        config.printableArea.y + config.printableArea.height - fittedHeight,
+      ),
+    ),
+    width: fittedWidth,
+    height: fittedHeight,
     image: rendered.url,
     originalImageSrc: rendered.url,
     name: name || value.trim() || 'Texto',
@@ -292,6 +319,8 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
   const resources = useMemo(() => getDesignResources(), []);
 
   const setActiveProduct = useViewerStore((state) => state.setActiveProduct);
+  const activeProduct = useViewerStore((state) => state.activeProduct);
+  const activeZoneId = useViewerStore((state) => state.activeZoneId);
   const zoom = useViewerStore((state) => state.zoom);
   const setZoom = useViewerStore((state) => state.setZoom);
   const requestFit = useViewerStore((state) => state.requestFit);
@@ -388,7 +417,13 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
 
   const addImage = (image: string, name: string) => {
     const id = `designer-2-${Date.now()}`;
-    addElement(createArtwork(id, name, image, 'front'));
+    addElement(createArtwork(
+      id,
+      name,
+      image,
+      activeZoneId,
+      activeProduct.printableAreas[activeZoneId],
+    ));
     selectElement(id);
   };
 
@@ -427,6 +462,8 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
     const element = createTextLayer(id, textContent, textContent, {
       x: 300,
       y: 270,
+      zoneId: activeZoneId,
+      printableArea: activeProduct.printableAreas[activeZoneId],
       size: textSize,
       weight: textWeight,
       align: textAlign,
@@ -457,7 +494,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
   };
 
   const centerArtwork = () => {
-    centerElements(selectedElementIds, { x: 197, y: 180, width: 400, height: 500 });
+    centerElements(selectedElementIds, activeProduct.printableAreas[activeZoneId]);
   };
 
   const updateArtworkFilter = (key: keyof typeof defaultArtworkFilters, value: number) => {

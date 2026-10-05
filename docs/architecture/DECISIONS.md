@@ -120,19 +120,21 @@ Definir `PrintShopDocument` como el schema oficial del documento de diseño, con
 
 ## ADR-005 — ProductSurface Abstraction
 
-**Estado**: PROPOSED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
-El printable area está hardcoded en cuatro lugares distintos del código con los mismos valores literales `{ x: 197, y: 180, width: 400, height: 500 }`. Esto es técnicamente incorrecto porque esas coordenadas son específicas de la camiseta.
+El área imprimible es configuración del producto y de cada zona. `ProductDefinition.printableAreas` ya contiene las coordenadas 2D y el modelo documental ya define `ProductSurface`; mantener rectángulos independientes en canvas, transforms o decals permite que diverjan.
 
-### Decisión (propuesta)
-Abstraer `ProductSurface` con `printableArea`, `safeArea` y `bleed` derivados de `ProductDefinition.printableAreas[zoneId]`. Eliminar todos los valores hardcoded en BLOCK 07.
+### Decisión
+Reutilizar `ProductDefinition.printableAreas[zoneId]` (`PrintableZoneConfig`) como fuente única de bounds en las operaciones 2D y en la proyección frontal calibrada. Reutilizar el `ProductSurface` del modelo documental; no introducir una segunda abstracción runtime ni inferir `safeArea` o `bleed` que no estén definidos por el producto.
+
+La calibración física existente del decal solo es verificable para el frente del GLB actual. No extrapolarla a espalda, mangas o etiqueta a partir de proporciones 2D, rotaciones o `cameraTarget`. Esas proyecciones requieren datos físicos/semánticos reales por zona.
 
 ### Consecuencias
-- Soporte real para múltiples productos con diferentes printable areas
-- Los Decals 3D se posicionan correctamente para cada producto
-- Requiere actualizar `canvas-store.ts` (alignSelectedElement), `artwork-decals.tsx`, `canvas-config.ts` y `canvas.tsx`
+- Drag, drop, alta de artwork, alineación y centrado 2D respetan la superficie activa del producto.
+- El decal frontal lee su área 2D de `ProductDefinition` y conserva la calibración física conocida.
+- El soporte de decal 3D en las otras zonas permanece `BLOCKED` hasta incorporar calibración verificable; no se considera cerrado BLOCK 07.
 
 ---
 

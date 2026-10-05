@@ -137,7 +137,7 @@ Al documentar capacidades, usar exactamente estos estados:
 
 - Nunca usar valores literales `197, 180, 400, 500` en código nuevo
 - Siempre derivar desde `activeProduct.printableAreas[activeZoneId]`
-- La deuda existente de coordenadas hardcoded se resuelve en BLOCK 07
+- Los bounds 2D se derivan de `ProductDefinition` desde BLOCK 07; las proyecciones 3D sin calibración física verificable permanecen bloqueadas y no deben extrapolarse.
 
 ### 5.2 Modelos 3D
 

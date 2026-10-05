@@ -206,15 +206,10 @@ export const useCanvasStore = create<CanvasState>(
         executeOperation((context) => transformSystem.center(ids, bounds, context));
       },
 
-      alignSelectedElement: (alignment) => {
+      alignSelectedElement: (alignment, bounds) => {
         const state = get();
         executeOperation((context) =>
-          transformSystem.align(state.selectedElementIds, alignment, {
-            x: 197,
-            y: 180,
-            width: 400,
-            height: 500,
-          }, context)
+          transformSystem.align(state.selectedElementIds, alignment, bounds, context)
         );
       },
 
