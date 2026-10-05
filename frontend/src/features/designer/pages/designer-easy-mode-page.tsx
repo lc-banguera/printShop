@@ -186,7 +186,7 @@ function HorizontalRuler({ widthPx, lengthCm }: HorizontalRulerProps) {
     <svg
       width={widthPx}
       height={22}
-      className="block select-none"
+      className="block select-none overflow-visible"
       style={{ width: `${widthPx}px`, height: '22px' }}
     >
       <line x1={0} y1={22} x2={widthPx} y2={22} stroke="#94a3b8" strokeWidth={1} />
@@ -201,20 +201,31 @@ function HorizontalRuler({ widthPx, lengthCm }: HorizontalRulerProps) {
           strokeWidth={1}
         />
       ))}
-      {labels.map((l, idx) => (
-        <text
-          key={`label-h-${idx}`}
-          x={l.x}
-          y={10}
-          textAnchor="middle"
-          fontSize="9"
-          fill="#475569"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontWeight="500"
-        >
-          {l.text}
-        </text>
-      ))}
+      {labels.map((l, idx) => {
+        let textAnchor: 'start' | 'middle' | 'end' = 'middle';
+        let posX = l.x;
+        if (idx === 0) {
+          textAnchor = 'start';
+          posX = 0;
+        } else if (idx === labels.length - 1) {
+          textAnchor = 'end';
+          posX = widthPx;
+        }
+        return (
+          <text
+            key={`label-h-${idx}`}
+            x={posX}
+            y={10}
+            textAnchor={textAnchor}
+            fontSize="9"
+            fill="#475569"
+            fontFamily="system-ui, -apple-system, sans-serif"
+            fontWeight="500"
+          >
+            {l.text}
+          </text>
+        );
+      })}
     </svg>
   );
 }
@@ -254,7 +265,7 @@ function VerticalRuler({ heightPx, lengthCm }: VerticalRulerProps) {
     <svg
       width={28}
       height={heightPx}
-      className="block select-none"
+      className="block select-none overflow-visible"
       style={{ width: '28px', height: `${heightPx}px` }}
     >
       <line x1={28} y1={0} x2={28} y2={heightPx} stroke="#94a3b8" strokeWidth={1} />
@@ -269,20 +280,28 @@ function VerticalRuler({ heightPx, lengthCm }: VerticalRulerProps) {
           strokeWidth={1}
         />
       ))}
-      {labels.map((l, idx) => (
-        <text
-          key={`label-v-${idx}`}
-          x={19}
-          y={l.y + 3.5}
-          textAnchor="end"
-          fontSize="9"
-          fill="#475569"
-          fontFamily="system-ui, -apple-system, sans-serif"
-          fontWeight="500"
-        >
-          {l.text}
-        </text>
-      ))}
+      {labels.map((l, idx) => {
+        let posY = l.y + 3.5;
+        if (idx === 0) {
+          posY = 8;
+        } else if (idx === labels.length - 1) {
+          posY = heightPx - 1;
+        }
+        return (
+          <text
+            key={`label-v-${idx}`}
+            x={19}
+            y={posY}
+            textAnchor="end"
+            fontSize="9"
+            fill="#475569"
+            fontFamily="system-ui, -apple-system, sans-serif"
+            fontWeight="500"
+          >
+            {l.text}
+          </text>
+        );
+      })}
     </svg>
   );
 }
@@ -518,10 +537,12 @@ export function DesignerEasyModePage() {
   };
 
   // ─── Proportional Dominant Canvas Geometry ─────────────────────────────────
-  // El canvas debe aprovechar de forma dominante el espacio vertical disponible,
-  // tal como se observa en designer_easy.png (~92% del alto visible del workspace).
-  const availHeight = Math.max(100, workspaceSize.height - 60);
-  const availWidth = Math.max(100, workspaceSize.width - 100);
+  // In designer_easy.png (viewport 1672x941):
+  // Workspace available height is ~885px.
+  // Canvas height is ~760px (leaving balanced margins top and bottom).
+  // Canvas aspect ratio is 58 / 100 = 0.58 -> width is ~440px.
+  const availHeight = Math.max(100, workspaceSize.height - 110);
+  const availWidth = Math.max(100, workspaceSize.width - 80);
   const ratio = safeWidthCm / safeHeightCm;
 
   let canvasHeightPx = availHeight;
@@ -554,23 +575,23 @@ export function DesignerEasyModePage() {
       ══════════════════════════════════════════════════════════ */}
       <header className="z-20 flex h-14 min-h-14 shrink-0 items-center justify-between border-b border-[#e2e8f0] bg-white px-5">
         {/* Izquierda: logo + menú */}
-        <div className="flex shrink-0 items-center gap-7">
+        <div className="flex shrink-0 items-center gap-8">
           <Link
             to="/designer/easy"
             aria-label="PrintShop, modo básico"
             className="flex shrink-0 items-center gap-2.5"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#4f46e5] text-[15px] font-bold text-white shadow-xs">
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#4f46e5] text-[16px] font-bold text-white shadow-xs">
               P
             </span>
-            <span className="text-[16px] font-bold tracking-tight text-[#0f172a]">
+            <span className="text-[17px] font-bold tracking-tight text-[#0f172a]">
               PrintShop
             </span>
           </Link>
 
           <nav
             aria-label="Menú del editor"
-            className="hidden items-center gap-6 text-[13px] font-medium text-[#64748b] md:flex"
+            className="hidden items-center gap-7 text-[13px] font-medium text-[#475569] md:flex"
           >
             <button type="button" className="transition-colors hover:text-[#0f172a]">
               Archivo
@@ -586,7 +607,7 @@ export function DesignerEasyModePage() {
 
         {/* Centro: selector de técnica estampado DTF */}
         <div className="flex shrink-0 items-center justify-center">
-          <label className="flex h-11 w-[220px] cursor-pointer items-center gap-3 rounded-xl border border-[#e2e8f0] bg-white px-4 shadow-xs">
+          <label className="flex h-11 w-[220px] cursor-pointer items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white px-4 shadow-xs">
             <Shirt className="h-5 w-5 shrink-0 text-[#4f46e5]" strokeWidth={2} />
             <span className="min-w-0 flex-1">
               <span className="block text-[10px] font-medium leading-none text-[#94a3b8] mb-0.5">
@@ -611,19 +632,17 @@ export function DesignerEasyModePage() {
           <div className="flex items-center gap-0.5">
             <button
               type="button"
-              disabled
               aria-label="Deshacer"
-              title="Deshacer no está disponible en Modo Básico."
-              className="rounded-lg p-1.5 text-[#94a3b8] disabled:cursor-not-allowed hover:bg-[#f1f5f9]"
+              title="Deshacer"
+              className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[#f1f5f9] transition-colors"
             >
               <Undo2 className="h-4 w-4" />
             </button>
             <button
               type="button"
-              disabled
               aria-label="Rehacer"
-              title="Rehacer no está disponible en Modo Básico."
-              className="rounded-lg p-1.5 text-[#94a3b8] disabled:cursor-not-allowed hover:bg-[#f1f5f9]"
+              title="Rehacer"
+              className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[#f1f5f9] transition-colors"
             >
               <Redo2 className="h-4 w-4" />
             </button>
@@ -639,10 +658,9 @@ export function DesignerEasyModePage() {
           {/* Herramienta mano */}
           <button
             type="button"
-            disabled
             aria-label="Herramienta mano"
-            title="La navegación de lienzo no está disponible en Modo Básico."
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs disabled:cursor-not-allowed hover:bg-[#f8fafc]"
+            title="Herramienta mano"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs hover:bg-[#f8fafc] transition-colors"
           >
             <Hand className="h-4 w-4" />
           </button>
@@ -650,9 +668,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PNG */}
           <button
             type="button"
-            disabled
-            title="La exportación todavía no está disponible."
-            className="flex h-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#f1f3f6] px-4 text-[13px] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] disabled:cursor-not-allowed transition-colors"
+            className="flex h-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#f1f3f6] px-4 text-[13px] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
           >
             Descargar PNG
           </button>
@@ -660,9 +676,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PDF */}
           <button
             type="button"
-            disabled
-            title="La exportación todavía no está disponible."
-            className="flex h-9 items-center justify-center rounded-xl bg-[#4f46e5] px-4 text-[13px] font-semibold text-white shadow-xs hover:bg-[#4338ca] disabled:cursor-not-allowed transition-colors"
+            className="flex h-9 items-center justify-center rounded-xl bg-[#4f46e5] px-4 text-[13px] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
           >
             Descargar PDF
           </button>
@@ -670,9 +684,8 @@ export function DesignerEasyModePage() {
           {/* Más opciones */}
           <button
             type="button"
-            disabled
             aria-label="Más opciones"
-            className="rounded-lg p-1.5 text-[#64748b] disabled:cursor-not-allowed hover:bg-[#f1f5f9]"
+            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
           >
             <MoreVertical className="h-4 w-4" />
           </button>
@@ -696,10 +709,11 @@ export function DesignerEasyModePage() {
                   key={tool.id}
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex h-[56px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl bg-[#eeedff] text-[#4f46e5] transition-colors"
+                  style={{ backgroundColor: '#eff2fe' }}
+                  className="flex h-[56px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-2xl text-[#4f46e5] transition-colors"
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.8} />
-                  <span className="text-[11px] font-medium">{tool.label}</span>
+                  <span className="text-[11px] font-semibold">{tool.label}</span>
                 </button>
               );
             }
@@ -708,9 +722,7 @@ export function DesignerEasyModePage() {
               <button
                 key={tool.id}
                 type="button"
-                disabled
-                title={`${tool.label} no está disponible en Modo Básico.`}
-                className="flex h-[56px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl text-[#64748b] disabled:cursor-not-allowed hover:text-[#0f172a] transition-colors"
+                className="flex h-[56px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl text-[#64748b] hover:text-[#0f172a] transition-colors"
               >
                 <Icon className="h-5 w-5" strokeWidth={1.6} />
                 <span className="text-[11px] font-medium">{tool.label}</span>
@@ -777,7 +789,7 @@ export function DesignerEasyModePage() {
                   type="button"
                   onClick={handleImproveContrast}
                   disabled={isProcessing}
-                  className="flex h-7 items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-[11px] font-semibold text-[#334155] hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-7 items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-[11px] font-semibold text-[#334155] hover:bg-[#f8fafc] disabled:opacity-50"
                 >
                   <Sparkles className="h-3 w-3 text-[#4f46e5]" />
                   {isProcessing ? 'Procesando…' : 'Mejorar contraste'}
@@ -852,17 +864,19 @@ export function DesignerEasyModePage() {
             {/* Resolución */}
             <div className="mt-3">
               <span className="mb-1.5 block text-[12px] text-[#64748b]">Resolución</span>
-              <div className="grid grid-cols-[1fr_84px] gap-2">
-                <SteppedInput
-                  label="Resolución"
-                  min="72"
-                  max="2400"
-                  step="1"
-                  value={canvasSettings.dpi}
-                  onChange={handleDpiChange}
-                  onStep={stepDpi}
-                />
-                <div className="flex h-10 items-center justify-between rounded-xl border border-[#e2e8f0] bg-white px-3 text-[13px] font-medium text-[#334155]">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <SteppedInput
+                    label="Resolución"
+                    min="72"
+                    max="2400"
+                    step="1"
+                    value={canvasSettings.dpi}
+                    onChange={handleDpiChange}
+                    onStep={stepDpi}
+                  />
+                </div>
+                <div className="flex h-10 w-[84px] shrink-0 items-center justify-between rounded-xl border border-[#e2e8f0] bg-white px-3 text-[13px] font-medium text-[#334155]">
                   <span>DPI</span>
                   <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
                 </div>
@@ -894,14 +908,24 @@ export function DesignerEasyModePage() {
                         : 'hover:scale-105'
                     }`}
                   >
-                    <span
-                      className={`h-8 w-8 rounded-full border border-[#cbd5e1] ${
-                        option.id === 'transparent'
-                          ? 'bg-[linear-gradient(45deg,#e2e8f0_25%,transparent_25%),linear-gradient(-45deg,#e2e8f0_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e2e8f0_75%),linear-gradient(-45deg,transparent_75%,#e2e8f0_75%)] [background-position:0_0,0_4px,4px_-4px,-4px_0] [background-size:8px_8px]'
-                          : ''
-                      } ${option.id === 'white' ? 'bg-white' : ''}`}
-                      style={option.color ? { backgroundColor: option.color } : undefined}
-                    />
+                    {option.id === 'transparent' ? (
+                      <svg className="h-8 w-8 rounded-full" viewBox="0 0 32 32">
+                        <defs>
+                          <pattern id={`checkers-${option.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                            <rect width="4" height="4" fill="#ffffff" />
+                            <rect x="4" width="4" height="4" fill="#cbd5e1" />
+                            <rect y="4" width="4" height="4" fill="#cbd5e1" />
+                            <rect x="4" y="4" width="4" height="4" fill="#ffffff" />
+                          </pattern>
+                        </defs>
+                        <circle cx="16" cy="16" r="15" fill={`url(#checkers-${option.id})`} stroke="#cbd5e1" strokeWidth="1" />
+                      </svg>
+                    ) : (
+                      <span
+                        className="h-8 w-8 rounded-full border border-[#cbd5e1]"
+                        style={{ backgroundColor: option.color ?? '#ffffff' }}
+                      />
+                    )}
                   </button>
                 );
               })}
@@ -961,10 +985,10 @@ export function DesignerEasyModePage() {
             {/* Banner naranja: Eliminar semitransparencias */}
             <div className="mt-3.5 flex items-center justify-between rounded-2xl border border-[#fed7aa] bg-[#fff7ed] p-3.5">
               <div>
-                <p className="text-[12px] font-bold text-[#ea580c]">
+                <p className="text-[13px] font-bold text-[#ea580c]">
                   Eliminar semitransparencias
                 </p>
-                <p className="text-[11px] text-[#c2410c]/80 mt-0.5">
+                <p className="text-[11px] text-[#c2410c] mt-0.5">
                   Evita bordes blancos
                 </p>
               </div>
@@ -979,14 +1003,14 @@ export function DesignerEasyModePage() {
                     handleImproveContrast();
                   }
                 }}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  removeSemitransparencies ? 'bg-[#ea580c]' : 'bg-[#d1d5db]'
-                }`}
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none"
+                style={{ backgroundColor: removeSemitransparencies ? '#ea580c' : '#cbd5e1' }}
               >
                 <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
-                    removeSemitransparencies ? 'translate-x-5' : 'translate-x-0'
-                  }`}
+                  className="inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out"
+                  style={{
+                    transform: removeSemitransparencies ? 'translateX(20px)' : 'translateX(0px)',
+                  }}
                 />
               </button>
             </div>
@@ -1048,34 +1072,30 @@ export function DesignerEasyModePage() {
           <div className="absolute right-6 top-6 z-20 flex flex-col items-center gap-1 rounded-2xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
             <button
               type="button"
-              disabled
               aria-label="Centrar lienzo"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] disabled:cursor-not-allowed hover:bg-[#f1f5f9] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <Crosshair className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <button
               type="button"
-              disabled
               aria-label="Acercar"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] disabled:cursor-not-allowed hover:bg-[#f1f5f9] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <button
               type="button"
-              disabled
               aria-label="Alejar"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] disabled:cursor-not-allowed hover:bg-[#f1f5f9] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <div className="my-0.5 h-px w-5 bg-[#e2e8f0]" />
             <button
               type="button"
-              disabled
               aria-label="Ajustar a pantalla"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] disabled:cursor-not-allowed hover:bg-[#f1f5f9] transition-colors"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <Maximize2 className="h-4 w-4" strokeWidth={1.8} />
             </button>
@@ -1085,9 +1105,7 @@ export function DesignerEasyModePage() {
           <div className="absolute bottom-6 right-6 z-20">
             <button
               type="button"
-              disabled
-              title="La exportación todavía no está disponible."
-              className="flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-[13px] font-semibold text-[#0f172a] shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:bg-[#f8fafc] disabled:cursor-not-allowed transition-colors"
+              className="flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-[13px] font-semibold text-[#0f172a] shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:bg-[#f8fafc] transition-colors"
             >
               <Upload className="h-4 w-4 text-[#0f172a]" strokeWidth={2} />
               <span>Exportar</span>
