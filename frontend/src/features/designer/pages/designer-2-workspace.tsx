@@ -30,7 +30,11 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
-import { getDesignResources } from '../services/design-resources';
+import {
+  getDesignResources,
+  registerUploadedDesign,
+  releaseUploadedDesign,
+} from '../services/design-resources';
 import type { DesignResource } from '@/types/design-resource';
 import { ProductViewer } from '../components/product-viewer';
 import { useViewerStore } from '@/store/viewer-store';
@@ -296,7 +300,7 @@ function createTextLayer(
 export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
   const model = getDesigner2ProductModel(categoryId);
   const inputRef = useRef<HTMLInputElement>(null);
-  const uploadedUrls = useRef(new Set<string>());
+  const uploadedAssetIds = useRef(new Set<string>());
   const [activeTool, setActiveTool] = useState<(typeof tools)[number]['id']>('designs');
   const [uploadedDesigns, setUploadedDesigns] = useState<DesignResource[]>([]);
   const [textValue, setTextValue] = useState('PRINTSHOP');
@@ -386,8 +390,8 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
 
   useEffect(
     () => () => {
-      uploadedUrls.current.forEach((url) => URL.revokeObjectURL(url));
-      uploadedUrls.current.clear();
+      uploadedAssetIds.current.forEach(releaseUploadedDesign);
+      uploadedAssetIds.current.clear();
     },
     [],
   );
@@ -442,14 +446,11 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
       return;
     }
 
+    const resource = registerUploadedDesign(file);
+    uploadedAssetIds.current.add(resource.id);
+    setUploadedDesigns((current) => [resource, ...current]);
     setUploading(true);
-    const image = URL.createObjectURL(file);
-    uploadedUrls.current.add(image);
-    setUploadedDesigns((current) => [
-      { id: `upload-${Date.now()}`, name: file.name, image, category: 'Subidos' },
-      ...current,
-    ]);
-    addImage(image, file.name);
+    addImage(resource.image, file.name);
     setActiveTool('designs');
     window.setTimeout(() => setUploading(false), 350);
   };

@@ -18,7 +18,7 @@
 | BLOCK 07 — Product Surface | BLOCKED | Límites y operaciones 2D leen la superficie/zona del producto activo; el decal frontal toma el printable area del producto. El GLB solo ofrece calibración física etiquetada `FRONT`; no hay evidencia para proyectar con fidelidad los decals en espalda, mangas o etiqueta. |
 | BLOCK 08 — 2D Renderer Adapter | DONE | Contrato 2D independiente de Konva y adapter Konva integrado al canvas; filtra elementos por la superficie activa. No realiza proyección 3D ni cambia el estado de BLOCK 07. |
 | BLOCK 09 — 3D Renderer Adapter | DONE | Contrato 3D neutral al framework y adapter Three.js integrado al flujo de decals. Emite descriptores únicamente para `front`; las zonas no calibradas siguen excluidas y BLOCK 07 continúa `BLOCKED`. |
-| BLOCK 10 — Asset System | PENDING | No iniciado. |
+| BLOCK 10 — Asset System | DONE | AssetManager compartido registra la biblioteca local y uploads temporales de D2/D3 Easy con IDs únicos y URLs inmutables; cleanup revoca object URLs. No se añade persistencia ni caché binaria. |
 | BLOCK 11 — Image Processing Foundation | PENDING | No iniciado. |
 | BLOCK 12 — Designer 2 Integration | PENDING | No iniciado. |
 | BLOCK 13 — Designer 1 Integration | PENDING | No iniciado. |
@@ -171,7 +171,7 @@
 - `git diff --check`: **PASS**.
 - Decisión: ADR-015 registra que el adapter 2D depende del contrato de superficie, no de la calibración física 3D pendiente.
 - Commit: `feat(renderer): add 2d renderer adapter`.
-- Siguiente bloque: **BLOCK 09 — 3D Renderer Adapter** (completado a continuación; ver su registro). El bloque pendiente de análisis es BLOCK 10.
+- Siguiente bloque: **BLOCK 09 — 3D Renderer Adapter** (completado a continuación; ver su registro). El bloque pendiente de análisis tras BLOCK 10 es BLOCK 11.
 
 ## Registro de BLOCK 09 — 3D Renderer Adapter
 
@@ -186,4 +186,19 @@
 - Tests del repo: no hay runner/suite frontend configurado.
 - `git diff --check`: **PASS**.
 - Commit: `feat(renderer): add 3d renderer adapter`.
-- Siguiente análisis: BLOCK 10 — Asset System; revisar si el AssetManager y registro local pueden integrarse al upload/biblioteca actuales sin introducir persistencia, cache o servicios simulados.
+- Siguiente bloque: **BLOCK 10 — Asset System** (completado a continuación; ver su registro). El bloque pendiente de análisis es BLOCK 11.
+
+## Registro de BLOCK 10 — Asset System
+
+- Archivos: `frontend/src/core/design/assets/asset-manager.ts`, `frontend/src/core/design/assets/index.ts`, `frontend/src/features/designer/services/design-resources.ts`, `frontend/src/features/designer/services/index.ts`, `frontend/src/features/designer/pages/designer-2-workspace.tsx` y `frontend/src/features/designer/pages/designer-easy-mode-page.tsx`.
+- Cambio: AssetManager registra descriptores inmutables con ID, nombre, URL, origen y categoría; rechaza metadatos vacíos y colisiones con cambios de URL/metadata. La biblioteca local Vite se registra una vez a través del manager; la API existente `DesignResource` se mantiene como adaptador de compatibilidad. Los uploads de D2 y D3 Easy se registran con URLs blob temporales y se liberan/revocan al terminar su ciclo de vida.
+- Alcance de caché/persistencia: el Map mantiene un índice de metadata en memoria; no se cachean bytes, no se persiste en IndexedDB y no se añade Object Storage. Las URLs de upload siguen siendo temporales como antes.
+- Build frontend (`npm run build --prefix frontend`): **PASS** (`tsc` y `vite build`).
+- ESLint focalizado en AssetManager, servicio y consumidores D2/D3 Easy: **PASS**.
+- Checks runtime del core: **PASS** — registro idempotente del mismo asset, inmutabilidad/choques de ID, filtrado por origen y retirada solo de uploads.
+- Navegador: `/designer/new?product=camisetas` mostró la biblioteca local y permitió subir `img1.jpg`; la pestaña `Subidos` reflejó el asset y el artwork quedó seleccionado, sin alerta. `/designer/easy` permitió cargar el mismo archivo en la preview, sin alerta.
+- Tests del repo: no hay runner/suite frontend configurado.
+- `git diff --check`: **PASS**.
+- Decisión: ADR-017 registra el AssetManager de metadata en memoria y la naturaleza temporal de los object URLs; no implica persistencia ni cache de bytes.
+- Commit: `feat(assets): add shared asset manager`.
+- Siguiente análisis: BLOCK 11 — Image Processing Foundation; verificar si Canvas API puede proporcionar filtros reales no destructivos con preservación del asset original, sin declarar eliminación de fondo ni procesamiento no implementado.

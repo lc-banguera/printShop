@@ -337,4 +337,26 @@ Definir un contrato 3D neutral a Three.js en el Core y una implementación en la
 
 ---
 
+## ADR-017 — AssetManager local con URLs inmutables y uploads temporales
+
+**Estado**: ACCEPTED
+**Fecha**: 2026-10-05
+
+### Contexto
+La biblioteca de diseños se carga desde recursos locales y los uploads existentes producen object URLs de vida temporal. La Design Platform necesita identidad única y una URL estable mientras el asset está registrado, pero no requiere aún persistencia ni cache binaria.
+
+### Decisión
+Implementar un `AssetManager` compartido en TypeScript que conserva metadata inmutable en memoria, registra la biblioteca local existente y acepta uploads con IDs únicos. El servicio del Designer adapta los assets a `DesignResource` para mantener los consumidores actuales; cada flujo libera sus uploads y revoca sus object URLs al finalizar su ciclo de vida.
+
+### Consecuencias
+- Reemplazar metadata con el mismo ID y una URL distinta falla explícitamente.
+- La biblioteca y uploads consumen una única implementación de registro sin cambiar el contrato UI actual.
+- Los object URLs no sobreviven al flujo/página que los posee; guardar drafts, cachear bytes y persistir assets siguen pendientes.
+
+### Alternativas consideradas
+- Añadir IndexedDB/Object Storage en este bloque (rechazado: el roadmap no lo requiere y no hay contrato de persistencia vigente).
+- Mantener registros de uploads independientes por Designer (rechazado: duplicaría la gestión de identidad y ciclo de vida).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

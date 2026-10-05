@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08 y BLOCK 09 se completaron dentro de sus límites verificables, sin desbloquear otras superficies — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08, BLOCK 09 y BLOCK 10 se completaron dentro de sus límites verificables, sin desbloquear otras superficies — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -302,6 +302,8 @@
 - Los uploads del usuario se registran como assets
 
 **Siguiente bloque**: BLOCK 11
+
+**Estado**: COMPLETADO — registro e índice de metadata en memoria; los binarios y drafts no se persisten ni se cachean.
 
 ---
 

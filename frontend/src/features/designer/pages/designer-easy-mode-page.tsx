@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { ArrowRight, Download, ImagePlus, Layers3, SlidersHorizontal, Sparkles, Wand2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { registerUploadedDesign, releaseUploadedDesign } from '../services/design-resources';
 
 const presets = [
   {
@@ -35,15 +36,13 @@ export function DesignerEasyModePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState('dtf');
   const [imageSrc, setImageSrc] = useState(defaultPreview);
+  const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
   const [showBeforeAfter, setShowBeforeAfter] = useState(true);
 
   useEffect(() => {
-    return () => {
-      if (imageSrc !== defaultPreview && imageSrc.startsWith('blob:')) {
-        URL.revokeObjectURL(imageSrc);
-      }
-    };
-  }, [imageSrc]);
+    if (!uploadedAssetId) return;
+    return () => releaseUploadedDesign(uploadedAssetId);
+  }, [uploadedAssetId]);
 
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId) ?? presets[0];
 
@@ -51,8 +50,9 @@ export function DesignerEasyModePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const nextUrl = URL.createObjectURL(file);
-    setImageSrc(nextUrl);
+    const asset = registerUploadedDesign(file);
+    setUploadedAssetId(asset.id);
+    setImageSrc(asset.image);
   };
 
   return (
