@@ -16,7 +16,7 @@
 | BLOCK 05 — Selection + Transform | DONE | SelectionManager y TransformSystem integrados al store, Designer 2 y bridge Konva; operaciones múltiples atómicas y undoables. |
 | BLOCK 06 — Tool Registry + Tool Context | DONE | Registry del Design Core, filtrado explícito por capabilities y transición de ciclo de vida conectada al hook; configuración y Zustand legacy preservados. |
 | BLOCK 07 — Product Surface | BLOCKED | Límites y operaciones 2D leen la superficie/zona del producto activo; el decal frontal toma el printable area del producto. El GLB solo ofrece calibración física etiquetada `FRONT`; no hay evidencia para proyectar con fidelidad los decals en espalda, mangas o etiqueta. |
-| BLOCK 08 — 2D Renderer Adapter | PENDING | No iniciado. |
+| BLOCK 08 — 2D Renderer Adapter | DONE | Contrato 2D independiente de Konva y adapter Konva integrado al canvas; filtra elementos por la superficie activa. No realiza proyección 3D ni cambia el estado de BLOCK 07. |
 | BLOCK 09 — 3D Renderer Adapter | PENDING | No iniciado. |
 | BLOCK 10 — Asset System | PENDING | No iniciado. |
 | BLOCK 11 — Image Processing Foundation | PENDING | No iniciado. |
@@ -149,11 +149,26 @@
 - Cambio seguro completado: drag, drop, alineación/centrado, alta de artwork y límites 2D toman `activeProduct.printableAreas[activeZoneId]`; los elementos nuevos se limitan al tamaño disponible de su superficie. Se eliminó la constante de printable area de `canvas-config.ts`. El decal y el contorno de la superficie frontal consumen el printable area de `ProductDefinition`; se conservó sin cambios la calibración física frontal existente.
 - Arquitectura: se reutiliza `PrintableZoneConfig` como fuente de coordenadas del producto y el `ProductSurface` existente del modelo documental; no se crea un esquema paralelo ni se inventan `safeArea`, `bleed` o calibraciones.
 - Evidencia del asset: lectura del GLB real mediante `@gltf-transform/core`; los materiales textiles disponibles están etiquetados `FRONT` y no se hallaron regiones etiquetadas como espalda, mangas o etiqueta. No es seguro estimar la geometría imprimible de esas zonas a partir de rectángulos 2D o de objetivos de cámara.
-- Límite: la proyección de decal 3D continúa soportada solo en la superficie frontal calibrada. Las otras cuatro zonas no se declaran completadas. BLOCK 07 queda `BLOCKED`; por la secuencia obligatoria, BLOCK 08 no puede comenzar hasta obtener y validar calibración real por zona.
+- Límite: la proyección de decal 3D continúa soportada solo en la superficie frontal calibrada. Las otras cuatro zonas no se declaran completadas. BLOCK 07 queda `BLOCKED`; esta limitación física no afecta la abstracción de renderizado 2D de BLOCK 08.
 - Build base (`npm run build --prefix frontend`): **PASS** (`tsc` y `vite build`). Build posterior: **PASS**.
 - ESLint focalizado: reporta 14 errores en `canvas.tsx` y `product-pivot.tsx`, en código preexistente ajeno a las líneas de este cambio; no se limpiaron problemas fuera del alcance. Diagnósticos del editor en los nueve archivos funcionales modificados: **sin errores**.
 - Tests: no hay suite/runner frontend configurado. La ruta `/designer/new?product=camisetas` cargó en navegador; se observaron solo warnings deprecados de Three.js, sin error crítico de ejecución. No se declara validación visual 3D de las cinco zonas.
 - `git diff --check`: **PASS**.
 - Decisión: ADR-005 aceptada para reutilizar el modelo de superficie existente y mantener bloqueada cualquier proyección 3D sin calibración verificable.
 - Commit: `feat(design-core): derive 2d bounds from product surfaces` (avance parcial; no cierra BLOCK 07).
-- Siguiente paso: obtener calibraciones/identificadores de superficie reales para espalda, ambas mangas y etiqueta; después validar sus decals antes de cerrar BLOCK 07 y comenzar BLOCK 08.
+- Siguiente paso para BLOCK 07: obtener calibraciones/identificadores de superficie reales para espalda, ambas mangas y etiqueta; después validar sus decals antes de cerrar ese bloque.
+
+## Registro de BLOCK 08 — 2D Renderer Adapter
+
+- Archivos: `frontend/src/core/design/renderer/renderer-2d.ts`, `frontend/src/core/design/renderer/index.ts`, `frontend/src/features/designer/renderer/konva-renderer.ts`, `frontend/src/features/designer/components/canvas-elements.tsx`, `frontend/src/features/designer/components/canvas-overlay/canvas-overlay.tsx` y `frontend/src/features/designer/components/canvas.tsx`.
+- Cambio: se definió un contrato de renderizado 2D sin imports de Konva/React y un adapter de feature que proyecta imágenes del `DesignElement` a descriptores neutrales. El consumidor Konva conserva selección, interacción, carga de imagen y lock; el ID de la superficie activa se propaga explícitamente y se excluyen elementos de otras zonas.
+- Dependencia: el adapter utiliza el contrato tipado de `ProductSurface` y el ID de zona; no calcula dimensiones físicas ni proyecta artwork al viewer 3D. Por tanto, BLOCK 08 se puede cerrar sin resolver las calibraciones faltantes de BLOCK 07. BLOCK 07 permanece `BLOCKED`.
+- Build frontend (`npm run build --prefix frontend`): **PASS** (`tsc` y `vite build`).
+- ESLint focalizado en contrato, adapter y consumidores modificados: **PASS**; los 9 errores de `canvas.tsx` se reproducen en `HEAD` y son preexistentes.
+- Checks runtime aislados: **PASS** — filtrado de zona, tipo no soportado, origen de imagen, defaults de presentación y propiedades geométricas.
+- Navegador: `/designer/advanced` cargó el workspace y el viewer Three.js sin errores críticos; se observaron warnings deprecados preexistentes de Three.js. El viewport desktop fue comprobado a 1440 × 900. No se modificó la calibración 3D.
+- Tests del repo: no hay runner/suite frontend configurado.
+- `git diff --check`: **PASS**.
+- Decisión: ADR-015 registra que el adapter 2D depende del contrato de superficie, no de la calibración física 3D pendiente.
+- Commit: `feat(renderer): add 2d renderer adapter`.
+- Siguiente análisis: BLOCK 09 — determinar si el adapter Three.js puede encapsular de forma real la ruta de decals actualmente calibrada sin ampliar el soporte más allá del frente.

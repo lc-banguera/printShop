@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 06 completado; BLOCK 07 tiene avance parcial y está bloqueado por falta de calibración 3D verificable — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08 puede completarse independientemente porque su adapter solo consume el ID de la superficie 2D y no proyecta artwork al modelo — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -217,6 +217,8 @@
 
 **Objetivo**: Eliminar bounds hardcoded y usar el `ProductSurface` existente junto con `ProductDefinition.printableAreas` como fuente del runtime.
 
+**Estado**: `BLOCKED` — se completó el uso de bounds 2D del producto, pero no existe calibración física verificable para las cuatro zonas no frontales.
+
 **Dependencias**: BLOCK 06
 
 **Archivos a modificar**:
@@ -233,11 +235,11 @@
 - Los Decals 3D se posicionan correctamente según el producto activo
 - El sistema soporta correctamente las 5 zonas de la camiseta
 
-**Límite de evidencia**: La inspección del GLB disponible encontró superficies/materiales textiles etiquetados como `FRONT`, pero ninguna calibración semántica verificable para espalda, mangas o etiqueta. No derivar posiciones físicas 3D desde coordenadas 2D ni desde `cameraTarget`. Hasta disponer de calibración real por zona, registrar el soporte 3D de esas zonas como `BLOCKED`; no cerrar este bloque ni comenzar BLOCK 08.
+**Límite de evidencia**: La inspección del GLB disponible encontró superficies/materiales textiles etiquetados como `FRONT`, pero ninguna calibración semántica verificable para espalda, mangas o etiqueta. No derivar posiciones físicas 3D desde coordenadas 2D ni desde `cameraTarget`. Hasta disponer de calibración real por zona, registrar el soporte 3D de esas zonas como `BLOCKED` y no cerrar este bloque. La calibración 3D pendiente no bloquea BLOCK 08, que solo abstrae el renderizado 2D y filtra por la superficie activa.
 
 **Riesgos**: Alto — un cambio de coordenadas puede desposicionar artwork existente. Validar visualmente las zonas que tengan calibración real y conservar explícita cualquier limitación.
 
-**Siguiente bloque**: BLOCK 08
+**Siguiente bloque implementable**: BLOCK 08 (DONE, independiente de las calibraciones 3D pendientes por ADR-015). Reabrir BLOCK 07 cuando existan datos físicos verificables.
 
 ---
 
@@ -245,7 +247,7 @@
 
 **Objetivo**: Crear un adapter que desacople el Design Core de la implementación específica de Konva.
 
-**Dependencias**: BLOCK 07
+**Dependencias**: contrato `ProductSurface` y el ID de zona disponibles desde BLOCK 01/BLOCK 07. La calibración física 3D pendiente de BLOCK 07 no es dependencia de este adapter 2D.
 
 **Archivos potenciales**:
 - `src/core/design/renderer/renderer-2d.ts` — interfaz abstracta
@@ -256,6 +258,8 @@
 - Un futuro renderer alternativo puede implementarse sin cambiar el Core
 
 **Siguiente bloque**: BLOCK 09
+
+**Estado**: COMPLETADO — el contrato 2D y el adapter Konva están integrados; ver `IMPLEMENTATION_PROGRESS.md`.
 
 ---
 

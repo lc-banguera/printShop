@@ -332,6 +332,7 @@ export function CanvasArea() {
         stageScale={stageScale}
         stageX={stageX}
         stageY={stageY}
+        surface={{ id: activeZoneId }}
         onStageClick={handleStageClick}
         onElementClick={handleElementClick}
         onDragMove={handleDragMove}

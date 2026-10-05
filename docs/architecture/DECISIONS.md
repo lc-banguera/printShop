@@ -293,4 +293,26 @@ Los elementos continúan siendo registros independientes: no se agrega agrupaci�
 
 ---
 
+## ADR-015 — Independencia del renderer 2D respecto a la calibración física 3D
+
+**Estado**: ACCEPTED
+**Fecha**: 2026-10-05
+
+### Contexto
+BLOCK 07 sigue bloqueado para la proyección física de decals en espalda, mangas y etiqueta, porque el GLB disponible solo aporta evidencia verificable para `FRONT`. BLOCK 08 necesita separar la interpretación de elementos del canvas del renderer Konva; el contrato `ProductSurface` ya proporciona un ID de superficie y esa operación no requiere convertir coordenadas 2D a espacio 3D.
+
+### Decisión
+Completar BLOCK 08 usando un contrato de renderer 2D libre de Konva y pasando explícitamente el ID de la superficie activa. El adapter filtra elementos por zona, sin calcular coordenadas físicas ni cambiar la proyección 3D. La calibración pendiente no impide cerrar este bloque y BLOCK 07 continúa `BLOCKED`.
+
+### Consecuencias
+- El Design Core puede describir elementos renderizables en 2D sin depender de Konva.
+- La implementación Konva permanece dentro de la feature Designer y mantiene las interacciones existentes.
+- No se amplía ni se declara completado el soporte de decals fuera de la superficie frontal calibrada.
+
+### Alternativas consideradas
+- Detener todos los bloques posteriores hasta calibrar físicamente las cinco superficies (rechazado: esa información no es necesaria para el adapter 2D).
+- Inferir calibraciones 3D desde proporciones del canvas o la cámara (rechazado: no hay evidencia física verificable).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

@@ -2,6 +2,7 @@ import { Stage, Layer } from 'react-konva';
 import Konva from 'konva';
 import { CANVAS_CONFIG } from '../../services';
 import { useCanvasStore } from '@/store/canvas-store';
+import type { ProductSurface } from '@/core/design/types';
 import { CanvasElements } from '../canvas-elements';
 // PrintableAreaManager removed
 import { CanvasSelection } from '../canvas-selection';
@@ -11,6 +12,7 @@ interface CanvasOverlayProps {
   stageScale: number;
   stageX: number;
   stageY: number;
+  surface: Pick<ProductSurface, 'id'>;
   onStageClick: (e: Konva.KonvaEventObject<MouseEvent>) => void;
   onElementClick: (elementId: string, additive: boolean) => void;
   onDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
@@ -32,6 +34,7 @@ export function CanvasOverlay({
   stageScale,
   stageX,
   stageY,
+  surface,
   onStageClick,
   onElementClick,
   onDragMove,
@@ -63,6 +66,7 @@ export function CanvasOverlay({
 
           <CanvasElements
             elements={elements}
+            surface={surface}
             onElementClick={onElementClick}
             onElementDragMove={onDragMove}
             onElementDragEnd={onDragEnd}
