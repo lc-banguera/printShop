@@ -3,7 +3,6 @@ import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import {
   ChevronDown,
   ChevronUp,
-  CircleMinus,
   CloudUpload,
   Crosshair,
   Eye,
@@ -12,16 +11,18 @@ import {
   Layers,
   LayoutGrid,
   Link2,
-  Maximize,
+  Maximize2,
   MoreVertical,
   Redo2,
-  Search,
+  RotateCcw,
   Shapes,
   Shirt,
   Sparkles,
   Type,
   Undo2,
+  Upload,
   ZoomIn,
+  ZoomOut,
 } from 'lucide-react';
 
 import { Link, useLocation } from 'react-router-dom';
@@ -60,8 +61,6 @@ interface BackgroundOption {
 
 const DEFAULT_WIDTH_CM = '58';
 const DEFAULT_HEIGHT_CM = '100';
-
-const TICK_COLOR = '#b0b4bc';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -124,23 +123,24 @@ function createInitialCanvasSettings(locationState: unknown): EasyCanvasSettings
 const backgroundOptions: BackgroundOption[] = [
   { id: 'transparent', label: 'Fondo transparente', background: 'transparent' },
   { id: 'white', label: 'Fondo blanco', background: 'white' },
-  { id: 'light-gray', label: 'Fondo gris claro', background: 'color', color: '#d1d1d1' },
-  { id: 'gray', label: 'Fondo gris oscuro', background: 'color', color: '#6b6b6b' },
+  { id: 'light-gray', label: 'Fondo gris claro', background: 'color', color: '#d1d5db' },
+  { id: 'gray', label: 'Fondo gris oscuro', background: 'color', color: '#4b5563' },
   { id: 'black', label: 'Fondo negro', background: 'color', color: '#000000' },
 ];
 
-const unavailableTools = [
-  { label: 'Plantillas', icon: Grid2X2 },
-  { label: 'Elementos', icon: Shapes },
-  { label: 'Texto', icon: Type },
-  { label: 'Formas', icon: LayoutGrid },
-  { label: 'Capas', icon: Layers },
+const sidebarTools = [
+  { id: 'archivo', label: 'Archivo', icon: CloudUpload, active: true },
+  { id: 'plantillas', label: 'Plantillas', icon: LayoutGrid, active: false },
+  { id: 'elementos', label: 'Elementos', icon: Shapes, active: false },
+  { id: 'texto', label: 'Texto', icon: Type, active: false },
+  { id: 'formas', label: 'Formas', icon: Grid2X2, active: false },
+  { id: 'capas', label: 'Capas', icon: Layers, active: false },
 ];
 
 function isBackgroundSelected(settings: EasyCanvasSettings, option: BackgroundOption): boolean {
   if (option.background !== settings.background) return false;
   if (option.background !== 'color') return true;
-  return settings.backgroundColor.toLowerCase() === option.color;
+  return settings.backgroundColor.toLowerCase() === option.color?.toLowerCase();
 }
 
 function getCanvasColor(settings: EasyCanvasSettings): string {
@@ -149,20 +149,142 @@ function getCanvasColor(settings: EasyCanvasSettings): string {
   return 'transparent';
 }
 
-function getRulerSteps(lengthCm: number): { labelStep: number; tickStep: number } {
-  if (lengthCm <= 300) return { labelStep: 10, tickStep: 1 };
-  if (lengthCm <= 1000) return { labelStep: 50, tickStep: 5 };
-  return { labelStep: 100, tickStep: 10 };
+// ─── SVG Rulers ──────────────────────────────────────────────────────────────
+
+interface HorizontalRulerProps {
+  widthPx: number;
+  lengthCm: number;
 }
 
-function createRulerMarks(lengthCm: number, labelStep: number): number[] {
-  const marks: number[] = [];
-  for (let mark = 0; mark <= lengthCm; mark += labelStep) marks.push(mark);
+function HorizontalRuler({ widthPx, lengthCm }: HorizontalRulerProps) {
+  if (widthPx <= 0 || lengthCm <= 0) return null;
 
-  const last = marks[marks.length - 1];
-  if (last !== lengthCm && (lengthCm - last) / lengthCm > 0.04) marks.push(lengthCm);
+  const labelStep = lengthCm <= 100 ? 10 : lengthCm <= 500 ? 50 : 100;
+  const tickStep = lengthCm <= 100 ? 1 : lengthCm <= 500 ? 5 : 10;
 
-  return marks;
+  const ticks: { x: number; height: number; stroke: string }[] = [];
+  for (let cm = 0; cm <= lengthCm; cm += tickStep) {
+    const x = (cm / lengthCm) * widthPx;
+    const isMajor = cm % labelStep === 0 || cm === lengthCm;
+    const isMedium = cm % (labelStep / 2) === 0;
+    ticks.push({
+      x,
+      height: isMajor ? 7 : isMedium ? 5 : 3,
+      stroke: isMajor ? '#6b7280' : isMedium ? '#9ca3af' : '#cbd5e1',
+    });
+  }
+
+  const labels: { x: number; text: string }[] = [];
+  for (let cm = 0; cm <= lengthCm; cm += labelStep) {
+    labels.push({ x: (cm / lengthCm) * widthPx, text: String(cm) });
+  }
+  if (lengthCm % labelStep !== 0) {
+    labels.push({ x: widthPx, text: String(lengthCm) });
+  }
+
+  return (
+    <svg
+      width={widthPx}
+      height={22}
+      className="block select-none"
+      style={{ width: `${widthPx}px`, height: '22px' }}
+    >
+      <line x1={0} y1={22} x2={widthPx} y2={22} stroke="#9ca3af" strokeWidth={1} />
+      {ticks.map((t, idx) => (
+        <line
+          key={`tick-h-${idx}`}
+          x1={t.x}
+          y1={22 - t.height}
+          x2={t.x}
+          y2={22}
+          stroke={t.stroke}
+          strokeWidth={1}
+        />
+      ))}
+      {labels.map((l, idx) => (
+        <text
+          key={`label-h-${idx}`}
+          x={l.x}
+          y={10}
+          textAnchor="middle"
+          fontSize="9"
+          fill="#4b5563"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontWeight="500"
+        >
+          {l.text}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+interface VerticalRulerProps {
+  heightPx: number;
+  lengthCm: number;
+}
+
+function VerticalRuler({ heightPx, lengthCm }: VerticalRulerProps) {
+  if (heightPx <= 0 || lengthCm <= 0) return null;
+
+  const labelStep = lengthCm <= 100 ? 10 : lengthCm <= 500 ? 50 : 100;
+  const tickStep = lengthCm <= 100 ? 1 : lengthCm <= 500 ? 5 : 10;
+
+  const ticks: { y: number; width: number; stroke: string }[] = [];
+  for (let cm = 0; cm <= lengthCm; cm += tickStep) {
+    const y = (cm / lengthCm) * heightPx;
+    const isMajor = cm % labelStep === 0 || cm === lengthCm;
+    const isMedium = cm % (labelStep / 2) === 0;
+    ticks.push({
+      y,
+      width: isMajor ? 7 : isMedium ? 5 : 3,
+      stroke: isMajor ? '#6b7280' : isMedium ? '#9ca3af' : '#cbd5e1',
+    });
+  }
+
+  const labels: { y: number; text: string }[] = [];
+  for (let cm = 0; cm <= lengthCm; cm += labelStep) {
+    labels.push({ y: (cm / lengthCm) * heightPx, text: String(cm) });
+  }
+  if (lengthCm % labelStep !== 0) {
+    labels.push({ y: heightPx, text: String(lengthCm) });
+  }
+
+  return (
+    <svg
+      width={28}
+      height={heightPx}
+      className="block select-none"
+      style={{ width: '28px', height: `${heightPx}px` }}
+    >
+      <line x1={28} y1={0} x2={28} y2={heightPx} stroke="#9ca3af" strokeWidth={1} />
+      {ticks.map((t, idx) => (
+        <line
+          key={`tick-v-${idx}`}
+          x1={28 - t.width}
+          y1={t.y}
+          x2={28}
+          y2={t.y}
+          stroke={t.stroke}
+          strokeWidth={1}
+        />
+      ))}
+      {labels.map((l, idx) => (
+        <text
+          key={`label-v-${idx}`}
+          x={19}
+          y={l.y + 3.5}
+          textAnchor="end"
+          fontSize="9"
+          fill="#4b5563"
+          fontFamily="system-ui, -apple-system, sans-serif"
+          fontWeight="500"
+        >
+          {l.text}
+        </text>
+      ))}
+    </svg>
+  );
 }
 
 // ─── SteppedInput ─────────────────────────────────────────────────────────────
@@ -170,16 +292,16 @@ function createRulerMarks(lengthCm: number, labelStep: number): number[] {
 interface SteppedInputProps {
   label: string;
   value: string | number;
-  min: string;
+  min?: string;
   max?: string;
-  step: string;
+  step?: string;
   onChange: (value: string) => void;
   onStep: (direction: 1 | -1) => void;
 }
 
 function SteppedInput({ label, value, min, max, step, onChange, onStep }: SteppedInputProps) {
   return (
-    <span className="relative block">
+    <div className="relative flex items-center">
       <input
         type="number"
         aria-label={label}
@@ -188,29 +310,29 @@ function SteppedInput({ label, value, min, max, step, onChange, onStep }: Steppe
         step={step}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-full rounded-lg border border-[#dfe2e9] bg-white pl-3 pr-8 text-[13px] font-semibold text-[#171923] outline-none [appearance:textfield] focus:border-[#4f46f5] focus:ring-1 focus:ring-[#4f46f5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className="h-9 w-full rounded-lg border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#111827] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
-      <span className="absolute right-2 top-1/2 flex -translate-y-1/2 flex-col">
+      <div className="absolute right-1.5 flex flex-col items-center">
         <button
           type="button"
           tabIndex={-1}
           aria-label={`Aumentar ${label}`}
           onClick={() => onStep(1)}
-          className="flex h-[13px] w-3.5 items-center justify-center text-[#9aa0ab] hover:text-[#171923]"
+          className="flex h-3.5 w-3.5 items-center justify-center text-[#9ca3af] hover:text-[#111827]"
         >
-          <ChevronUp className="h-3 w-3" />
+          <ChevronUp className="h-3 w-3" strokeWidth={2.2} />
         </button>
         <button
           type="button"
           tabIndex={-1}
           aria-label={`Disminuir ${label}`}
           onClick={() => onStep(-1)}
-          className="flex h-[13px] w-3.5 items-center justify-center text-[#9aa0ab] hover:text-[#171923]"
+          className="flex h-3.5 w-3.5 items-center justify-center text-[#9ca3af] hover:text-[#111827]"
         >
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className="h-3 w-3" strokeWidth={2.2} />
         </button>
-      </span>
-    </span>
+      </div>
+    </div>
   );
 }
 
@@ -219,6 +341,7 @@ function SteppedInput({ label, value, min, max, step, onChange, onStep }: Steppe
 export function DesignerEasyModePage() {
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const workspaceRef = useRef<HTMLDivElement | null>(null);
 
   const [technique, setTechnique] = useState('dtf');
   const [canvasSettings, setCanvasSettings] = useState(() =>
@@ -240,6 +363,10 @@ export function DesignerEasyModePage() {
   const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
   const [showProcessedImage, setShowProcessedImage] = useState(true);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [removeSemitransparencies, setRemoveSemitransparencies] = useState(false);
+
+  // Responsive workspace size tracking
+  const [workspaceSize, setWorkspaceSize] = useState({ width: 900, height: 700 });
 
   const processingRequestId = useRef(0);
   const processedImageUrlRef = useRef<string | null>(null);
@@ -251,10 +378,23 @@ export function DesignerEasyModePage() {
   const selectedImage =
     showProcessedImage && processedImageUrl ? processedImageUrl : imageSrc;
 
-  const widthSteps = getRulerSteps(safeWidthCm);
-  const heightSteps = getRulerSteps(safeHeightCm);
-  const rulerWidthMarks = createRulerMarks(safeWidthCm, widthSteps.labelStep);
-  const rulerHeightMarks = createRulerMarks(safeHeightCm, heightSteps.labelStep);
+  useEffect(() => {
+    const el = workspaceRef.current;
+    if (!el) return;
+
+    const handleResize = (entries: ResizeObserverEntry[]) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        if (width > 0 && height > 0) {
+          setWorkspaceSize({ width, height });
+        }
+      }
+    };
+
+    const observer = new ResizeObserver(handleResize);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     if (!uploadedAssetId) return;
@@ -377,146 +517,131 @@ export function DesignerEasyModePage() {
     if (file) loadFile(file);
   };
 
-  const canvasAspectRatio = Math.max(0.01, safeWidthCm / safeHeightCm);
+  // ─── Proportional Canvas Geometry ─────────────────────────────────────────
 
-  const canvasFrameStyle = {
-    aspectRatio: `${safeWidthCm} / ${safeHeightCm}`,
-    width: `min(100cqw, calc(100cqh * ${canvasAspectRatio}))`,
-  };
+  const availWidth = Math.max(120, workspaceSize.width - 150);
+  const availHeight = Math.max(120, workspaceSize.height - 90);
+  const ratio = safeWidthCm / safeHeightCm;
+
+  let canvasWidthPx = Math.round(availHeight * ratio);
+  let canvasHeightPx = Math.round(availHeight);
+
+  if (canvasWidthPx > availWidth) {
+    canvasWidthPx = Math.round(availWidth);
+    canvasHeightPx = Math.round(availWidth / ratio);
+  }
 
   const canvasStyle = {
     backgroundColor: getCanvasColor(canvasSettings),
     backgroundImage:
       canvasSettings.background === 'transparent'
-        ? 'linear-gradient(45deg, #e8eaee 25%, transparent 25%), linear-gradient(-45deg, #e8eaee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8eaee 75%), linear-gradient(-45deg, transparent 75%, #e8eaee 75%)'
+        ? 'linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)'
         : undefined,
-    backgroundSize: canvasSettings.background === 'transparent' ? '24px 24px' : undefined,
+    backgroundSize: canvasSettings.background === 'transparent' ? '16px 16px' : undefined,
     backgroundPosition:
       canvasSettings.background === 'transparent'
-        ? '0 0, 0 12px, 12px -12px, -12px 0px'
+        ? '0 0, 0 8px, 8px -8px, -8px 0px'
         : undefined,
-  };
-
-  const horizontalTicksStyle = {
-    backgroundImage: `linear-gradient(90deg, ${TICK_COLOR} 1px, transparent 1px), linear-gradient(90deg, ${TICK_COLOR} 1px, transparent 1px)`,
-    backgroundSize: `${(widthSteps.tickStep / safeWidthCm) * 100}% 5px, ${(widthSteps.labelStep / safeWidthCm) * 100}% 9px`,
-    backgroundPosition: 'left bottom, left bottom',
-    backgroundRepeat: 'repeat-x',
-  };
-
-  const verticalTicksStyle = {
-    backgroundImage: `linear-gradient(180deg, ${TICK_COLOR} 1px, transparent 1px), linear-gradient(180deg, ${TICK_COLOR} 1px, transparent 1px)`,
-    backgroundSize: `5px ${(heightSteps.tickStep / safeHeightCm) * 100}%, 9px ${(heightSteps.labelStep / safeHeightCm) * 100}%`,
-    backgroundPosition: 'right top, right top',
-    backgroundRepeat: 'repeat-y',
   };
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    /* Shell: full viewport, no scroll global */
-    <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#f0f1f4] font-sans text-[#171923]">
-
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#f1f3f7] font-sans text-[#111827]">
       {/* ══════════════════════════════════════════════════════════
-          HEADER — altura compacta ~56px como en la referencia
+          HEADER — réplica exacta 1:1 de la referencia
       ══════════════════════════════════════════════════════════ */}
-      <header className="z-20 flex h-14 min-h-14 shrink-0 items-center border-b border-[#e3e5ea] bg-white px-4">
-
+      <header className="z-20 flex h-14 min-h-14 shrink-0 items-center justify-between border-b border-[#e5e7eb] bg-white px-4">
         {/* Izquierda: logo + menú */}
-        <div className="flex min-w-0 shrink-0 items-center gap-5">
+        <div className="flex shrink-0 items-center gap-6">
           <Link
             to="/designer/easy"
             aria-label="PrintShop, modo básico"
-            className="flex shrink-0 items-center gap-2"
+            className="flex shrink-0 items-center gap-2.5"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-[#4f46f5] text-[15px] font-bold text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-[#4f46e5] text-[14px] font-bold text-white shadow-xs">
               P
             </span>
-            <span className="text-[15px] font-semibold tracking-[-0.02em] text-[#151720]">
+            <span className="text-[15px] font-bold tracking-tight text-[#111827]">
               PrintShop
             </span>
           </Link>
 
           <nav
             aria-label="Menú del editor"
-            className="hidden items-center gap-5 text-[13px] font-medium text-[#555c69] sm:flex"
+            className="hidden items-center gap-5 text-[13px] font-normal text-[#6b7280] md:flex"
           >
-            <button type="button" className="transition-colors hover:text-[#171923]">
+            <button type="button" className="transition-colors hover:text-[#111827]">
               Archivo
             </button>
-            <button type="button" className="transition-colors hover:text-[#171923]">
+            <button type="button" className="transition-colors hover:text-[#111827]">
               Editar
             </button>
-            <button type="button" className="transition-colors hover:text-[#171923]">
+            <button type="button" className="transition-colors hover:text-[#111827]">
               Ver
             </button>
           </nav>
         </div>
 
-        {/* Centro: selector de técnica */}
-        <div className="mx-4 flex min-w-0 flex-1 justify-center">
-          <label className="flex h-10 w-[220px] max-w-full shrink-0 items-center gap-2.5 rounded-xl border border-[#dfe2e8] bg-white px-3 shadow-[0_1px_2px_rgba(24,28,38,0.04)]">
-            <Shirt className="h-5 w-5 shrink-0 text-[#4f46f5]" strokeWidth={1.9} />
+        {/* Centro: selector de técnica estampado DTF */}
+        <div className="flex shrink-0 items-center justify-center">
+          <label className="flex h-10 w-[210px] cursor-pointer items-center gap-2.5 rounded-xl border border-[#e2e8f0] bg-white px-3 shadow-xs">
+            <Shirt className="h-4 w-4 shrink-0 text-[#4f46e5]" strokeWidth={2} />
             <span className="min-w-0 flex-1">
-              <span className="block whitespace-nowrap text-[10px] leading-none text-[#8f95a2]">
+              <span className="block text-[10px] leading-tight text-[#9ca3af]">
                 Técnica de estampado
               </span>
               <select
                 aria-label="Técnica de estampado"
                 value={technique}
                 onChange={(event) => setTechnique(event.target.value)}
-                className="w-full appearance-none bg-transparent text-[14px] font-semibold leading-5 text-[#171923] outline-none"
+                className="w-full appearance-none bg-transparent text-[13px] font-bold leading-tight text-[#111827] outline-none"
               >
                 <option value="dtf">DTF</option>
               </select>
             </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-[#555c69]" />
+            <ChevronDown className="h-3.5 w-3.5 shrink-0 text-[#9ca3af]" />
           </label>
         </div>
 
-        {/* Derecha: controles */}
+        {/* Derecha: controles de exportación y herramientas */}
         <div className="flex shrink-0 items-center gap-2">
           {/* Undo / Redo */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center">
             <button
               type="button"
               disabled
-              aria-label="Deshacer no disponible"
+              aria-label="Deshacer"
               title="Deshacer no está disponible en Modo Básico."
-              className="rounded-lg p-1.5 text-[#b0b5bf] disabled:cursor-not-allowed"
+              className="rounded-lg p-1.5 text-[#9ca3af] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
             >
-              <Undo2 className="h-[18px] w-[18px]" />
+              <Undo2 className="h-4 w-4" />
             </button>
             <button
               type="button"
               disabled
-              aria-label="Rehacer no disponible"
+              aria-label="Rehacer"
               title="Rehacer no está disponible en Modo Básico."
-              className="rounded-lg p-1.5 text-[#b0b5bf] disabled:cursor-not-allowed"
+              className="rounded-lg p-1.5 text-[#9ca3af] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
             >
-              <Redo2 className="h-[18px] w-[18px]" />
+              <Redo2 className="h-4 w-4" />
             </button>
           </div>
 
-          {/* Zoom */}
-          <button
-            type="button"
-            disabled
-            aria-label="Zoom al 100%"
-            className="flex h-8 w-[90px] items-center justify-center gap-1.5 rounded-lg border border-[#e2e5eb] bg-[#f6f7f9] text-[13px] font-medium text-[#555d6b] disabled:cursor-not-allowed"
-          >
-            <Search className="h-3.5 w-3.5" />
-            100%
-            <ChevronDown className="h-3.5 w-3.5" />
-          </button>
+          {/* Zoom pill */}
+          <div className="flex h-8 items-center gap-1 rounded-xl border border-[#e2e8f0] bg-white px-2.5 text-[12px] font-medium text-[#374151] shadow-xs">
+            <RotateCcw className="h-3.5 w-3.5 text-[#6b7280]" />
+            <span>100%</span>
+            <ChevronDown className="h-3 w-3 text-[#9ca3af]" />
+          </div>
 
           {/* Herramienta mano */}
           <button
             type="button"
             disabled
-            aria-label="Herramienta mano no disponible"
+            aria-label="Herramienta mano"
             title="La navegación de lienzo no está disponible en Modo Básico."
-            className="flex h-8 w-9 items-center justify-center rounded-lg border border-[#e2e5eb] bg-[#f6f7f9] text-[#555c69] disabled:cursor-not-allowed"
+            className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#4b5563] shadow-xs disabled:cursor-not-allowed hover:bg-[#f9fafb]"
           >
             <Hand className="h-4 w-4" />
           </button>
@@ -526,7 +651,7 @@ export function DesignerEasyModePage() {
             type="button"
             disabled
             title="La exportación todavía no está disponible."
-            className="hidden h-8 items-center justify-center whitespace-nowrap rounded-lg border border-[#e2e5eb] bg-[#f4f5f7] px-4 text-[13px] font-semibold text-[#242832] disabled:cursor-not-allowed sm:flex"
+            className="hidden h-8 items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#f3f4f6] px-3.5 text-[12px] font-semibold text-[#1f2937] hover:bg-[#e5e7eb] disabled:cursor-not-allowed sm:flex"
           >
             Descargar PNG
           </button>
@@ -536,7 +661,7 @@ export function DesignerEasyModePage() {
             type="button"
             disabled
             title="La exportación todavía no está disponible."
-            className="hidden h-8 items-center justify-center whitespace-nowrap rounded-lg bg-[#4f46f5] px-4 text-[13px] font-semibold text-white disabled:cursor-not-allowed lg:flex"
+            className="hidden h-8 items-center justify-center rounded-xl bg-[#4338ca] px-3.5 text-[12px] font-semibold text-white shadow-xs hover:bg-[#3730a3] disabled:cursor-not-allowed md:flex"
           >
             Descargar PDF
           </button>
@@ -545,55 +670,59 @@ export function DesignerEasyModePage() {
           <button
             type="button"
             disabled
-            aria-label="Más opciones no disponible"
-            className="rounded-lg p-1 text-[#555c69] disabled:cursor-not-allowed"
+            aria-label="Más opciones"
+            className="rounded-lg p-1 text-[#6b7280] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
           >
-            <MoreVertical className="h-[18px] w-[18px]" />
+            <MoreVertical className="h-4 w-4" />
           </button>
         </div>
       </header>
 
       {/* ══════════════════════════════════════════════════════════
-          BODY — toolbar + panel + workspace
+          CUERPO PRINCIPAL — Toolbar + Panel + Workspace
       ══════════════════════════════════════════════════════════ */}
       <div className="flex min-h-0 flex-1 overflow-hidden">
-
-        {/* ─── SIDEBAR TOOLBAR ─── ~80px de ancho como en la referencia */}
+        {/* ─── SIDEBAR TOOLBAR ─── exactamente 72px de ancho */}
         <nav
           aria-label="Herramientas de Modo Básico"
-          className="flex w-[80px] min-w-[80px] shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-[#e3e5ea] bg-white py-2"
+          className="flex w-[72px] min-w-[72px] shrink-0 flex-col items-center gap-1 border-r border-[#e5e7eb] bg-white py-3 overflow-y-auto"
         >
-          {/* Archivo — activo (highlighted) */}
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="flex w-[64px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl bg-[#eeedff] py-3 text-[#4f46f5]"
-          >
-            <CloudUpload className="h-6 w-6" strokeWidth={1.8} />
-            <span className="text-[11px] font-medium">Archivo</span>
-          </button>
+          {sidebarTools.map((tool) => {
+            const Icon = tool.icon;
+            if (tool.active) {
+              return (
+                <button
+                  key={tool.id}
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex h-[54px] w-[58px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl bg-[#eeedff] text-[#4f46e5]"
+                >
+                  <Icon className="h-5 w-5" strokeWidth={1.8} />
+                  <span className="text-[11px] font-medium">{tool.label}</span>
+                </button>
+              );
+            }
 
-          {/* Herramientas inactivas */}
-          {unavailableTools.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              type="button"
-              disabled
-              title={`${label} no está disponible en Modo Básico.`}
-              className="flex w-[64px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl py-3 text-[#6b717e] disabled:cursor-not-allowed"
-            >
-              <Icon className="h-6 w-6" strokeWidth={1.6} />
-              <span className="text-[11px] font-medium text-[#8b919e]">{label}</span>
-            </button>
-          ))}
+            return (
+              <button
+                key={tool.id}
+                type="button"
+                disabled
+                title={`${tool.label} no está disponible en Modo Básico.`}
+                className="flex h-[54px] w-[58px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl text-[#6b7280] disabled:cursor-not-allowed hover:text-[#111827]"
+              >
+                <Icon className="h-5 w-5" strokeWidth={1.6} />
+                <span className="text-[11px] font-medium">{tool.label}</span>
+              </button>
+            );
+          })}
         </nav>
 
-        {/* ─── PANEL LATERAL DE PROPIEDADES ─── ~300px de ancho */}
-        <aside className="flex w-[300px] min-w-[260px] shrink-0 flex-col overflow-y-auto border-r border-[#e3e5ea] bg-white">
-
-          {/* ── Agregar imagen ── */}
-          <div className="px-5 pb-4 pt-5">
-            <h1 className="mb-3 text-[15px] font-semibold tracking-[-0.01em] text-[#171923]">
+        {/* ─── PANEL LATERAL DE CONFIGURACIÓN ─── 320px de ancho */}
+        <aside className="flex w-[320px] min-w-[320px] shrink-0 flex-col border-r border-[#e5e7eb] bg-white overflow-y-auto p-5">
+          {/* 1. AGREGAR IMAGEN */}
+          <section>
+            <h1 className="mb-2.5 text-[15px] font-bold text-[#111827]">
               Agregar imagen
             </h1>
 
@@ -604,22 +733,24 @@ export function DesignerEasyModePage() {
               }}
               onDragLeave={() => setIsDraggingFile(false)}
               onDrop={handleDrop}
-              className={`flex min-h-[160px] flex-col items-center justify-center rounded-2xl border border-dashed px-4 py-5 text-center transition-colors ${
+              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-5 text-center transition-colors ${
                 isDraggingFile
-                  ? 'border-[#4f46f5] bg-[#f6f5ff]'
-                  : 'border-[#d0d4dc] bg-[#fafafa]'
+                  ? 'border-[#4f46e5] bg-[#eeedff]/40'
+                  : 'border-[#e2e8f0] bg-white'
               }`}
             >
-              <CloudUpload className="mb-2 h-8 w-8 text-[#2a2f3a]" strokeWidth={1.5} />
-              <p className="max-w-full truncate text-[13px] font-semibold text-[#171923]">
+              <CloudUpload className="h-8 w-8 text-[#111827]" strokeWidth={1.5} />
+              <p className="mt-2 text-[14px] font-bold text-[#111827]">
                 {sourceFile ? sourceFile.name : 'Sube una imagen'}
               </p>
-              <p className="mt-0.5 text-[11px] text-[#9aa0ab]">JPG, PNG o SVG (máx. 50MB)</p>
+              <p className="mt-0.5 text-[11px] text-[#9ca3af]">
+                JPG, PNG o SVG (máx. 50MB)
+              </p>
 
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-3 flex h-9 items-center justify-center rounded-lg border border-[#dfe2e9] bg-white px-5 text-[13px] font-semibold text-[#222630] transition-colors hover:bg-[#f0f1f4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46f5]"
+                className="mt-3 rounded-full border border-[#e2e8f0] bg-[#f9fafb] px-5 py-1.5 text-[12px] font-semibold text-[#1f2937] shadow-xs hover:bg-[#f3f4f6]"
               >
                 Seleccionar archivo
               </button>
@@ -640,14 +771,14 @@ export function DesignerEasyModePage() {
             )}
 
             {sourceFile && (
-              <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              <div className="mt-2 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={handleImproveContrast}
                   disabled={isProcessing}
-                  className="flex h-8 items-center gap-1.5 rounded-lg border border-[#e0e3e9] bg-white px-3 text-[11px] font-semibold text-[#282c36] hover:bg-[#f7f8fa] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-7 items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-[11px] font-semibold text-[#374151] hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-[#4f46f5]" />
+                  <Sparkles className="h-3 w-3 text-[#4f46e5]" />
                   {isProcessing ? 'Procesando…' : 'Mejorar contraste'}
                 </button>
 
@@ -656,74 +787,32 @@ export function DesignerEasyModePage() {
                     type="button"
                     onClick={() => setShowProcessedImage((current) => !current)}
                     aria-pressed={showProcessedImage}
-                    className="flex h-8 items-center gap-1.5 rounded-lg border border-[#e0e3e9] bg-white px-3 text-[11px] font-semibold text-[#282c36] hover:bg-[#f7f8fa]"
+                    className="flex h-7 items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-[11px] font-semibold text-[#374151] hover:bg-[#f9fafb]"
                   >
-                    <Eye className="h-3.5 w-3.5" />
+                    <Eye className="h-3 w-3" />
                     {showProcessedImage ? 'Ver original' : 'Ver resultado'}
                   </button>
                 )}
 
                 {processedDimensions && (
-                  <span className="w-full pt-0.5 text-[11px] text-[#697181]">
+                  <span className="w-full text-[11px] text-[#6b7280]">
                     PNG procesado · {processedDimensions.width} × {processedDimensions.height} px
-                  </span>
-                )}
-
-                {isProcessing && (
-                  <span role="status" className="w-full pt-0.5 text-[11px] text-[#697181]">
-                    Procesando imagen en segundo plano…
                   </span>
                 )}
               </div>
             )}
-          </div>
-
-          {/* ── Fondo del lienzo ── */}
-          <section className="border-t border-[#e8e9ed] px-5 pb-4 pt-4">
-            <h2 className="mb-3 text-[14px] font-semibold tracking-[-0.01em] text-[#171923]">
-              Fondo del lienzo
-            </h2>
-
-            <div className="flex items-center gap-2">
-              {backgroundOptions.map((option) => {
-                const selected = isBackgroundSelected(canvasSettings, option);
-
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    aria-label={option.label}
-                    aria-pressed={selected}
-                    title={option.label}
-                    onClick={() => handleBackgroundSelect(option)}
-                    className={`flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46f5] focus-visible:ring-offset-2 ${
-                      selected ? 'border-[#5a4aff]' : 'border-transparent'
-                    }`}
-                  >
-                    <span
-                      className={`h-9 w-9 rounded-full border border-[#dde0e7] ${
-                        option.id === 'transparent'
-                          ? 'bg-[linear-gradient(45deg,#e1e3e8_25%,transparent_25%),linear-gradient(-45deg,#e1e3e8_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e1e3e8_75%),linear-gradient(-45deg,transparent_75%,#e1e3e8_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]'
-                          : ''
-                      } ${option.id === 'white' ? 'bg-white' : ''}`}
-                      style={option.color ? { backgroundColor: option.color } : undefined}
-                    />
-                  </button>
-                );
-              })}
-            </div>
           </section>
 
-          {/* ── Lienzo ── */}
-          <section className="border-t border-[#e8e9ed] px-5 pb-5 pt-4">
-            <h2 className="mb-3 text-[14px] font-semibold tracking-[-0.01em] text-[#171923]">
+          {/* 2. LIENZO */}
+          <section className="mt-4">
+            <h2 className="mb-2 text-[14px] font-bold text-[#111827]">
               Lienzo
             </h2>
 
             {/* Ancho / Alto */}
             <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-1.5">
-              <label className="min-w-0 text-[12px] text-[#717887]">
-                <span className="mb-1.5 block">Ancho (cm)</span>
+              <label className="min-w-0 text-[11px] text-[#6b7280]">
+                <span className="mb-1 block">Ancho (cm)</span>
                 <SteppedInput
                   label="Ancho"
                   min="0.1"
@@ -739,15 +828,15 @@ export function DesignerEasyModePage() {
                 aria-label={keepRatio ? 'Desbloquear proporción' : 'Mantener proporción'}
                 aria-pressed={keepRatio}
                 onClick={handleRatioToggle}
-                className={`mb-2 rounded-md p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46f5] ${
-                  keepRatio ? 'text-[#4f46f5]' : 'text-[#9aa0ab]'
+                className={`mb-2 rounded-md p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
+                  keepRatio ? 'text-[#4f46e5]' : 'text-[#9ca3af]'
                 }`}
               >
                 <Link2 className="h-4 w-4" />
               </button>
 
-              <label className="min-w-0 text-[12px] text-[#717887]">
-                <span className="mb-1.5 block">Alto (cm)</span>
+              <label className="min-w-0 text-[11px] text-[#6b7280]">
+                <span className="mb-1 block">Alto (cm)</span>
                 <SteppedInput
                   label="Alto"
                   min="0.1"
@@ -760,8 +849,8 @@ export function DesignerEasyModePage() {
             </div>
 
             {/* Resolución */}
-            <div className="mt-3 text-[12px] text-[#717887]">
-              <span className="mb-1.5 block">Resolución</span>
+            <div className="mt-2.5">
+              <span className="mb-1 block text-[11px] text-[#6b7280]">Resolución</span>
               <div className="grid grid-cols-[1fr_80px] gap-2">
                 <SteppedInput
                   label="Resolución"
@@ -772,149 +861,235 @@ export function DesignerEasyModePage() {
                   onChange={handleDpiChange}
                   onStep={stepDpi}
                 />
-                <span className="flex h-9 items-center justify-between rounded-lg border border-[#dfe2e9] bg-white px-3 text-[13px] text-[#465063]">
-                  DPI
-                  <ChevronDown className="h-3.5 w-3.5 text-[#9aa0ab]" />
-                </span>
+                <div className="flex h-9 items-center justify-between rounded-lg border border-[#e2e8f0] bg-white px-3 text-[13px] font-medium text-[#374151]">
+                  <span>DPI</span>
+                  <ChevronDown className="h-3.5 w-3.5 text-[#9ca3af]" />
+                </div>
               </div>
+            </div>
+          </section>
+
+          {/* 3. FONDO DEL LIENZO */}
+          <section className="mt-4">
+            <h2 className="mb-2 text-[14px] font-bold text-[#111827]">
+              Fondo del lienzo
+            </h2>
+
+            <div className="flex items-center gap-2.5">
+              {backgroundOptions.map((option) => {
+                const selected = isBackgroundSelected(canvasSettings, option);
+
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={selected}
+                    title={option.label}
+                    onClick={() => handleBackgroundSelect(option)}
+                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform ${
+                      selected
+                        ? 'ring-2 ring-[#4f46e5] ring-offset-2'
+                        : 'hover:scale-105'
+                    }`}
+                  >
+                    <span
+                      className={`h-8 w-8 rounded-full border border-[#d1d5db] ${
+                        option.id === 'transparent'
+                          ? 'bg-[linear-gradient(45deg,#e5e7eb_25%,transparent_25%),linear-gradient(-45deg,#e5e7eb_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e5e7eb_75%),linear-gradient(-45deg,transparent_75%,#e5e7eb_75%)] [background-position:0_0,0_4px,4px_-4px,-4px_0] [background-size:8px_8px]'
+                          : ''
+                      } ${option.id === 'white' ? 'bg-white' : ''}`}
+                      style={option.color ? { backgroundColor: option.color } : undefined}
+                    />
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+
+          {/* 4. AGREGAR DISEÑOS */}
+          <section className="mt-4">
+            <h2 className="mb-2 text-[14px] font-bold text-[#111827]">
+              Agregar diseños
+            </h2>
+
+            {/* Botón principal: + SUBIR IMAGEN */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-[#18181b] px-4 text-[12px] font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black"
+            >
+              + SUBIR IMAGEN
+            </button>
+
+            {/* Fila de 3 botones: ATRÁS, DUPLICAR, BORRAR */}
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (processedImageUrl) setShowProcessedImage(false);
+                }}
+                className="flex h-8 items-center justify-center gap-1 rounded-lg border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#374151] hover:bg-[#f9fafb]"
+              >
+                <RotateCcw className="h-3 w-3" />
+                <span>ATRÁS</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  // Duplicar reservado
+                }}
+                className="flex h-8 items-center justify-center rounded-lg border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#374151] hover:bg-[#f9fafb]"
+              >
+                DUPLICAR
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setImageSrc(null);
+                  setSourceFile(null);
+                  replaceProcessedImage(null);
+                  setProcessedDimensions(null);
+                }}
+                className="flex h-8 items-center justify-center rounded-lg border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] hover:bg-[#fef2f2]"
+              >
+                BORRAR
+              </button>
+            </div>
+
+            {/* Banner naranja: Eliminar semitransparencias */}
+            <div className="mt-3 flex items-center justify-between rounded-xl border border-[#fed7aa] bg-[#fff7ed] p-3">
+              <div>
+                <p className="text-[12px] font-bold text-[#ea580c]">
+                  Eliminar semitransparencias
+                </p>
+                <p className="text-[10px] text-[#c2410c]/80">
+                  Evita bordes blancos
+                </p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={removeSemitransparencies}
+                onClick={() => {
+                  const next = !removeSemitransparencies;
+                  setRemoveSemitransparencies(next);
+                  if (next && sourceFile && !isProcessing) {
+                    handleImproveContrast();
+                  }
+                }}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                  removeSemitransparencies ? 'bg-[#ea580c]' : 'bg-[#d1d5db]'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                    removeSemitransparencies ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
           </section>
         </aside>
 
-        {/* ─── WORKSPACE (área principal) ─── */}
+        {/* ─── WORKSPACE (Área central de lienzo) ─── */}
         <main
+          ref={workspaceRef}
           aria-label="Área de trabajo del lienzo"
-          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#e9eaee]"
+          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f1f3f7] flex items-center justify-center p-8 select-none"
         >
-          {/*
-            Distribución del workspace:
-            - Fila superior: esquina (20×20) + regla horizontal
-            - Columna izquierda: regla vertical (20px ancho)
-            - Centro: área de desplazamiento del canvas
-            - Columna derecha: controles de zoom flotantes
-          */}
-
-          {/* Regla horizontal: banda gris con marcas */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex h-5 border-b border-[#d4d6db] bg-[#f0f1f4] select-none"
-          >
-            {/* Esquina */}
-            <div className="h-5 w-5 shrink-0 border-r border-[#d4d6db] bg-[#f0f1f4]" />
-            {/* Regla horizontal — usa el mismo canvas container para proporciones */}
-            <div className="relative flex-1 overflow-hidden text-[9px] text-[#8b919e]">
-              <span className="absolute left-1 top-0 text-[9px] leading-5 text-[#9aa0ab]">cm</span>
-              {rulerWidthMarks.map((mark) => (
-                <span
-                  key={mark}
-                  className="absolute top-0 -translate-x-1/2 leading-5"
-                  style={{ left: `${(mark / safeWidthCm) * 100}%` }}
-                >
-                  {mark}
-                </span>
-              ))}
-              {/* Ticks */}
-              <div
-                className="absolute inset-0"
-                style={horizontalTicksStyle}
-              />
+          {/* Contenedor central: reglas pegadas al lienzo */}
+          <div className="relative flex flex-col items-start">
+            {/* Fila superior: esquina (cm) + regla horizontal */}
+            <div className="flex items-end">
+              <div className="flex h-[22px] w-[28px] shrink-0 items-center justify-end pr-1 text-[10px] font-medium text-[#6b7280]">
+                cm
+              </div>
+              <div style={{ width: `${canvasWidthPx}px` }}>
+                <HorizontalRuler widthPx={canvasWidthPx} lengthCm={safeWidthCm} />
+              </div>
             </div>
-          </div>
 
-          {/* Regla vertical: banda izquierda con marcas */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute bottom-0 left-0 top-5 z-10 w-5 border-r border-[#d4d6db] bg-[#f0f1f4] select-none"
-          >
-            <div className="relative h-full overflow-hidden text-[9px] text-[#8b919e]">
-              {rulerHeightMarks.map((mark) => (
-                <span
-                  key={mark}
-                  className="absolute right-0.5 -translate-y-1/2 leading-3"
-                  style={{
-                    top: `${(mark / safeHeightCm) * 100}%`,
-                    writingMode: 'horizontal-tb',
-                  }}
-                >
-                  {mark}
-                </span>
-              ))}
-              {/* Ticks */}
+            {/* Fila inferior: regla vertical + lienzo */}
+            <div className="flex items-start">
+              <div style={{ height: `${canvasHeightPx}px` }}>
+                <VerticalRuler heightPx={canvasHeightPx} lengthCm={safeHeightCm} />
+              </div>
+
+              {/* Lienzo / Canvas */}
               <div
-                className="absolute inset-0"
-                style={verticalTicksStyle}
-              />
-            </div>
-          </div>
-
-          {/* Canvas scroll area — dentro de las reglas */}
-          <div
-            className="absolute bottom-0 left-5 right-0 top-5 overflow-auto"
-          >
-            <div
-              className="flex h-full w-full items-start justify-center p-8"
-              style={{ containerType: 'size' }}
-            >
-              <div className="relative shrink-0" style={canvasFrameStyle}>
-                {/* Canvas */}
-                <div
-                  role="img"
-                  aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
-                  className="relative z-10 flex h-full w-full items-center justify-center overflow-hidden shadow-[0_4px_20px_rgba(26,30,43,0.14)]"
-                  style={canvasStyle}
-                >
-                  {selectedImage && (
-                    <img
-                      src={selectedImage}
-                      alt={
-                        processedImageUrl && showProcessedImage
-                          ? 'Imagen con contraste procesado'
-                          : 'Imagen subida al lienzo'
-                      }
-                      className="h-full w-full select-none object-contain"
-                      draggable={false}
-                    />
-                  )}
-                </div>
+                role="img"
+                aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
+                className="relative shrink-0 overflow-hidden border border-[#d1d5db] shadow-[0_2px_16px_rgba(0,0,0,0.06)]"
+                style={{
+                  width: `${canvasWidthPx}px`,
+                  height: `${canvasHeightPx}px`,
+                  ...canvasStyle,
+                }}
+              >
+                {selectedImage && (
+                  <img
+                    src={selectedImage}
+                    alt={
+                      processedImageUrl && showProcessedImage
+                        ? 'Imagen con contraste procesado'
+                        : 'Imagen subida al lienzo'
+                    }
+                    className="h-full w-full select-none object-contain"
+                    draggable={false}
+                  />
+                )}
               </div>
             </div>
           </div>
 
-          {/* ── Controles de viewport (derecha) ── */}
-          <div className="absolute right-3 top-8 z-10 flex flex-col items-center gap-0.5 rounded-2xl border border-[#dde0e7] bg-white p-1.5 shadow-[0_4px_16px_rgba(25,30,44,0.08)]">
+          {/* ── Controles flotantes en la parte superior derecha ── */}
+          <div className="absolute right-6 top-6 z-20 flex flex-col items-center gap-1 rounded-2xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.06)]">
             <button
               type="button"
               disabled
-              aria-label="Centrar lienzo no disponible"
-              title="Ajuste de viewport no disponible en Modo Básico."
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+              aria-label="Centrar lienzo"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#4b5563] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
             >
-              <Crosshair className="h-5 w-5" strokeWidth={1.7} />
+              <Crosshair className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <button
               type="button"
               disabled
-              aria-label="Acercar no disponible"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+              aria-label="Acercar"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#4b5563] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
             >
-              <ZoomIn className="h-5 w-5" strokeWidth={1.7} />
+              <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <button
               type="button"
               disabled
-              aria-label="Alejar no disponible"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+              aria-label="Alejar"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#4b5563] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
             >
-              <CircleMinus className="h-5 w-5" strokeWidth={1.7} />
+              <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
             </button>
-            <span className="my-1 h-px w-6 bg-[#e8e9ed]" />
+            <div className="my-0.5 h-px w-5 bg-[#e5e7eb]" />
             <button
               type="button"
               disabled
-              aria-label="Pantalla completa no disponible"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+              aria-label="Ajustar a pantalla"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#4b5563] disabled:cursor-not-allowed hover:bg-[#f3f4f6]"
             >
-              <Maximize className="h-5 w-5" strokeWidth={1.7} />
+              <Maximize2 className="h-4 w-4" strokeWidth={1.8} />
+            </button>
+          </div>
+
+          {/* ── Botón flotante 'Exportar' en la esquina inferior derecha ── */}
+          <div className="absolute bottom-6 right-6 z-20">
+            <button
+              type="button"
+              disabled
+              title="La exportación todavía no está disponible."
+              className="flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-4 py-2.5 text-[13px] font-semibold text-[#111827] shadow-[0_4px_16px_rgba(0,0,0,0.06)] hover:bg-[#f9fafb] disabled:cursor-not-allowed"
+            >
+              <Upload className="h-4 w-4 text-[#111827]" strokeWidth={2} />
+              <span>Exportar</span>
             </button>
           </div>
         </main>
