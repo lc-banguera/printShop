@@ -1,28 +1,35 @@
-import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type KeyboardEvent as ReactKeyboardEvent,
+} from 'react';
 
 import {
   ChevronDown,
   ChevronUp,
   CloudUpload,
+  Check,
   Crosshair,
   Grid2X2,
   Hand,
   Layers,
   LayoutGrid,
   Link2,
+  LogOut,
   Maximize2,
   MoreVertical,
   Redo2,
   RotateCcw,
   Shapes,
-  Shirt,
   Type,
   Undo2,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { processArtworkImage } from '@/core/design/processing';
 import { removeBackgroundLocal } from '@/features/store/designer/imageProcessor';
@@ -386,10 +393,14 @@ function SteppedInput({
 
 export function DesignerEasyModePage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
+  const headerMenuButtonRef = useRef<HTMLButtonElement | null>(null);
+  const headerMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [technique, setTechnique] = useState('dtf');
+  const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const [canvasSettings, setCanvasSettings] = useState(() =>
     createInitialCanvasSettings(location.state),
   );
@@ -419,12 +430,77 @@ export function DesignerEasyModePage() {
   const processingRequestId = useRef(0);
   const processedImageUrlRef = useRef<string | null>(null);
 
+  useEffect(() => {
+    if (!isHeaderMenuOpen) return;
+
+    const firstMenuItem = headerMenuRef.current?.querySelector<HTMLButtonElement>(
+      '[role="menuitemradio"], [role="menuitem"]',
+    );
+    firstMenuItem?.focus();
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        !headerMenuRef.current?.contains(target) &&
+        !headerMenuButtonRef.current?.contains(target)
+      ) {
+        setIsHeaderMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsHeaderMenuOpen(false);
+        headerMenuButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isHeaderMenuOpen]);
+
   const widthCm = Number(canvasSettings.widthCm) || 0;
   const heightCm = Number(canvasSettings.heightCm) || 0;
   const safeWidthCm = Math.max(0.1, widthCm);
   const safeHeightCm = Math.max(0.1, heightCm);
   const selectedImage =
     showProcessedImage && processedImageUrl ? processedImageUrl : imageSrc;
+
+  const handleHeaderMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+
+    const items = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>(
+        '[role="menuitemradio"], [role="menuitem"]',
+      ),
+    );
+    if (items.length === 0) return;
+
+    const currentIndex = items.findIndex((item) => item === document.activeElement);
+    const nextIndex =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? items.length - 1
+          : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + items.length) %
+            items.length;
+    items[nextIndex]?.focus();
+  };
+
+  const handleExitDesigner = () => {
+    const hasCanvasCreationContext =
+      isRecord(location.state) && 'newCanvasConfig' in location.state;
+    setIsHeaderMenuOpen(false);
+    navigate(hasCanvasCreationContext ? '/store/designer' : '/products');
+  };
 
   useEffect(() => {
     const el = workspaceRef.current;
@@ -686,27 +762,6 @@ export function DesignerEasyModePage() {
           </nav>
         </div>
 
-        {/* Centro: selector de técnica estampado DTF */}
-        <div className="ml-[clamp(52px,7.95vw,133px)] flex shrink-0 items-center justify-center">
-          <label className="flex h-[clamp(44px,3.35vw,56px)] w-[clamp(220px,16.45vw,275px)] cursor-pointer items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white px-4 shadow-xs">
-            <Shirt className="h-6 w-6 shrink-0 text-[#4f46e5]" strokeWidth={2} />
-            <span className="min-w-0 flex-1">
-              <span className="block text-[10px] font-medium leading-none text-[#94a3b8] mb-0.5">
-                Técnica de estampado
-              </span>
-              <select
-                aria-label="Técnica de estampado"
-                value={technique}
-                onChange={(event) => setTechnique(event.target.value)}
-                className="w-full appearance-none bg-transparent text-[14px] font-bold leading-none text-[#0f172a] outline-none cursor-pointer"
-              >
-                <option value="dtf">DTF</option>
-              </select>
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-[#94a3b8]" />
-          </label>
-        </div>
-
         {/* Derecha: controles de exportación y herramientas */}
         <div className="ml-auto flex min-w-0 items-center justify-end gap-[clamp(4px,0.7vw,12px)]">
           {/* Undo / Redo */}
@@ -763,13 +818,60 @@ export function DesignerEasyModePage() {
           </button>
 
           {/* Más opciones */}
-          <button
-            type="button"
-            aria-label="Más opciones"
-            className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
-          >
-            <MoreVertical className="h-4 w-4" />
-          </button>
+          <div className="relative">
+            <button
+              ref={headerMenuButtonRef}
+              type="button"
+              aria-label="Más opciones"
+              aria-haspopup="menu"
+              aria-expanded={isHeaderMenuOpen}
+              aria-controls="designer-header-menu"
+              onClick={() => setIsHeaderMenuOpen((open) => !open)}
+              className="rounded-lg p-1.5 text-[#64748b] hover:bg-[#f1f5f9] transition-colors"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+            {isHeaderMenuOpen && (
+              <div
+                id="designer-header-menu"
+                ref={headerMenuRef}
+                role="menu"
+                aria-label="Opciones del diseñador"
+                onKeyDown={handleHeaderMenuKeyDown}
+                className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
+              >
+                <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold text-[#64748b]">
+                  Técnica de estampado
+                </div>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={technique === 'dtf'}
+                  tabIndex={-1}
+                  onClick={() => {
+                    setTechnique('dtf');
+                    setIsHeaderMenuOpen(false);
+                    headerMenuButtonRef.current?.focus();
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-[#0f172a] hover:bg-[#f8fafc] focus:bg-[#f8fafc] focus:outline-none"
+                >
+                  <span>DTF</span>
+                  {technique === 'dtf' && <Check className="h-4 w-4 text-[#4f46e5]" />}
+                </button>
+                <div role="separator" className="my-1 border-t border-[#eef0f4]" />
+                <button
+                  type="button"
+                  role="menuitem"
+                  tabIndex={-1}
+                  onClick={handleExitDesigner}
+                  className="flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-[#475569] hover:bg-[#f8fafc] focus:bg-[#f8fafc] focus:outline-none"
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Salir del diseñador</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
