@@ -151,7 +151,8 @@
 
 ### 2.5 Funcionalidad ausente
 
-❌ Procesamiento de imagen real (Python backend)  
+❌ Procesamiento real conectado a Designer 3 Easy (la API compartida de filtros de BLOCK 11 aún no está integrada)
+❌ Servicio Python de background removal
 ❌ Background removal real  
 ❌ Export de alta resolución  
 ❌ Persistencia

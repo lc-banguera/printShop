@@ -359,4 +359,29 @@ Implementar un `AssetManager` compartido en TypeScript que conserva metadata inm
 
 ---
 
+## ADR-018 — Filtros raster en Web Worker
+
+**Estado**: ACCEPTED
+**Fecha**: 2026-10-05
+
+### Contexto
+`ArtworkFilters` ya describe ajustes no destructivos, pero el renderer 3D los convierte en filtros Canvas en el hilo principal. BLOCK 11 requiere un procesamiento raster real que no bloquee la interfaz, sin añadir dependencias ni alterar el asset original.
+
+### Decisión
+Añadir al Design Core una API que reciba el `Blob` fuente y filtros validados, transfiera el trabajo a un Web Worker, procese los siete filtros mediante `OffscreenCanvas`/Canvas 2D y devuelva un PNG con las dimensiones de origen. El `Blob` fuente permanece inmutable. Si el Worker, OffscreenCanvas o `CanvasRenderingContext2D.filter` requerido no está disponible, el procesamiento falla explícitamente; no se ejecuta un fallback en el hilo principal.
+
+La integración en interacciones de D2/D3 queda para sus bloques correspondientes. Este ADR no declara habilitados los controles de Designer 3 Easy ni implementa eliminación de fondo, exportación de producción o persistencia.
+
+### Consecuencias
+- Los filtros existentes tienen un procesador real compartido que mantiene el asset de entrada.
+- Errores de decodificación, parámetros inválidos o runtime no compatible se exponen al consumidor.
+- El procesamiento por experiencia y la gestión del resultado permanecen pendientes de integración.
+
+### Alternativas consideradas
+- Aplicar los filtros en el hilo principal (rechazado: contradice el requisito del bloque de evitar bloquear la UI).
+- Sustituir el asset fuente o hacer una edición destructiva (rechazado: contradice ADR-007/008).
+- Añadir una dependencia externa o un motor nativo/WASM (rechazado: Canvas API cubre el alcance actual sin nueva dependencia).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

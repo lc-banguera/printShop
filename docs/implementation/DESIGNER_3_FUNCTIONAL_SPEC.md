@@ -23,7 +23,8 @@ Consultar [CURRENT_EDITOR_INVENTORY.md](../architecture/CURRENT_EDITOR_INVENTORY
 | Guardar | `PARTIAL`; no hay persistencia backend verificada |
 | Eliminar fondo, mejorar contraste y exportar | `PARTIAL`; controles visibles, sin funcionalidad backend verificada |
 | Indicadores de resultado de procesamiento | `PARTIAL`; el inventario los describe como valores visuales hardcoded, no como estado real |
-| Procesamiento de imagen y exportación de alta resolución | No implementados según inventario |
+| Procesador compartido de filtros raster | API Worker disponible desde BLOCK 11; no integrada en Designer 3 Easy |
+| Background removal, procesamiento conectado a Easy y exportación de alta resolución | No implementados según inventario |
 
 Los filtros CSS son una vista previa. No se debe informar que se eliminó un fondo, que se procesó el archivo o que se exportó un resultado real sin verificar la operación correspondiente.
 
@@ -42,7 +43,7 @@ No se deben derivar requisitos para Advanced a partir de la interfaz Easy, Desig
 1. Inspeccionar el layout compartido y verificar sus interacciones antes de atribuir capacidades específicas a Advanced.
 2. Confirmar en código los controles y estados de Easy antes de cualquier cambio en su comportamiento.
 3. Definir, con aprobación, los resultados esperados de guardar, exportar, eliminar fondo y mejorar contraste antes de conectar servicios.
-4. Mantener explícito que la preview CSS no es procesamiento de imagen.
+4. Mantener explícito que la preview CSS no está conectada a la API Worker y no es evidencia de procesamiento real en Easy.
 5. Actualizar este documento y la matriz con evidencia real antes de BLOCK 14 o BLOCK 15, según corresponda.
 
 Estos pendientes no introducen decisiones de producto; preservan como `UNKNOWN` aquello no comprobado.

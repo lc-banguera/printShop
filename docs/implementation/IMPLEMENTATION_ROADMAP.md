@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08, BLOCK 09 y BLOCK 10 se completaron dentro de sus límites verificables, sin desbloquear otras superficies — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 se completaron dentro de sus límites verificables, sin desbloquear otras superficies — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -325,6 +325,8 @@
 **Nota**: Background removal (Python/AI) es BLOCK 14.
 
 **Siguiente bloque**: BLOCK 12
+
+**Estado**: COMPLETADO — API compartida procesa los siete `ArtworkFilters` en un Web Worker con `OffscreenCanvas`; conserva el asset original. La integración en las experiencias de diseñador queda para sus bloques respectivos.
 
 ---
 

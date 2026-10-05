@@ -3,19 +3,10 @@ import { Decal, Line, useTexture } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import type { ArtworkFilters, CanvasElement } from '@/types/canvas';
+import type { CanvasElement } from '@/types/canvas';
 import type { PrintableZoneConfig } from '@/types/product';
+import { buildCanvasFilterString } from '@/core/design/processing';
 import { threeJsRenderer } from '../../renderer/threejs-renderer';
-
-const DEFAULT_ARTWORK_FILTERS: ArtworkFilters = {
-  brightness: 100,
-  contrast: 100,
-  saturation: 100,
-  grayscale: 0,
-  sepia: 0,
-  invert: 0,
-  blur: 0,
-};
 
 // The GLB currently has a verified physical calibration for its front fabric only.
 const FRONT_MODEL_CALIBRATION = {
@@ -174,19 +165,6 @@ function PrintableAreaOutline({
   );
 }
 
-function buildFilterString(filters: Partial<ArtworkFilters> | undefined) {
-  const next = { ...DEFAULT_ARTWORK_FILTERS, ...(filters ?? {}) };
-  return [
-    `brightness(${next.brightness}%)`,
-    `contrast(${next.contrast}%)`,
-    `saturate(${next.saturation}%)`,
-    `grayscale(${next.grayscale}%)`,
-    `sepia(${next.sepia}%)`,
-    `invert(${next.invert}%)`,
-    `blur(${next.blur}px)`,
-  ].join(' ');
-}
-
 function ArtworkDecal({
   element,
   image,
@@ -227,7 +205,7 @@ function ArtworkDecal({
       const context = canvas.getContext('2d');
       if (!context) return;
 
-      context.filter = buildFilterString(element.filters);
+      context.filter = buildCanvasFilterString(element.filters);
       context.drawImage(imageElement, 0, 0, width, height);
 
       const nextTexture = new THREE.CanvasTexture(canvas);

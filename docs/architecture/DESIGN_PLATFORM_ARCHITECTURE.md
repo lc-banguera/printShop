@@ -102,7 +102,7 @@ El asset original cargado por el usuario nunca se modifica. Todas las transforma
 | **Java / Spring Boot** | Backend, APIs, usuarios, permisos, productos, documentos, jobs, metadata | PLANNED |
 | **Python** | AI: segmentación, background removal, computer vision, enhancement | PLANNED |
 | **C++** | Heavy image processing, print engine, color conversion, preflight | PLANNED |
-| **Web Workers / OffscreenCanvas** | Procesamiento pesado en navegador sin bloquear UI | PLANNED |
+| **Web Workers / OffscreenCanvas** | Procesamiento pesado en navegador sin bloquear UI | PARTIAL — BLOCK 11 procesa `ArtworkFilters`; integrar los consumidores queda pendiente |
 | **WASM** | Cálculo local de alto rendimiento cuando esté justificado | PLANNED |
 | **PostgreSQL** | Metadata/relational state, documentos de diseño | PLANNED |
 | **Object Storage** | Binary assets (imágenes, GLB, exports) | PLANNED (local actualmente) |
@@ -132,7 +132,7 @@ El asset original cargado por el usuario nunca se modifica. Todas las transforma
 | `PrintableZoneId` | `src/types/product.ts` | front, back, sleeve_left, sleeve_right, label |
 | `PrintableZoneConfig` | `src/types/product.ts` | Zona imprimible: coordenadas, dimensiones, enabled, visible |
 | `ProductViewConfig` | `src/types/product.ts` | Configuración de cámara/modelo por zona |
-| `ArtworkFilters` | `src/types/canvas.ts` | Filtros: brightness, contrast, saturation, grayscale, sepia, invert, blur |
+| `ArtworkFilters` | `core/design/processing` (re-exportado por `src/types/canvas.ts`) | Filtros: brightness, contrast, saturation, grayscale, sepia, invert, blur |
 | `Tool` | `src/types/tools.ts` | Definición de herramienta: id, name, icon, description, category, cursor |
 | `DesignResource` | `src/types/design-resource.ts` | Recurso de diseño de la biblioteca |
 
@@ -369,10 +369,10 @@ El índice en memoria no cachea los bytes del asset. Los uploads usan object URL
 - Selección de preset: DTF, serigrafía, vinilo, sublimación
 - Vista antes/después con CSS filters (NO es procesamiento real)
 - Botones: Eliminar fondo, Mejorar contraste, Exportar (SIN funcionalidad backend)
-- **Estado**: IMPLEMENTED (UI only — procesamiento real: NOT IMPLEMENTED)
+- **Estado**: IMPLEMENTED (UI only — la API compartida de filtros existe, pero no está integrada a Easy)
 
 **Modo Advanced** (`/designer/advanced`):
-- **Estado**: UNKNOWN — componente no encontrado en inspección
+- **Estado**: UNKNOWN para capacidades específicas; `DesignerLayout` existe y se monta en la ruta
 
 ---
 

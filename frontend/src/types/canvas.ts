@@ -5,6 +5,7 @@ import type {
   FlipAxis,
   TransformBounds,
 } from '@/core/design/transform';
+import type { ArtworkFilters } from '@/core/design/processing';
 
 /**
  * Canvas element types and interfaces
@@ -13,15 +14,7 @@ import type {
 export type ElementType = 'rectangle' | 'circle' | 'text' | 'image' | 'group';
 export type CanvasLayer = 'user' | 'guide';
 
-export interface ArtworkFilters {
-  brightness: number;
-  contrast: number;
-  saturation: number;
-  grayscale: number;
-  sepia: number;
-  invert: number;
-  blur: number;
-}
+export type { ArtworkFilters } from '@/core/design/processing';
 
 export interface CanvasElement {
   id: string;

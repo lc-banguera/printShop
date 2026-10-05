@@ -30,6 +30,7 @@ import {
   X,
 } from 'lucide-react';
 import { Button } from '@/shared/ui/button';
+import { DEFAULT_ARTWORK_FILTERS } from '@/core/design/processing';
 import {
   getDesignResources,
   registerUploadedDesign,
@@ -68,15 +69,6 @@ const garmentColorNames = [
 
 const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
 const printMethods = ['DTF', 'Sublimación', 'Vinilo', 'Serigrafía'];
-const defaultArtworkFilters = {
-  brightness: 100,
-  contrast: 100,
-  saturation: 100,
-  grayscale: 0,
-  sepia: 0,
-  invert: 0,
-  blur: 0,
-};
 
 const availableTextFonts = [
   { label: 'Inter', value: 'Inter, "Segoe UI", sans-serif' },
@@ -498,11 +490,11 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
     centerElements(selectedElementIds, activeProduct.printableAreas[activeZoneId]);
   };
 
-  const updateArtworkFilter = (key: keyof typeof defaultArtworkFilters, value: number) => {
+  const updateArtworkFilter = (key: keyof typeof DEFAULT_ARTWORK_FILTERS, value: number) => {
     if (!selectedArtwork) return;
     updateElement(selectedArtwork.id, {
       filters: {
-        ...defaultArtworkFilters,
+        ...DEFAULT_ARTWORK_FILTERS,
         ...(selectedArtwork.filters ?? {}),
         [key]: value,
       },
@@ -511,10 +503,10 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
 
   const resetArtworkFilter = () => {
     if (!selectedArtwork) return;
-    updateElement(selectedArtwork.id, { filters: { ...defaultArtworkFilters } });
+    updateElement(selectedArtwork.id, { filters: { ...DEFAULT_ARTWORK_FILTERS } });
   };
 
-  const formatArtworkFilterValue = (key: keyof typeof defaultArtworkFilters, value: number) => {
+  const formatArtworkFilterValue = (key: keyof typeof DEFAULT_ARTWORK_FILTERS, value: number) => {
     if (key === 'blur') return `${value}px`;
     return `${value}%`;
   };
@@ -1268,14 +1260,14 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                       <label key={key} className="block text-[10px] font-medium text-foregroundMuted">
                         <span className="flex items-center justify-between">
                           <span>{label}</span>
-                          <span>{formatArtworkFilterValue(key as keyof typeof defaultArtworkFilters, selectedArtwork.filters?.[key as keyof typeof defaultArtworkFilters] ?? defaultArtworkFilters[key as keyof typeof defaultArtworkFilters])}</span>
+                          <span>{formatArtworkFilterValue(key as keyof typeof DEFAULT_ARTWORK_FILTERS, selectedArtwork.filters?.[key as keyof typeof DEFAULT_ARTWORK_FILTERS] ?? DEFAULT_ARTWORK_FILTERS[key as keyof typeof DEFAULT_ARTWORK_FILTERS])}</span>
                         </span>
                         <input
                           type="range"
                           min={min}
                           max={max}
-                          value={selectedArtwork.filters?.[key as keyof typeof defaultArtworkFilters] ?? defaultArtworkFilters[key as keyof typeof defaultArtworkFilters]}
-                          onChange={(event) => updateArtworkFilter(key as keyof typeof defaultArtworkFilters, Number(event.target.value))}
+                          value={selectedArtwork.filters?.[key as keyof typeof DEFAULT_ARTWORK_FILTERS] ?? DEFAULT_ARTWORK_FILTERS[key as keyof typeof DEFAULT_ARTWORK_FILTERS]}
+                          onChange={(event) => updateArtworkFilter(key as keyof typeof DEFAULT_ARTWORK_FILTERS, Number(event.target.value))}
                           className="mt-1.5 block h-2 w-full accent-[var(--primary)]"
                         />
                       </label>

@@ -33,7 +33,8 @@ La única `ProductDefinition` registrada y el único GLB funcional documentados 
 | Multi-selección / agrupación | `PARTIAL`; la agrupación tiene limitaciones conocidas |
 | Guardar, descargar y producir/agregar al carrito | `PARTIAL`; los botones no representan persistencia, exportación ni integración real con órdenes |
 | Shapes e IA Generar | `PARTIAL`; la UI existe, pero no se confirma creación funcional de shapes ni backend de IA |
-| Persistencia, autosave, procesamiento real, preflight y motor de producción | `PLANNED` / no implementado según inventario |
+| Procesamiento raster compartido de `ArtworkFilters` | `PARTIAL`; API Worker de BLOCK 11 disponible, aún sin integración en el flujo de edición |
+| Persistencia, autosave, preflight y motor de producción | `PLANNED` / no implementado según inventario |
 
 Los estados reflejan la evidencia existente y deben corregirse solo con verificación de código y ejecución. La matriz detallada está en [DESIGNER_CAPABILITY_MATRIX.md](../architecture/DESIGNER_CAPABILITY_MATRIX.md).
 

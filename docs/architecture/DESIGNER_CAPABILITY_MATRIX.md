@@ -93,6 +93,8 @@
 | **Advanced image editing** | ➖ | ➖ | 📋 | D3 Advanced — UNKNOWN |
 | **AI generate (text to image)** | ➖ | ➖ | 📋 | Botón "IA Generar" en D2 sidebar sin backend |
 
+BLOCK 11 añade un procesador compartido de filtros en Web Worker. La capacidad aún no se marca como integrada en ningún designer: sus flujos y resultados visuales no consumen la API.
+
 ---
 
 ## Capacidades de Export / Producción

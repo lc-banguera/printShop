@@ -19,7 +19,7 @@
 | BLOCK 08 — 2D Renderer Adapter | DONE | Contrato 2D independiente de Konva y adapter Konva integrado al canvas; filtra elementos por la superficie activa. No realiza proyección 3D ni cambia el estado de BLOCK 07. |
 | BLOCK 09 — 3D Renderer Adapter | DONE | Contrato 3D neutral al framework y adapter Three.js integrado al flujo de decals. Emite descriptores únicamente para `front`; las zonas no calibradas siguen excluidas y BLOCK 07 continúa `BLOCKED`. |
 | BLOCK 10 — Asset System | DONE | AssetManager compartido registra la biblioteca local y uploads temporales de D2/D3 Easy con IDs únicos y URLs inmutables; cleanup revoca object URLs. No se añade persistencia ni caché binaria. |
-| BLOCK 11 — Image Processing Foundation | PENDING | No iniciado. |
+| BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
 | BLOCK 12 — Designer 2 Integration | PENDING | No iniciado. |
 | BLOCK 13 — Designer 1 Integration | PENDING | No iniciado. |
 | BLOCK 14 — Designer 3 Easy | PENDING | No iniciado. |
@@ -202,3 +202,19 @@
 - Decisión: ADR-017 registra el AssetManager de metadata en memoria y la naturaleza temporal de los object URLs; no implica persistencia ni cache de bytes.
 - Commit: `feat(assets): add shared asset manager`.
 - Siguiente análisis: BLOCK 11 — Image Processing Foundation; verificar si Canvas API puede proporcionar filtros reales no destructivos con preservación del asset original, sin declarar eliminación de fondo ni procesamiento no implementado.
+
+## Registro de BLOCK 11 — Image Processing Foundation
+
+- Archivos: `frontend/src/core/design/processing/{filters,image-processor-contract,image-processor,image-processor.worker,index}.ts`, `frontend/src/types/canvas.ts`, `frontend/src/features/designer/components/product-viewer/artwork-decals.tsx` y `frontend/src/features/designer/pages/designer-2-workspace.tsx`.
+- Cambio: se centralizaron el tipo público `ArtworkFilters`, sus defaults, sus rangos y la generación de filtros Canvas. `processArtworkImage` recibe un `Blob` inmutable y parámetros no destructivos; el worker decodifica con `createImageBitmap`, dibuja con `OffscreenCanvas`/Canvas 2D, y devuelve un PNG junto con sus dimensiones originales.
+- Filtros reales validados: brightness, contrast, saturation, grayscale, sepia, invert y blur. La API rechaza filtros no finitos/fuera de rango y assets vacíos; no cae silenciosamente a procesamiento en el hilo principal si el worker o `CanvasRenderingContext2D.filter` no están disponibles.
+- Compatibilidad: `ArtworkFilters` continúa exportado desde `src/types/canvas.ts`; la vista 3D conserva el mismo string de filtros y la UI D2 conserva valores, rangos y defaults. La API aún no está integrada en los flujos de edición; esa migración se realiza en los bloques de integración, no se afirma procesamiento habilitado en D3 Easy.
+- Asset original: el `Blob` de entrada no se modifica; las pruebas de navegador comprobaron el valor original tras procesar.
+- Build frontend (`npm run build --prefix frontend`): **PASS** (`tsc` y `vite build`); Vite empaquetó `image-processor.worker`.
+- ESLint focalizado en processing, tipo compatible y consumidores: **PASS**.
+- Checks de navegador con blob sintético: **PASS** — los siete filtros cambiaron los píxeles de salida, invert/grayscale dieron valores esperados, dimensiones se preservaron y el original quedó intacto; blur produjo salida con alpha distinto. Filtro `blur: 13` fue rechazado.
+- Tests del repo: no hay runner/suite frontend configurado.
+- `git diff --check`: **PASS**.
+- Decisión: ADR-018 fija procesamiento raster real en Worker, preservación del original y errores explícitos cuando no se soporta el runtime requerido.
+- Commit: `feat(image-processing): add worker image processing foundation`.
+- Siguiente bloque: **BLOCK 12 — Designer 2 Integration**; BLOCK 07 continúa `BLOCKED` para proyección 3D de zonas sin calibración verificable.
