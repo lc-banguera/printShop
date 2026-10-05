@@ -313,6 +313,8 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
   const selectElement = useCanvasStore((state) => state.selectElement);
   const duplicateElement = useCanvasStore((state) => state.duplicateElement);
   const reorderElement = useCanvasStore((state) => state.reorderElement);
+  const toggleElementLock = useCanvasStore((state) => state.toggleElementLock);
+  const toggleElementVisibility = useCanvasStore((state) => state.toggleElementVisibility);
   const undo = useCanvasStore((state) => state.undo);
   const redo = useCanvasStore((state) => state.redo);
   const allElements = useCanvasStore((state) => state.elements);
@@ -929,10 +931,10 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                         <div className="mt-0.5 text-[10px] uppercase tracking-[0.12em] text-foregroundSubtle">{element.type}</div>
                       </button>
                       <div className="flex items-center gap-1">
-                        <button type="button" aria-label={element.visible === false ? 'Mostrar elemento' : 'Ocultar elemento'} onClick={() => updateElement(element.id, { visible: element.visible === false })} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-surface hover:text-foreground">
+                        <button type="button" aria-label={element.visible === false ? 'Mostrar elemento' : 'Ocultar elemento'} onClick={() => toggleElementVisibility(element.id)} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-surface hover:text-foreground">
                           {element.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                         </button>
-                        <button type="button" aria-label={element.locked ? 'Desbloquear elemento' : 'Bloquear elemento'} onClick={() => updateElement(element.id, { locked: !element.locked })} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-surface hover:text-foreground">
+                        <button type="button" aria-label={element.locked ? 'Desbloquear elemento' : 'Bloquear elemento'} onClick={() => toggleElementLock(element.id)} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-surface hover:text-foreground">
                           {element.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
                         </button>
                         <button type="button" aria-label="Subir capa" onClick={() => reorderElement(element.id, 'up')} disabled={index === elements.length - 1} className="grid h-7 w-7 place-items-center rounded-control text-foregroundMuted hover:bg-surface hover:text-foreground disabled:opacity-30">
@@ -1034,10 +1036,10 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                     className="h-1.5 w-16 accent-[var(--primary)]"
                   />
                 </label>
-                <button type="button" onClick={() => updateElement(selectedArtwork.id, { locked: !selectedArtwork.locked })} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title={selectedArtwork.locked ? 'Desbloquear capa' : 'Bloquear capa'}>
+                <button type="button" onClick={() => toggleElementLock(selectedArtwork.id)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title={selectedArtwork.locked ? 'Desbloquear capa' : 'Bloquear capa'}>
                   {selectedArtwork.locked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
                 </button>
-                <button type="button" onClick={() => updateElement(selectedArtwork.id, { visible: !(selectedArtwork.visible ?? true) })} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title={selectedArtwork.visible === false ? 'Mostrar capa' : 'Ocultar capa'}>
+                <button type="button" onClick={() => toggleElementVisibility(selectedArtwork.id)} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title={selectedArtwork.visible === false ? 'Mostrar capa' : 'Ocultar capa'}>
                   {selectedArtwork.visible === false ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
                 </button>
                 <button type="button" onClick={() => { removeElement(selectedArtwork.id); selectElement(null); }} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-danger-muted hover:text-danger" title="Eliminar diseño">

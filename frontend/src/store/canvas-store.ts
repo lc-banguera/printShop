@@ -4,10 +4,10 @@ import {
   AddElementCommand,
   CommandSystem,
   RemoveElementCommand,
-  ReorderElementCommand,
   UpdateElementCommand,
   type CanvasCommandContext,
 } from '@/core/design/commands';
+import { LayerManager } from '@/core/design/layers';
 
 function cloneElements(elements: CanvasElement[]) {
   return elements.map((element) => ({ ...element }));
@@ -19,11 +19,15 @@ export const useCanvasStore = create<CanvasState>(
     get: () => CanvasState
   ) => {
     const commandSystem = new CommandSystem<CanvasCommandContext>();
+    const layerManager = new LayerManager(commandSystem);
 
-    function executeCommand(command: Parameters<typeof commandSystem.execute>[0], nextState: Partial<CanvasState> = {}) {
+    function executeOperation(
+      operation: (context: CanvasCommandContext) => void | boolean,
+      nextState: Partial<CanvasState> = {}
+    ) {
       const state = get();
       const context: CanvasCommandContext = { elements: state.elements };
-      commandSystem.execute(command, context);
+      if (operation(context) === false) return;
 
       const nextHistory = [
         ...state._history.slice(0, state._historyIndex + 1),
@@ -36,6 +40,13 @@ export const useCanvasStore = create<CanvasState>(
         _history: nextHistory,
         _historyIndex: commandSystem.getHistoryIndex(),
       });
+    }
+
+    function executeCommand(
+      command: Parameters<typeof commandSystem.execute>[0],
+      nextState: Partial<CanvasState> = {}
+    ) {
+      executeOperation((context) => commandSystem.execute(command, context), nextState);
     }
 
     return {
@@ -127,14 +138,15 @@ export const useCanvasStore = create<CanvasState>(
       },
 
       reorderElement: (id, direction) => {
-        const state = get();
-        const index = state.elements.findIndex((element) => element.id === id);
-        if (index === -1) return;
+        executeOperation((context) => layerManager.reorder(id, direction, context));
+      },
 
-        const targetIndex = direction === 'up' ? index + 1 : index - 1;
-        if (targetIndex < 0 || targetIndex >= state.elements.length) return;
+      toggleElementLock: (id) => {
+        executeOperation((context) => layerManager.toggleLock(id, context));
+      },
 
-        executeCommand(new ReorderElementCommand(id, direction));
+      toggleElementVisibility: (id) => {
+        executeOperation((context) => layerManager.toggleVisibility(id, context));
       },
 
       alignSelectedElement: (alignment) => {

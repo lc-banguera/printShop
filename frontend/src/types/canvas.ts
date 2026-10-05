@@ -77,6 +77,8 @@ export interface CanvasState {
   undo: () => void;
   redo: () => void;
   reorderElement: (id: string, direction: 'up' | 'down') => void;
+  toggleElementLock: (id: string) => void;
+  toggleElementVisibility: (id: string) => void;
   alignSelectedElement: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
   groupSelectedElements: () => void;
   ungroupSelectedElements: () => void;

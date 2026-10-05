@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 03 completado; BLOCK 04 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 04 completado; BLOCK 05 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -133,7 +133,7 @@
 
 **Estado**: COMPLETADO — undo/redo se ejecuta mediante comandos; la API pública del canvasStore se conserva.
 
-**Siguiente bloque**: BLOCK 04
+**Siguiente bloque**: BLOCK 05
 
 ---
 
@@ -145,13 +145,15 @@
 
 **Archivos potenciales**:
 - `src/core/design/layers/layer-manager.ts`
-- `src/core/design/commands/reorder-layer.command.ts`
-- `src/core/design/commands/toggle-lock.command.ts`
-- `src/core/design/commands/toggle-visibility.command.ts`
+- `src/core/design/layers/layer-commands.ts`
+- `src/store/canvas-store.ts`
+- `src/features/designer/pages/designer-2-workspace.tsx`
 
 **Resultado esperado**:
 - Las operaciones de capa generan comandos en el historial
 - Lock y visibility son undoables
+
+**Estado**: COMPLETADO — reorder, lock y visibility pasan por comandos compartidos; Designer 2 conserva su representación y semántica actuales.
 
 **Siguiente bloque**: BLOCK 05
 

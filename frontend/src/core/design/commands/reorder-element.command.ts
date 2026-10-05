@@ -3,7 +3,7 @@ import type { CanvasCommandContext } from './canvas-command-context';
 
 export class ReorderElementCommand implements Command<CanvasCommandContext> {
   readonly id = createCommandId('reorder-element');
-  readonly name = 'Reorder element';
+  readonly name: string = 'Reorder element';
   private fromIndex: number | null = null;
   private toIndex: number | null = null;
 
