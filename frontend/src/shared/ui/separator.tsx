@@ -8,8 +8,8 @@ const Separator = React.forwardRef<React.ElementRef<typeof SeparatorPrimitive.Ro
       ref={ref}
       className={cn(
         orientation === 'vertical'
-          ? 'h-full w-px bg-border'
-          : 'w-full h-px bg-border',
+          ? 'h-full w-px bg-border-muted'
+          : 'h-px w-full bg-border-muted',
         className
       )}
       orientation={orientation}

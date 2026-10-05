@@ -1,8 +1,0 @@
-feat(viewer): add ProductViewConfig and use it in CameraController and ProductPivot
-
-- New ProductViewConfig type and optional viewConfigs on ProductDefinition
-- DEFAULT_PRODUCT populated with front/back/sleeve/label view configs
-- CameraController now reads the active product view config and applies camera/controls; falls back to bounding box fit for safety
-- ProductPivot uses view-config modelScale/modelOffset/modelRotation instead of guessing rotations
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>

@@ -9,6 +9,7 @@ import {
   Bookmark,
   ShoppingCart,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Avatar } from '@/shared/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown';
 
@@ -30,45 +31,45 @@ export function DesignerHeader() {
 
           {/* Nav Items */}
           <nav className="flex items-center gap-6">
-            <button
-              type="button"
+            <Link
+              to="/designer/new"
               className="flex items-center gap-1.5 rounded-full bg-[#fde8f3] px-3.5 py-1.5 text-xs font-bold text-[#e50c74] transition-all"
             >
               <Sparkles className="h-3.5 w-3.5" />
               <span>Diseño</span>
-            </button>
+            </Link>
 
-            <button
-              type="button"
+            <Link
+              to="/products"
               className="flex items-center gap-2 text-xs font-semibold text-[#171421] hover:text-[#5046e5] transition-colors"
             >
               <ShoppingBag className="h-4 w-4 text-[#5e5d72]" />
               <span>Productos</span>
-            </button>
+            </Link>
 
-            <button
-              type="button"
+            <Link
+              to="/designer/easy"
               className="flex items-center gap-2 text-xs font-semibold text-[#171421] hover:text-[#5046e5] transition-colors"
             >
               <LayoutTemplate className="h-4 w-4 text-[#5e5d72]" />
               <span>Plantillas</span>
-            </button>
+            </Link>
 
-            <button
-              type="button"
+            <Link
+              to="/designer/easy"
               className="flex items-center gap-2 text-xs font-semibold text-[#171421] hover:text-[#5046e5] transition-colors"
             >
               <FolderHeart className="h-4 w-4 text-[#5e5d72]" />
               <span>Mis Diseños</span>
-            </button>
+            </Link>
 
-            <button
-              type="button"
+            <Link
+              to="/products"
               className="flex items-center gap-2 text-xs font-semibold text-[#171421] hover:text-[#5046e5] transition-colors"
             >
               <Lightbulb className="h-4 w-4 text-[#5e5d72]" />
               <span>Inspiración</span>
-            </button>
+            </Link>
           </nav>
         </div>
 
@@ -132,4 +133,3 @@ export function DesignerHeader() {
     </header>
   );
 }
-

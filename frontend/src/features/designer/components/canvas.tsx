@@ -153,9 +153,20 @@ export function CanvasArea() {
   };
 
   const handleZoom = (direction: 'in' | 'out') => {
+    try {
+      const w = (window as any);
+      w.__ps_debug = w.__ps_debug || {};
+      const prevZoom = useViewerStore.getState().zoom;
+      w.__ps_debug.lastButtonAction = { when: Date.now(), direction, before: prevZoom };
+      console.log('[PS_DEBUG] Zoom button', direction, 'before', prevZoom);
+    } catch (e) { /* ignore */ }
+
     setZoom((prev) => {
       const next = direction === 'in' ? prev + 0.1 : prev - 0.1;
-      return Math.min(2.5, Math.max(0.35, next));
+      const clamped = Math.min(2.5, Math.max(0.35, next));
+      try { const w = (window as any); if (w.__ps_debug) { w.__ps_debug.lastButtonAction.after = clamped; } } catch (e) {}
+      console.log('[PS_DEBUG] Zoom button result', clamped);
+      return clamped;
     });
   };
 
@@ -302,7 +313,7 @@ export function CanvasArea() {
           <span className="min-w-7 text-center text-[#171421]">{Math.round(zoom * 100)}%</span>
           <button type="button" onClick={() => handleZoom('in')} className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Plus className="h-3 w-3" /></button>
           <div className="h-3 w-px bg-[#e4e4ee]" />
-          <button type="button" onClick={() => requestFit()} className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Maximize2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => { try { (window as any).__ps_debug = (window as any).__ps_debug || {}; (window as any).__ps_debug.fitButtonClicked = Date.now(); console.log('[PS_DEBUG] Fit button clicked'); } catch(e) {} ; requestFit(); }} className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Maximize2 className="h-3 w-3" /></button>
         </div>
       </div>
 

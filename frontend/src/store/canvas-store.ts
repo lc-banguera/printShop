@@ -120,6 +120,25 @@ export const useCanvasStore = create<CanvasState>(
       });
     },
 
+    reorderElement: (id, direction) => {
+      const state = get();
+      const index = state.elements.findIndex((element) => element.id === id);
+      if (index === -1) return;
+
+      const targetIndex = direction === 'up' ? index + 1 : index - 1;
+      if (targetIndex < 0 || targetIndex >= state.elements.length) return;
+
+      const nextElements = [...state.elements];
+      const [element] = nextElements.splice(index, 1);
+      nextElements.splice(targetIndex, 0, element);
+
+      set({
+        elements: nextElements,
+        _history: [...state._history, { elements: cloneElements(state.elements) }],
+        _historyIndex: state._historyIndex + 1,
+      });
+    },
+
     alignSelectedElement: (alignment) => {
       const state = get();
       const selected = state.selectedElementId ? state.elements.find((el) => el.id === state.selectedElementId) : null;

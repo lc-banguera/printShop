@@ -7,6 +7,16 @@ import type { PrintableZoneId } from './product';
 export type ElementType = 'rectangle' | 'circle' | 'text' | 'image' | 'group';
 export type CanvasLayer = 'user' | 'guide';
 
+export interface ArtworkFilters {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  grayscale: number;
+  sepia: number;
+  invert: number;
+  blur: number;
+}
+
 export interface CanvasElement {
   id: string;
   type: ElementType;
@@ -31,6 +41,14 @@ export interface CanvasElement {
   name?: string;
   locked?: boolean;
   visible?: boolean;
+  filters?: ArtworkFilters;
+  textContent?: string;
+  fontFamily?: string;
+  fontWeight?: string | number;
+  fontSize?: number;
+  textAlign?: 'left' | 'center' | 'right';
+  letterSpacing?: number;
+  lineHeight?: number;
 }
 
 export interface HistoryEntry {
@@ -57,6 +75,7 @@ export interface CanvasState {
   duplicateElement: (id: string) => void;
   undo: () => void;
   redo: () => void;
+  reorderElement: (id: string, direction: 'up' | 'down') => void;
   alignSelectedElement: (alignment: 'left' | 'center' | 'right' | 'top' | 'middle' | 'bottom') => void;
   groupSelectedElements: () => void;
   ungroupSelectedElements: () => void;

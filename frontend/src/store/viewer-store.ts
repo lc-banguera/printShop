@@ -54,6 +54,12 @@ export interface ViewerState {
   garmentColors: string[];
   /** The active garment color currently applied to the product */
   currentGarmentColor: string;
+  /** Brightness adjustment applied to the garment material */
+  materialBrightness: number;
+  /** Whether print-area guidance is visible on the garment */
+  showGuides: boolean;
+  /** Whether the viewport background grid is visible */
+  showGrid: boolean;
 
   // Actions ---------------------------------------------------------------
   setActiveProduct: (product: ProductDefinition) => void;
@@ -61,11 +67,18 @@ export interface ViewerState {
   setZoom: (zoom: number | ((prev: number) => number)) => void;
   setSelectedMaterial: (material: ProductMaterial) => void;
   setProductColor: (color: string) => void;
+  setMaterialBrightness: (value: number) => void;
+  resetMaterialAppearance: () => void;
   requestFit: () => void;
   clearFitRequest: () => void;
+  resetView: () => void;
   setSelectedColorIndex: (index: number) => void;
   selectGarmentColor: (index: number) => void;
   updateGarmentColor: (index: number, color: string) => void;
+  setShowGuides: (value: boolean) => void;
+  toggleShowGuides: () => void;
+  setShowGrid: (value: boolean) => void;
+  toggleShowGrid: () => void;
 }
 
 /** Rotation angles (in degrees) for each printable zone. Used by ProductPivot. */
@@ -88,6 +101,9 @@ export const useViewerStore = create<ViewerState>((set) => ({
   selectedColorIndex: 0,
   garmentColors: buildInitialGarmentColors(),
   currentGarmentColor: '#ffffff',
+  materialBrightness: 1,
+  showGuides: false,
+  showGrid: false,
 
   setActiveProduct: (product) =>
     set((state) => {
@@ -126,9 +142,23 @@ export const useViewerStore = create<ViewerState>((set) => ({
       };
     }),
 
+  setMaterialBrightness: (value) =>
+    set(() => ({
+      materialBrightness: Math.min(1.4, Math.max(0.7, value)),
+    })),
+
+  resetMaterialAppearance: () =>
+    set((state) => ({
+      materialBrightness: 1,
+      currentGarmentColor: state.garmentColors[state.selectedColorIndex] ?? '#ffffff',
+      productColor: state.garmentColors[state.selectedColorIndex] ?? '#ffffff',
+    })),
+
   requestFit: () => set({ fitRequested: true }),
 
   clearFitRequest: () => set({ fitRequested: false }),
+  // Reset view triggers a fit operation without modifying zoom
+  resetView: () => set({ fitRequested: true }),
 
   setSelectedColorIndex: (index) =>
     set((state) => {
@@ -163,4 +193,9 @@ export const useViewerStore = create<ViewerState>((set) => ({
         selectedMaterial: findMaterialForColor(state.activeProduct, color) ?? state.selectedMaterial,
       };
     }),
+
+  setShowGuides: (value) => set({ showGuides: value }),
+  toggleShowGuides: () => set((state) => ({ showGuides: !state.showGuides })),
+  setShowGrid: (value) => set({ showGrid: value }),
+  toggleShowGrid: () => set((state) => ({ showGrid: !state.showGrid })),
 }));

@@ -1,0 +1,732 @@
+[
+  {
+    "filename": "Virtualthreads (1).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 260,
+        "top": 70,
+        "width": 202,
+        "height": 232
+      },
+      "safeBox": {
+        "left": 230,
+        "top": 40,
+        "width": 262,
+        "height": 292
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 202,
+      "productH": 232,
+      "maxDim": 232,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.8316831683168316,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 168,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 46864,
+      "opaquePixels": 31434,
+      "opaquePixelPctInBBox": 67.07494025264596,
+      "bboxOccupancy": 45.48247275175693,
+      "visualOccupancy": 30.499516219382407,
+      "occupancyDiff": 14.982956532374523
+    }
+  },
+  {
+    "filename": "Virtualthreads (2).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 261,
+        "top": 70,
+        "width": 204,
+        "height": 230
+      },
+      "safeBox": {
+        "left": 231,
+        "top": 40,
+        "width": 264,
+        "height": 290
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 204,
+      "productH": 230,
+      "maxDim": 230,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.8382352941176471,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 171,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 46920,
+      "opaquePixels": 31459,
+      "opaquePixelPctInBBox": 67.04816709292413,
+      "bboxOccupancy": 46.29465976518116,
+      "visualOccupancy": 31.00660927611723,
+      "occupancyDiff": 15.288050489063927
+    }
+  },
+  {
+    "filename": "Virtualthreads (6).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 666,
+      "height": 374,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 666,
+        "height": 374
+      },
+      "contentBox": {
+        "left": 222,
+        "top": 77,
+        "width": 223,
+        "height": 258
+      },
+      "safeBox": {
+        "left": 192,
+        "top": 47,
+        "width": 283,
+        "height": 318
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 223,
+      "productH": 258,
+      "maxDim": 258,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.7488789237668162,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 167,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 57534,
+      "opaquePixels": 37190,
+      "opaquePixelPctInBBox": 64.6400389335002,
+      "bboxOccupancy": 45.21174374728219,
+      "visualOccupancy": 29.25680329807848,
+      "occupancyDiff": 15.954940449203711
+    }
+  },
+  {
+    "filename": "Virtualthreads (10).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 260,
+        "top": 80,
+        "width": 207,
+        "height": 217
+      },
+      "safeBox": {
+        "left": 230,
+        "top": 50,
+        "width": 267,
+        "height": 277
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 207,
+      "productH": 217,
+      "maxDim": 217,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.8888888888888888,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 184,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 44919,
+      "opaquePixels": 30437,
+      "opaquePixelPctInBBox": 67.75974531935262,
+      "bboxOccupancy": 49.81413682335283,
+      "visualOccupancy": 33.73449992891047,
+      "occupancyDiff": 16.07963689444236
+    }
+  },
+  {
+    "filename": "Virtualthreads (18).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 1358,
+      "height": 644,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 1358,
+        "height": 644
+      },
+      "contentBox": {
+        "left": 488,
+        "top": 133,
+        "width": 379,
+        "height": 440
+      },
+      "safeBox": {
+        "left": 458,
+        "top": 103,
+        "width": 439,
+        "height": 500
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 379,
+      "productH": 440,
+      "maxDim": 440,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.43799472295514513,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 166,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 166760,
+      "opaquePixels": 109626,
+      "opaquePixelPctInBBox": 65.73878627968338,
+      "bboxOccupancy": 44.94101474280745,
+      "visualOccupancy": 29.500460912478932,
+      "occupancyDiff": 15.440553830328515
+    }
+  },
+  {
+    "filename": "Virtualthreads (30).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 235,
+        "top": 50,
+        "width": 257,
+        "height": 288
+      },
+      "safeBox": {
+        "left": 205,
+        "top": 20,
+        "width": 317,
+        "height": 324
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 257,
+      "productH": 288,
+      "maxDim": 288,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.669260700389105,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 172,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 74016,
+      "opaquePixels": 48874,
+      "opaquePixelPctInBBox": 66.03166882836143,
+      "bboxOccupancy": 46.56538876965591,
+      "visualOccupancy": 30.707609482051517,
+      "occupancyDiff": 15.857779287604394
+    }
+  },
+  {
+    "filename": "Virtualthreads (45).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 261,
+        "top": 68,
+        "width": 208,
+        "height": 242
+      },
+      "safeBox": {
+        "left": 231,
+        "top": 38,
+        "width": 268,
+        "height": 302
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 208,
+      "productH": 242,
+      "maxDim": 242,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.7980769230769231,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 166,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 50336,
+      "opaquePixels": 33689,
+      "opaquePixelPctInBBox": 66.92824221233312,
+      "bboxOccupancy": 44.94101474280745,
+      "visualOccupancy": 30.099210436334616,
+      "occupancyDiff": 14.84180430647283
+    }
+  },
+  {
+    "filename": "Virtualthreads (54).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 293,
+        "top": 66,
+        "width": 143,
+        "height": 248
+      },
+      "safeBox": {
+        "left": 263,
+        "top": 36,
+        "width": 203,
+        "height": 308
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 143,
+      "productH": 248,
+      "maxDim": 248,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.7762237762237763,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 111,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 35464,
+      "opaquePixels": 26353,
+      "opaquePixelPctInBBox": 74.30915858335213,
+      "bboxOccupancy": 30.050919496696544,
+      "visualOccupancy": 22.27313872122794,
+      "occupancyDiff": 7.777780775468603
+    }
+  },
+  {
+    "filename": "Virtualthreads (11).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 272,
+        "top": 73,
+        "width": 194,
+        "height": 234
+      },
+      "safeBox": {
+        "left": 242,
+        "top": 43,
+        "width": 254,
+        "height": 294
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 194,
+      "productH": 234,
+      "maxDim": 234,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.8247422680412371,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 160,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 45396,
+      "opaquePixels": 30179,
+      "opaquePixelPctInBBox": 66.47942550004406,
+      "bboxOccupancy": 43.31664071595898,
+      "visualOccupancy": 28.795115693263057,
+      "occupancyDiff": 14.521525022695926
+    }
+  },
+  {
+    "filename": "Virtualthreads (12).png",
+    "status": "success",
+    "classification": "Transparent background",
+    "determinism": {
+      "isDeterministic": true,
+      "details": "Identical"
+    },
+    "stage2": {
+      "width": 726,
+      "height": 344,
+      "channels": 4,
+      "format": "png",
+      "hasAlpha": true
+    },
+    "stage3": {
+      "avgCornerAlpha": 0,
+      "useAlphaMode": true,
+      "bgRGB": null
+    },
+    "stage4": {
+      "originalSize": {
+        "width": 726,
+        "height": 344
+      },
+      "contentBox": {
+        "left": 261,
+        "top": 71,
+        "width": 203,
+        "height": 232
+      },
+      "safeBox": {
+        "left": 231,
+        "top": 41,
+        "width": 263,
+        "height": 292
+      },
+      "margin": 30
+    },
+    "stage5": {
+      "productW": 203,
+      "productH": 232,
+      "maxDim": 232,
+      "targetOccupancy": 0.85,
+      "margin": 20,
+      "scaleFactor": 0.8325123152709359,
+      "canvasSize": {
+        "w": 267,
+        "h": 267
+      },
+      "finalOutputSize": {
+        "w": 169,
+        "h": 193
+      }
+    },
+    "stage6": {
+      "finalDimensions": {
+        "w": 267,
+        "h": 267
+      },
+      "finalChannels": 4,
+      "finalHasAlpha": true,
+      "topLeftPixelAlpha": 0
+    },
+    "visualMassMetrics": {
+      "bboxArea": 47096,
+      "opaquePixels": 31606,
+      "opaquePixelPctInBBox": 67.10973331068456,
+      "bboxOccupancy": 45.753201756231675,
+      "visualOccupancy": 30.727579179099347,
+      "occupancyDiff": 15.025622577132328
+    }
+  }
+]

@@ -44,7 +44,7 @@ export function CanvasOverlay({
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 pointer-events-none">
       <Stage
         width={stageSize.width}
         height={stageSize.height}
@@ -55,24 +55,25 @@ export function CanvasOverlay({
         pixelRatio={typeof window !== 'undefined' ? window.devicePixelRatio : 1}
         onClick={onStageClick}
         onTap={onStageClick}
-        className="relative z-10"
+        className="relative z-10 pointer-events-auto"
       >
-      {/* Layer: Content & Multi-Zone Guides */}
-      <Layer name={CANVAS_CONFIG.LAYERS.CONTENT}>
 
-        <CanvasElements
-          elements={elements}
-          onElementClick={onElementClick}
-          onElementDragMove={onDragMove}
-          onElementDragEnd={onDragEnd}
-        />
-      </Layer>
+        {/* Layer: Content & Multi-Zone Guides */}
+        <Layer name={CANVAS_CONFIG.LAYERS.CONTENT}>
 
-      {/* Layer: Selection (Konva Transformer) */}
-      <Layer name={CANVAS_CONFIG.LAYERS.SELECTION}>
-        <CanvasSelection />
-      </Layer>
-    </Stage>
+          <CanvasElements
+            elements={elements}
+            onElementClick={onElementClick}
+            onElementDragMove={onDragMove}
+            onElementDragEnd={onDragEnd}
+          />
+        </Layer>
+
+        {/* Layer: Selection (Konva Transformer) */}
+        <Layer name={CANVAS_CONFIG.LAYERS.SELECTION}>
+          <CanvasSelection />
+        </Layer>
+      </Stage>
     </div>
   );
 }
