@@ -26,7 +26,8 @@
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
-| BLOCK 18 — Performance | PARTIAL / BLOCKED | Las miniaturas de bibliotecas D2 y sidebar compartido usan lazy loading nativo sin depender de BLOCK 17. La validación de Konva con documentos de múltiples elementos sigue bloqueada por falta de carga objetivo y profiling. |
+| BLOCK 18 — Performance | PARTIAL / BLOCKED | `IntersectionObserver` difiere las miniaturas de las bibliotecas D2 y sidebar compartido sin depender de BLOCK 17. La validación de Konva con documentos de múltiples elementos sigue bloqueada por falta de carga objetivo y profiling. |
+| BLOCK 19 — Testing + Stabilization | PARTIAL / BLOCKED | Se validaron en navegador los subalcances implementados; no es posible certificar los tres diseñadores mientras continúen bloqueados D1, la integración de tools y producción/persistencia. No hay runner de pruebas frontend. |
 | BLOCK 19 — Testing + Stabilization | BLOCKED | Depende de los bloques pendientes y de que los flujos de D1/D3 tengan alcance verificable. |
 
 ## Registro de BLOCK 00
@@ -256,3 +257,11 @@
 - Validación: `npm run build --prefix frontend` **PASS**; ESLint focalizado **PASS**; `problems` sin errores. Navegador a 375×800: 18 de 28 miniaturas tenían `src` antes del scroll y las 28 después; sin overflow horizontal (360 px de contenido para 360 px disponibles). En el viewport inicial de 768 px: 27 de 28 antes del scroll y 28 después. `git diff --check`: **PASS** antes del commit.
 - Estado: BLOCK 18 permanece `PARTIAL / BLOCKED`.
 - Commit: `perf(designer): lazy-load design library thumbnails`.
+
+## Evaluación de BLOCK 19 — Testing + Stabilization
+
+- Smoke tests del navegador para el contraste real en `/designer/easy` y la carga diferida en `/designer/new`: **PASS** en los subalcances cambiados. D2 cargó 18/28 miniaturas antes del scroll en 375×800 y 28/28 después; no hubo overflow horizontal.
+- El navegador no reportó errores de consola en la ruta D2; aparecen advertencias existentes de Three.js. `npm run build --prefix frontend`, ESLint focalizado y diagnósticos de los archivos modificados pasaron.
+- El frontend no tiene runner de pruebas configurado ni archivos de test. No se añade infraestructura de test como sustituto de contratos/capacidades faltantes.
+- BLOCK 19 permanece `PARTIAL / BLOCKED`: su alcance requiere validar los tres diseñadores, pero D1 sigue `UNKNOWN`, BLOCK 12 no integra el Tool Registry en la interacción, y BLOCK 14–17 siguen incompletos o bloqueados. Siguiente paso: resolver esas dependencias con contratos/datos reales y luego ejecutar la estabilización integral.
+- Commit: `docs(designer): record stabilization blockers`.

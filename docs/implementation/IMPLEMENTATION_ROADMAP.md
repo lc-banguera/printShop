@@ -473,6 +473,8 @@
 - Responsive funcional en desktop y tablet
 - Documentación actualizada
 
+**Estado actual**: `PARTIAL / BLOCKED`. Se validaron por navegador los subalcances implementados, pero no se puede certificar los tres diseñadores mientras D1 sea `UNKNOWN` y sigan incompletas la integración de tools, producción y persistencia. El frontend no cuenta con runner de pruebas configurado.
+
 ---
 
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*
