@@ -37,6 +37,10 @@ Crear un Design Core compartido en TypeScript puro, sin dependencias de React, K
 - Tres diseñadores independientes (rechazado: duplicación prohibida por AGENTS.md)
 - Monolito compartido con toda la UI (rechazado: mezcla UI con lógica de negocio)
 
+### Estado de implementación
+- BLOCK 01 define los contratos TypeScript compartidos en `frontend/src/core/design/types`.
+- No se han implementado managers de runtime ni se han migrado stores o tipos existentes.
+
 ---
 
 ## ADR-002 — Shared Tool Registry

@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 00 completado — documentación; ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 01 completado; BLOCK 02 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -74,6 +74,8 @@
 **Riesgos**:
 - Conflicto de naming con tipos existentes en `src/types/`
 - Solución: usar namespace `design-core/` para los nuevos tipos
+
+**Estado**: COMPLETADO — contratos TypeScript puros definidos; sin runtime ni cambios a stores/tipos existentes.
 
 **Siguiente bloque**: BLOCK 02
 

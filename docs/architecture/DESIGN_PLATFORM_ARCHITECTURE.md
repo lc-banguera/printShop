@@ -188,6 +188,8 @@ El Design Core expone:
 - `TransformSystem`: translación, escala, rotación, flip, alignment
 - `ToolRegistry`: registro y ciclo de vida de herramientas
 
+**Estado de implementación:** BLOCK 01 define los contratos de tipos compartidos en `frontend/src/core/design/types`. Estos tipos no implementan aún los managers ni habilitan capacidades; su integración comienza en bloques posteriores.
+
 ### 6.2 PrintShopDocument
 
 ```typescript
@@ -394,4 +396,4 @@ La migración es incremental. En cada bloque:
 
 ---
 
-*Documento creado en FASE 0 — No refleja implementación completada.*
+*Documento de arquitectura objetivo. El estado implementado por bloque se registra en `docs/implementation/IMPLEMENTATION_PROGRESS.md`.*
