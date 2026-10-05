@@ -384,4 +384,27 @@ La integración en interacciones de D2/D3 queda para sus bloques correspondiente
 
 ---
 
+## ADR-019 — No equiparar navegación de paneles D2 con herramientas del Registry
+
+**Estado**: ACCEPTED<br>
+**Fecha**: 2026-10-05
+
+### Contexto
+BLOCK 12 requiere integrar Designer 2 con el Tool Registry. La inspección del `Designer2Workspace` muestra que su estado local `activeTool` selecciona paneles de contenido (“Diseños”, “Subir”, “Texto”, “Capas”, “Producir”), mientras `useActiveTool` activa IDs del registry como `select`, `text` o `image`. Los descriptores registrados no tienen handlers de eventos. Las operaciones existentes del canvas ya se despachan mediante `canvasStore` y el Design Core.
+
+### Decisión
+No mapear los tabs de paneles a IDs de herramientas ni invocar `activateTool` sin un contrato de interacción que preserve su semántica. Mantener BLOCK 12 como `BLOCKED (PARTIAL)` hasta diseñar e integrar handlers reales de herramientas en la interacción Konva existente, sin duplicar la selección o transformación ya provistas por el store.
+
+### Consecuencias
+- La navegación de paneles D2 permanece intacta y no se presenta como integración del Tool Registry.
+- La integración del Command System, capas, selección, transform y renderers existente queda registrada como avance parcial.
+- Cualquier integración posterior debe usar capacidades explícitas y handlers con operaciones verificables; no se agregan callbacks vacíos ni estado duplicado.
+
+### Alternativas consideradas
+- Tratar cada panel como una herramienta del registry (rechazado: los conceptos y efectos no son equivalentes).
+- Activar descriptores sin handlers solo para afirmar integración (rechazado: no conecta comportamiento real).
+- Reescribir el canvas para centralizar todos los eventos en el registry en este bloque (pospuesto: requiere diseño del contrato de eventos y pruebas de regresión para no duplicar el flujo existente).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

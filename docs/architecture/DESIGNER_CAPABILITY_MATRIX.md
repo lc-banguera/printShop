@@ -32,7 +32,7 @@
 | **Layers panel** | ❓ | ✅ | ❓ | BLOCK 04 |
 | **Layer reorder** | ❓ | ✅ | ❓ | BLOCK 04 |
 | **Undo** | ❓ | ✅ | ❓ | BLOCK 03 |
-| **Redo** | ❓ | 🟡 | ❓ | BLOCK 03 |
+| **Redo** | ❓ | ✅ | ❓ | BLOCK 03 |
 | **Text tool** | ❓ | ✅ | ❓ | BLOCK 06 |
 | **Text font selection** | ❓ | ✅ | ❓ | BLOCK 06 |
 | **Text weight** | ❓ | ✅ | ❓ | BLOCK 06 |
@@ -121,6 +121,10 @@ El router en `App.tsx` conecta `/designer/personalize` con `DesignerLayout`, tam
 - No se encontró una página dedicada de Advanced.
 
 La matriz conserva `D1` como `❓` en todas las capacidades hasta que se verifique su comportamiento específico. Las capacidades de Advanced también permanecen `UNKNOWN` donde no hay evidencia.
+
+## Estado de integración D2
+
+Las mutaciones del canvas de D2 usan el CommandSystem, LayerManager, SelectionManager y TransformSystem por medio de `canvasStore`. Sin embargo, `Designer2Workspace` todavía no activa el Tool Registry: su estado `activeTool` identifica tabs de paneles y no herramientas de puntero. Por ello BLOCK 12 permanece `BLOCKED (PARTIAL)`; no se interpreta la navegación del panel como disponibilidad o ejecución de tools.
 
 ---
 

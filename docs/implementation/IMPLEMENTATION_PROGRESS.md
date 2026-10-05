@@ -20,14 +20,14 @@
 | BLOCK 09 — 3D Renderer Adapter | DONE | Contrato 3D neutral al framework y adapter Three.js integrado al flujo de decals. Emite descriptores únicamente para `front`; las zonas no calibradas siguen excluidas y BLOCK 07 continúa `BLOCKED`. |
 | BLOCK 10 — Asset System | DONE | AssetManager compartido registra la biblioteca local y uploads temporales de D2/D3 Easy con IDs únicos y URLs inmutables; cleanup revoca object URLs. No se añade persistencia ni caché binaria. |
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
-| BLOCK 12 — Designer 2 Integration | PENDING | No iniciado. |
-| BLOCK 13 — Designer 1 Integration | PENDING | No iniciado. |
-| BLOCK 14 — Designer 3 Easy | PENDING | No iniciado. |
-| BLOCK 15 — Designer 3 Advanced | PENDING | No iniciado. |
-| BLOCK 16 — Production Engine | PENDING | No iniciado. |
-| BLOCK 17 — Persistence / Autosave | PENDING | No iniciado. |
-| BLOCK 18 — Performance | PENDING | No iniciado. |
-| BLOCK 19 — Testing + Stabilization | PENDING | No iniciado. |
+| BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Las mutaciones principales de D2 ya pasan por managers/comandos del Core, pero `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles; mapearlos a tools alteraría su semántica y los descriptores registrados no tienen handlers de interacción. |
+| BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
+| BLOCK 14 — Designer 3 Easy | PENDING (alcance parcial independiente) | No hay servicio Python en el repositorio. Se evaluará por separado la integración acotada de filtros raster de BLOCK 11; eliminación de fondo y export de producción permanecen bloqueados. |
+| BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
+| BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
+| BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
+| BLOCK 18 — Performance | BLOCKED | Depende de BLOCK 17; no se ha establecido una carga/perfil de rendimiento medible para optimizar sin conjeturas. |
+| BLOCK 19 — Testing + Stabilization | BLOCKED | Depende de los bloques pendientes y de que los flujos de D1/D3 tengan alcance verificable. |
 
 ## Registro de BLOCK 00
 
@@ -217,4 +217,19 @@
 - `git diff --check`: **PASS**.
 - Decisión: ADR-018 fija procesamiento raster real en Worker, preservación del original y errores explícitos cuando no se soporta el runtime requerido.
 - Commit: `feat(image-processing): add worker image processing foundation`.
-- Siguiente bloque: **BLOCK 12 — Designer 2 Integration**; BLOCK 07 continúa `BLOCKED` para proyección 3D de zonas sin calibración verificable.
+- Siguiente bloque evaluado: **BLOCK 12 — Designer 2 Integration**; BLOCK 07 continúa `BLOCKED` para proyección 3D de zonas sin calibración verificable.
+
+## Evaluación de BLOCK 12 y dependencias posteriores
+
+- Rama inspeccionada: `feat/design-platform-implementation`; el worktree estaba limpio al iniciar esta evaluación.
+- Evidencia D2: las altas, actualizaciones, eliminaciones, reorder, capas, selección y transformaciones usan acciones de `canvasStore`, que delega en `CommandSystem`, `LayerManager`, `SelectionManager` y `TransformSystem`. El adapter Konva y el viewer 3D ya están conectados.
+- Validación funcional previamente registrada: ruta `/designer/new?product=camisetas` y operaciones add/update/undo/redo del store pasan el smoke test de navegador.
+- Gap bloqueante de BLOCK 12: `Designer2Workspace` no usa `useActiveTool` ni activa el `ToolRegistry`. El `activeTool` local de ese workspace identifica paneles (“Diseños”, “Subir”, “Texto”, etc.), no herramientas de puntero; el registry contiene descriptores sin handlers de interacción. Convertir esos tabs en activaciones de tools sería un cambio de UX/semántica y no se hace por inferencia.
+- Decisión: BLOCK 12 queda `BLOCKED (PARTIAL)`, no `DONE`. No se modificó código para aparentar una integración del registry. ADR-019 registra esta frontera.
+- BLOCK 13 no es independiente: además de depender de BLOCK 12, la especificación de D1 mantiene sus capacidades como `UNKNOWN`.
+- Dependencias posteriores verificadas: no hay archivos Python ni servicio de background removal en el repositorio; `server` es Express y contiene endpoints de pagos/suscripciones, no APIs de diseño/documentos/producción. Tampoco se encontró proyecto Spring Boot.
+- Trabajo independiente candidato: conectar en D3 Easy el filtro de contraste que ya tiene equivalencia exacta en la preview CSS con el Worker de BLOCK 11. Esto no requiere D1, calibración 3D, servicio Python ni backend, pero no cierra BLOCK 14.
+- No se inicia BLOCK 15 porque las interacciones de Advanced son `UNKNOWN` y la ruta comparte un layout con `/designer/personalize`; capas/texto/formas/efectos no están definidos con suficiente precisión para implementarlos sin inventar comportamiento.
+- BLOCK 16–19 no se ejecutan en esta evaluación: faltan APIs de producción/documentos, contratos de persistencia y un perfil de rendimiento; sus dependencias declaradas tampoco están completas.
+- Cambios de código en esta evaluación de BLOCK 12: ninguno. Build base actual (`npm run build --prefix frontend`): **PASS**; Vite conserva su advertencia de chunk mayor a 500 kB. La última validación runtime D2 está registrada arriba en BLOCK 10/11; no se atribuyen pruebas nuevas a esta evaluación.
+- Commit de esta evaluación: se registra por separado como cambio documental. Siguiente trabajo técnicamente independiente: subalcance de filtros reales para Designer 3 Easy; después, reevaluar BLOCK 12 cuando exista un contrato de interacción de tools compatible con D2.

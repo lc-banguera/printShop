@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 07 tiene avance parcial y sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 se completaron dentro de sus límites verificables, sin desbloquear otras superficies — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 07 sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 están completados dentro de sus límites. BLOCK 12 está parcialmente integrado pero bloqueado por la falta de un contrato seguro entre el Tool Registry y las interacciones existentes de D2. El análisis de dependencias posteriores está en [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md).
 
 ---
 
@@ -343,6 +343,8 @@
 
 **Riesgos**: Alto — mayor bloque de migración. Dividir en sub-bloques si es necesario.
 
+**Estado actual**: `BLOCKED (PARTIAL)`. Las mutaciones principales de D2 usan el Design Core y el Command System; el workspace no consume el Tool Registry. Sus tabs actuales son navegación de paneles y no equivalen a herramientas de puntero. Ver ADR-019.
+
 **Siguiente bloque**: BLOCK 13
 
 ---
@@ -354,6 +356,8 @@
 **Dependencias**: BLOCK 12
 
 **Pre-requisito**: Verificar qué existe en la ruta `/designer/personalize`. Si no existe componente, este bloque lo crea.
+
+**Estado actual**: `BLOCKED`. La ruta monta un layout compartido, pero la especificación funcional mantiene el comportamiento de D1 como `UNKNOWN`; depende además de cerrar BLOCK 12.
 
 **Resultado esperado**:
 - Designer 1 completamente funcional con producto del catálogo
@@ -370,6 +374,8 @@
 **Dependencias**: BLOCK 13, + Python service disponible
 
 **Requisito externo**: Servicio Python de background removal debe estar disponible.
+
+**Subalcance independiente**: La aplicación del filtro de contraste cuya equivalencia ya está presente en la preview CSS puede conectarse al Worker de BLOCK 11 sin depender de D1 ni de Python. Este subalcance no completa BLOCK 14. La eliminación de fondo debe permanecer disabled mientras no exista servicio real; la exportación de producción depende de BLOCK 16.
 
 **Resultado esperado**:
 - El botón "Eliminar fondo" llama a un servicio real
@@ -390,6 +396,8 @@
 
 **Pre-requisito**: Verificar qué existe en `/designer/advanced`. Si no hay componente, este bloque lo crea.
 
+**Estado actual**: `BLOCKED`. La ruta monta `DesignerLayout`, pero no hay evidencia suficiente para definir las capacidades e interacciones específicas de Advanced. No se debe inferir alcance desde D2 o Easy.
+
 **Resultado esperado**:
 - Modo avanzado completamente funcional
 - Reutiliza herramientas del Design Core
@@ -403,6 +411,8 @@
 **Objetivo**: Implementar el motor de producción: export de alta resolución, selección de método de impresión funcional.
 
 **Dependencias**: BLOCK 15, + Spring Boot API de producción disponible
+
+**Estado actual**: `BLOCKED`. En el repositorio inspeccionado existe un servidor Express para otros dominios; no se encontraron APIs de diseño/producción ni un proyecto Spring Boot.
 
 **Resultado esperado**:
 - Export a PNG de alta resolución (300 DPI)
@@ -419,6 +429,8 @@
 
 **Dependencias**: BLOCK 16, + Spring Boot API de documentos disponible
 
+**Estado actual**: `BLOCKED`. No se encontraron APIs de documentos. La persistencia local requiere además definir identidad y ciclo de restauración de borradores antes de integrar autosave en una experiencia.
+
 **Resultado esperado**:
 - Los diseños se guardan automáticamente en IndexedDB cada 30 segundos
 - Los diseños se pueden guardar en el backend
@@ -433,6 +445,8 @@
 **Objetivo**: Optimizar rendimiento: Web Workers, OffscreenCanvas, lazy loading de assets.
 
 **Dependencias**: BLOCK 17
+
+**Estado actual**: `BLOCKED`. El Worker de filtros existe; la carga diferida y el rendimiento con documentos de múltiples elementos no cuentan todavía con una carga objetivo o evidencia de profiling.
 
 **Resultado esperado**:
 - El procesamiento de imágenes no bloquea el UI

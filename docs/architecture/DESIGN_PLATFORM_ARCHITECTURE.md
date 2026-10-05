@@ -154,9 +154,7 @@ Los perfiles de D1 y D3 siguen sin definirse porque sus capacidades están marca
 
 ### 5.5 Historial / Undo-Redo
 
-Implementado en `canvas-store.ts` con `_history: HistoryEntry[]` y `_historyIndex`. El historial almacena snapshots completos de `elements[]`. Funcional para undo pero el redo tiene comportamiento limitado.
-
-**LIMITACIÓN**: No es un Command System formal. Los comandos no están encapsulados. Cambios de texto, color de prenda, zoom, etc. no forman parte del historial.
+Las mutaciones del canvas se ejecutan mediante `CommandSystem` y comandos encapsulados desde BLOCK 03; las acciones de capa y transformaciones usan los managers/comandos compartidos. `_history` y `_historyIndex` se conservan como proyección legacy de compatibilidad, no como fuente de verdad del undo/redo. La integración del Tool Registry con los eventos de D2 sigue pendiente de BLOCK 12.
 
 ---
 
@@ -361,6 +359,8 @@ El índice en memoria no cachea los bytes del asset. Los uploads usan object URL
   - Inline: controles de color de prenda, talla, método de impresión
 
 **Estado**: IMPLEMENTED para camiseta (DEFAULT_PRODUCT). Otros productos: visibles pero botón deshabilitado.
+
+**Integración Design Core**: las mutaciones de elementos, capas, selección y transformaciones pasan por `canvasStore` y sus managers/comandos compartidos. BLOCK 12 sigue `BLOCKED (PARTIAL)`: `Designer2Workspace` no consume el Tool Registry; su estado `activeTool` representa tabs de paneles, y mapearlos a tools alteraría su semántica. Ver ADR-019.
 
 ### 8.3 Designer 3 (Editor)
 

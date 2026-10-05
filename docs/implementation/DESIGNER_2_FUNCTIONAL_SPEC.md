@@ -29,11 +29,11 @@ La única `ProductDefinition` registrada y el único GLB funcional documentados 
 | Subida de imagen por selección o drag & drop y validación de tipo/tamaño documentada | `IMPLEMENTED` |
 | Creación de texto rasterizado y controles tipográficos descritos en inventario | `IMPLEMENTED` |
 | Selección, transformaciones, alineación, flip, opacidad y operaciones de capas descritas en inventario | `IMPLEMENTED` |
-| Undo / redo por snapshots | `PARTIAL`; redo tiene limitaciones documentadas |
+| Undo / redo mediante CommandSystem | `IMPLEMENTED` para las operaciones del canvas; `_history` se conserva como proyección legacy |
 | Multi-selección / agrupación | `PARTIAL`; la agrupación tiene limitaciones conocidas |
 | Guardar, descargar y producir/agregar al carrito | `PARTIAL`; los botones no representan persistencia, exportación ni integración real con órdenes |
 | Shapes e IA Generar | `PARTIAL`; la UI existe, pero no se confirma creación funcional de shapes ni backend de IA |
-| Procesamiento raster compartido de `ArtworkFilters` | `PARTIAL`; API Worker de BLOCK 11 disponible, aún sin integración en el flujo de edición |
+| Procesamiento raster compartido de `ArtworkFilters` | `PARTIAL`; API Worker de BLOCK 11 disponible, aún sin integración en el flujo de edición de D2 |
 | Persistencia, autosave, preflight y motor de producción | `PLANNED` / no implementado según inventario |
 
 Los estados reflejan la evidencia existente y deben corregirse solo con verificación de código y ejecución. La matriz detallada está en [DESIGNER_CAPABILITY_MATRIX.md](../architecture/DESIGNER_CAPABILITY_MATRIX.md).
@@ -46,7 +46,8 @@ Los estados reflejan la evidencia existente y deben corregirse solo con verifica
 - El área imprimible se trata como específica del producto/zona y sus bounds 2D se leen desde `ProductDefinition.printableAreas`.
 - Las zonas 2D usan `ProductDefinition.printableAreas`; la proyección física 3D fuera del frente no se considera implementada hasta contar con calibración real por zona.
 - No se declara que guardar, descargar, producir, IA o procesamiento estén conectados mientras no exista evidencia de la operación real.
-- Se conservan las responsabilidades actuales de `canvasStore`, `viewerStore` y `toolsStore` hasta que un bloque aprobado cambie su implementación de forma compatible.
+- Las mutaciones del canvas pasan por `canvasStore` y los managers/comandos compartidos. `viewerStore` conserva el estado del viewer y `toolsStore` sigue siendo puente legacy.
+- `Designer2Workspace` usa un estado local llamado `activeTool` para tabs de paneles; no se debe mapear a herramientas de puntero del Tool Registry. BLOCK 12 sigue `BLOCKED (PARTIAL)` hasta que haya integración de handlers reales sin duplicar interacciones.
 
 Consultar [IMPLEMENTATION_GUARDRAILS.md](../architecture/IMPLEMENTATION_GUARDRAILS.md).
 
@@ -54,6 +55,7 @@ Consultar [IMPLEMENTATION_GUARDRAILS.md](../architecture/IMPLEMENTATION_GUARDRAI
 
 - BLOCK 01–11 establece las partes compartidas que el roadmap requiere antes de BLOCK 12.
 - La integración de D2 debe conservar la funcionalidad existente del Builder para la camiseta y validar las zonas imprimibles descritas.
+- Las operaciones del canvas ya utilizan el CommandSystem y managers del Core; la integración del Tool Registry con los eventos Konva permanece pendiente.
 - Guardado, descarga, carrito, IA, formas y producción requieren sus integraciones reales y no se consideran especificados en detalle por la mera presencia de UI.
 - Cualquier cambio de flujo, campos, comportamiento de negocio, contratos o permisos queda fuera de esta especificación y requiere definición/aprobación explícita.
 

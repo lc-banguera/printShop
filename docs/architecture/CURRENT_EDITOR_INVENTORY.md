@@ -2,7 +2,7 @@
 # PrintShop — Inventario Real del Estado de los Editores
 
 **Versión:** 0.1.0  
-**Basada en:** Inspección directa de código — rama `feat/design-platform-foundation`  
+**Basada en:** Inspección directa de código — rama `feat/design-platform-implementation`<br>
 **Última actualización:** 2026-10-05
 
 > **ADVERTENCIA**: Este documento describe el estado REAL del código, no la arquitectura deseada.  
@@ -26,7 +26,7 @@
 | `DesignerBuilderPage` | `pages/designer-builder-page.tsx` (226L) | Selección de producto por categoría | ✅ |
 | `Designer2Workspace` | `pages/designer-2-workspace.tsx` (1248L) | Workspace principal con panel izquierdo, visor 3D, panel derecho, inline controls | ✅ |
 | `CanvasArea` | `components/canvas.tsx` (337L) | Stage Konva 2D con drag & drop, toolbar de acciones, zoom | ✅ |
-| `CanvasElements` | `components/canvas-elements.tsx` | Renderizado de CanvasElement (image, text, shapes) | ✅ |
+| `CanvasElements` | `components/canvas-elements.tsx` | Renderizado Konva de elementos image; el texto de D2 se rasteriza como imagen y shapes no se renderizan aquí | ✅ (images) |
 | `CanvasSelection` | `components/canvas-selection.tsx` | Konva Transformer para selección y resize | ✅ |
 | `CanvasOverlay` | `components/canvas-overlay/canvas-overlay.tsx` | Overlay HTML sobre el canvas Konva | ✅ |
 | `LeftSidebar` | `components/left-sidebar.tsx` (214L) | Barra lateral izquierda con módulos: plantillas, texto, imágenes, IA, logos, stickers, formas, bordado, QR, capas | ✅ (UI) |
@@ -85,7 +85,7 @@
 ✅ Controles de transformación: mover, escalar, rotar, flip H/V  
 ✅ Alineación: izq, centro, der, arriba, medio, abajo  
 ✅ Opacidad del elemento seleccionado  
-✅ Undo / Redo (sistema de snapshots)  
+✅ Undo / Redo mediante CommandSystem del Design Core; `_history` permanece como proyección de compatibilidad<br>
 ✅ Color de prenda (12 colores preset + custom)  
 ✅ Material brightness (slider)  
 ✅ Talla (S/M/L/XL/XXL)  
@@ -96,7 +96,6 @@
 
 ### 1.7 Funcionalidad parcial o con limitaciones
 
-🟡 **Redo**: avanza el índice pero la reconstrucción del estado futuro tiene limitaciones  
 🟡 **groupSelectedElements / ungroupSelectedElements**: implementados en el store pero eliminan el elemento en vez de agrupar correctamente  
 🟡 **Guardar**: UI presente, sin backend  
 🟡 **Descargar**: botón presente, sin exportación real de alta resolución  
@@ -104,17 +103,18 @@
 🟡 **"IA Generar"**: botón en sidebar izquierdo, sin funcionalidad  
 🟡 **Shapes**: en sidebar izquierdo (Formas), sin interacción funcional para crear formas en canvas
 
-### 1.8 Funcionalidad ausente (NOT IMPLEMENTED)
+### 1.8 Funcionalidad ausente o integración pendiente
 
 ❌ Persistencia en IndexedDB o backend  
 ❌ Exportación de alta resolución  
-❌ Command System formal (undo/redo se basa en snapshots)  
-❌ Tool Registry formal con ciclo de vida  
+🟡 Tool Registry formal existe en el Design Core, pero Designer2Workspace aún no lo consume; sus tabs son navegación de paneles y sus descriptores no tienen handlers<br>
 🟡 Sincronización parcial de printable area: bounds 2D por zona y área frontal 3D leen `ProductDefinition`; las demás proyecciones 3D están bloqueadas por falta de calibración
 ❌ SafeArea y Bleed  
 ❌ AI processing (background removal, enhancement)  
 ❌ Motor de producción (CMYK, preflight)  
 ❌ Autosave
+
+BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Registry con la interacción Konva existente sin equiparar tabs de paneles con tools. Ver [IMPLEMENTATION_PROGRESS.md](../implementation/IMPLEMENTATION_PROGRESS.md) y ADR-019 en [DECISIONS.md](DECISIONS.md).
 
 ---
 
