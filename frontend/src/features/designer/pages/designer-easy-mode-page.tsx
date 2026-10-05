@@ -18,7 +18,6 @@ import {
   Shirt,
   Type,
   Undo2,
-  Upload,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
@@ -58,8 +57,8 @@ interface BackgroundOption {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const DEFAULT_WIDTH_CM = '58';
-const DEFAULT_HEIGHT_CM = '100';
+const DEFAULT_WIDTH_CM = '35';
+const DEFAULT_HEIGHT_CM = '50';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -310,6 +309,7 @@ function VerticalRuler({ heightPx, lengthCm }: VerticalRulerProps) {
 interface SteppedInputProps {
   label: string;
   value: string | number;
+  suffix?: string;
   min?: string;
   max?: string;
   step?: string;
@@ -321,6 +321,7 @@ interface SteppedInputProps {
 function SteppedInput({
   label,
   value,
+  suffix,
   min,
   max,
   step,
@@ -329,7 +330,13 @@ function SteppedInput({
   onStep,
 }: SteppedInputProps) {
   return (
-    <div className="relative flex items-center">
+    <div
+      className={
+        suffix
+          ? 'flex h-10 items-center rounded-xl border border-[#e2e8f0] bg-white focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]/20'
+          : 'relative flex items-center'
+      }
+    >
       <input
         type="number"
         aria-label={label}
@@ -338,11 +345,15 @@ function SteppedInput({
         step={step}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className={`h-9 w-full rounded-xl border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
-          className ?? ''
-        }`}
+        className={
+          suffix
+            ? `h-full min-w-0 flex-1 border-0 bg-transparent pl-3 pr-1 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${className ?? ''}`
+            : `h-9 w-full rounded-xl border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+                className ?? ''
+              }`
+        }
       />
-      <div className="absolute right-1.5 flex flex-col items-center">
+      <div className={suffix ? 'flex flex-col items-center px-1' : 'absolute right-1.5 flex flex-col items-center'}>
         <button
           type="button"
           tabIndex={-1}
@@ -362,6 +373,11 @@ function SteppedInput({
           <ChevronDown className="h-2.5 w-2.5" strokeWidth={2.2} />
         </button>
       </div>
+      {suffix && (
+        <span className="shrink-0 pr-3 text-[13px] font-medium text-[#334155]">
+          {suffix}
+        </span>
+      )}
     </div>
   );
 }
@@ -903,23 +919,16 @@ export function DesignerEasyModePage() {
             {/* Resolución */}
             <div className="mt-3">
               <span className="mb-1.5 block text-[12px] text-[#64748b]">Resolución</span>
-              <div className="flex items-center gap-2">
-                <div className="flex-1">
-                  <SteppedInput
-                    label="Resolución"
-                    min="72"
-                    max="2400"
-                    step="1"
-                    value={canvasSettings.dpi}
-                    onChange={handleDpiChange}
-                    onStep={stepDpi}
-                  />
-                </div>
-                <div className="flex h-10 w-[84px] shrink-0 items-center justify-between rounded-xl border border-[#e2e8f0] bg-white px-3 text-[13px] font-medium text-[#334155]">
-                  <span>DPI</span>
-                  <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
-                </div>
-              </div>
+              <SteppedInput
+                label="Resolución"
+                min="72"
+                max="2400"
+                step="1"
+                value={canvasSettings.dpi}
+                onChange={handleDpiChange}
+                onStep={stepDpi}
+                suffix="DPI"
+              />
             </div>
           </section>
 
@@ -1135,16 +1144,6 @@ export function DesignerEasyModePage() {
             </button>
           </div>
 
-          {/* ── Botón flotante 'Exportar' en la esquina inferior derecha ── */}
-          <div className="absolute bottom-6 right-6 z-20">
-            <button
-              type="button"
-              className="flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-white px-5 py-2.5 text-[13px] font-semibold text-[#0f172a] shadow-[0_4px_20px_rgba(0,0,0,0.08)] hover:bg-[#f8fafc] transition-colors"
-            >
-              <Upload className="h-4 w-4 text-[#0f172a]" strokeWidth={2} />
-              <span>Exportar</span>
-            </button>
-          </div>
         </main>
       </div>
     </div>
