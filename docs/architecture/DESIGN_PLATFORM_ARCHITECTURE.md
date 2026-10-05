@@ -155,9 +155,9 @@ Este hardcoding debe resolverse en BLOCK 07 (Product Surface).
 
 ### 5.4 Herramientas existentes
 
-Definidas en `tools-config.ts`: SELECT, RECTANGLE, ELLIPSE, LINE, TEXT, IMAGE, HAND, ZOOM.
+Las ocho definiciones existentes (SELECT, RECTANGLE, ELLIPSE, LINE, TEXT, IMAGE, HAND, ZOOM) ahora se registran en `core/design/tools`. `tools-config.ts` sigue exponiendo el contrato anterior como fachada de compatibilidad, y `toolsStore` conserva el ID activo en Zustand. `useActiveTool.activateTool` ofrece la transición formal de ciclo de vida; `getAvailableTools` filtra según las capabilities explícitas del designer.
 
-**PROBLEMA**: Las herramientas están definidas estáticamente pero no hay Tool Registry formal. La herramienta activa se gestiona en `toolsStore` de forma simplificada. No hay Tool Context ni ciclo de vida por herramienta.
+Los perfiles de D1 y D3 siguen sin definirse porque sus capacidades están marcadas `UNKNOWN`. `shapeCreation` y `viewportNavigation` son requisitos de disponibilidad para las herramientas correspondientes, pero no se habilitan implícitamente. Los descriptores legacy no tienen handlers de eventos ni efectos de activación; estos no se simulan y la integración de interacción queda para los bloques de cada designer.
 
 ### 5.5 Historial / Undo-Redo
 
@@ -256,33 +256,37 @@ interface Command<TContext> {
 
 El `CommandSystem` es la fuente de verdad de undo/redo desde BLOCK 03. El snapshot `_history` se conserva temporalmente como proyección de compatibilidad hasta validar el sistema en producción.
 
-### 6.7 Tool Registry (objetivo)
+### 6.7 Tool Registry
 
 ```typescript
 interface Tool {
-  id: string;
+  id: ToolId;
   name: string;
   category: ToolCategory;
   cursor: string;
-  onActivate(context: ToolContext): void;
-  onDeactivate(context: ToolContext): void;
-  onPointerDown?(event: ToolEvent, context: ToolContext): void;
-  onPointerMove?(event: ToolEvent, context: ToolContext): void;
-  onPointerUp?(event: ToolEvent, context: ToolContext): void;
-  onKeyDown?(event: KeyboardEvent, context: ToolContext): void;
+  requiredCapabilities: readonly DesignerCapability[];
+  onActivate?(context: ToolContext): void;
+  onDeactivate?(context: ToolContext): void;
+  onPointerDown?(event: ToolPointerEvent, context: ToolContext): void;
+  onPointerMove?(event: ToolPointerEvent, context: ToolContext): void;
+  onPointerUp?(event: ToolPointerEvent, context: ToolContext): void;
+  onKeyDown?(event: ToolKeyboardEvent, context: ToolContext): void;
 }
 
 interface ToolContext {
-  document: PrintShopDocument;
-  commandSystem: CommandSystem;
-  selectionManager: SelectionManager;
-  viewport: ViewportState;
+  capabilities: DesignerCapabilities;
+  document: PrintShopDocument | null;
+  commandSystem: CommandSystem | null;
+  selectionManager: SelectionManager | null;
+  viewport: ToolViewportState | null;
 }
 ```
 
+El registry valida IDs duplicados, consulta herramientas por ID, filtra por capacidades y ejecuta los hooks definidos al cambiar de herramienta. Los hooks de ciclo de vida y eventos son opcionales porque los descriptores actuales no representan efectos ni interacciones del core; no se les asigna funcionalidad vacía para aparentar implementación. El store del designer continúa siendo la única fuente del ID activo.
+
 ### 6.8 Capability System
 
-Determina qué herramientas y funciones están disponibles en cada experiencia de diseño. Ver `DESIGNER_CAPABILITY_MATRIX.md` para la matriz completa.
+Determina qué herramientas y funciones están disponibles en cada experiencia de diseño. `shapeCreation` y `viewportNavigation` cubren las herramientas legacy de formas y navegación. El registry requiere que el caller proporcione el perfil activo; la falta de un perfil verificado para D1/D3 se conserva como desconocida. Ver `DESIGNER_CAPABILITY_MATRIX.md` para la matriz completa.
 
 ### 6.9 Renderer Abstraction
 

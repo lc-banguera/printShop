@@ -6,6 +6,8 @@ export type DesignerCapability =
   | 'multiSelection'
   | 'layers'
   | 'undoRedo'
+  | 'shapeCreation'
+  | 'viewportNavigation'
   | 'text'
   | 'imageUpload'
   | 'designLibrary'

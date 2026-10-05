@@ -14,7 +14,7 @@
 | BLOCK 03 — Command System + History | DONE | CommandSystem y comandos add/update/remove/reorder integrados al store; undo/redo y ramificación verificados. Build/lint/runtime pasan. Commit independiente. |
 | BLOCK 04 — Layers | DONE | LayerManager y comandos undoables de reorder/lock/visibility conectados al canvasStore y a las acciones de capas de Designer 2. |
 | BLOCK 05 — Selection + Transform | DONE | SelectionManager y TransformSystem integrados al store, Designer 2 y bridge Konva; operaciones múltiples atómicas y undoables. |
-| BLOCK 06 — Tool Registry + Tool Context | PENDING | No iniciado. |
+| BLOCK 06 — Tool Registry + Tool Context | DONE | Registry del Design Core, filtrado explícito por capabilities y transición de ciclo de vida conectada al hook; configuración y Zustand legacy preservados. |
 | BLOCK 07 — Product Surface | PENDING | No iniciado. |
 | BLOCK 08 — 2D Renderer Adapter | PENDING | No iniciado. |
 | BLOCK 09 — 3D Renderer Adapter | PENDING | No iniciado. |
@@ -112,7 +112,24 @@
 - `git diff --check`: **PASS** antes del commit.
 - Decisión: operaciones de grupo son composites temporales; no se introduce una capa de agrupación persistente ni se cambia el dominio. ADR-014.
 - Commit: cierre independiente con mensaje `feat(selection): add shared selection and transform systems`.
-- Siguiente bloque: **BLOCK 06 — Tool Registry + Tool Context**.
+- Siguiente bloque: **BLOCK 07 — Product Surface**.
+
+## Registro de BLOCK 06 — Tool Registry + Tool Context
+
+- Archivos: `frontend/src/core/design/tools/*`, `frontend/src/core/design/types/capabilities.ts`, `frontend/src/features/designer/services/tools-config.ts`, `frontend/src/features/designer/hooks/use-active-tool.ts` y `frontend/src/types/tools.ts`.
+- Cambio: `ToolRegistry` registra las ocho definiciones existentes, rechaza IDs duplicados, permite consulta y retiro, filtra todas las herramientas por `DesignerCapabilities` y ejecuta los hooks `onDeactivate`/`onActivate` definidos en cada transición. El hook expone la transición y la consulta de herramientas disponibles.
+- Capacidades: select/text/image requieren `selection`/`text`/`imageUpload`; herramientas de formas y navegación requieren `shapeCreation`/`viewportNavigation`. No se crean perfiles automáticos para D1/D3 ni se elevan capacidades `UNKNOWN`.
+- Compatibilidad: `tools-config.ts` sigue exponiendo `TOOLS`, `TOOLS_ORDER` y `getTool`; `ToolsState` y `toolsStore` conservan la semántica del setter existente. El ID activo continúa residiendo solo en Zustand; no se duplica en el registry.
+- Contexto: documento, CommandSystem, SelectionManager y viewport son referencias nullable mientras la integración de los stores/runtime no exista para todos los diseñadores. Los descriptores legacy son metadata, sin handlers ni efectos de activación; no se introdujo comportamiento simulado. Las tabs de panel existentes de D2 no se confundieron con herramientas del canvas.
+- Build base antes del bloque: **PASS** (`npm run build --prefix frontend`).
+- Build posterior: **PASS** (`tsc` y `vite build`).
+- ESLint focalizado y diagnósticos del editor para los archivos modificados: **PASS**, sin errores.
+- Checks runtime del código fuente: **PASS** — disponibilidad por perfiles de capabilities, rechazo de herramientas no registradas/no disponibles, detección de IDs duplicados, orden activate/deactivate/activate, transición idempotente y unregister.
+- Tests del repo: no hay runner/suite frontend configurada.
+- `git diff --check`: **PASS**; no se modificaron rutas ni UI funcional del Builder.
+- Decisión: ADR-002 aceptada; el registry no mantiene una segunda fuente de verdad para el ID activo y no habilita perfiles de diseñadores sin evidencia.
+- Commit: cierre independiente con mensaje `feat(tools): add capability-aware tool registry`.
+- Siguiente bloque: **BLOCK 07 — Product Surface**.
 
 ## Historial
 
@@ -124,3 +141,4 @@
 | 2026-10-05 | BLOCK 03 | Se integraron comandos compartidos al canvasStore; undo/redo y ramificación validados sin retirar el historial legacy. |
 | 2026-10-05 | BLOCK 04 | Se implementaron reorder, lock y visibility de capas mediante comandos undoables e integración con Designer 2. |
 | 2026-10-05 | BLOCK 05 | Se integraron selección múltiple y transformaciones de grupo mediante commands undoables y managers compartidos. |
+| 2026-10-05 | BLOCK 06 | Se añadió el Tool Registry compartido con filtrado por capabilities y puente de compatibilidad para la configuración y el estado legacy. |

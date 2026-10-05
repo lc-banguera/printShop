@@ -45,14 +45,14 @@ Crear un Design Core compartido en TypeScript puro, sin dependencias de React, K
 
 ## ADR-002 — Shared Tool Registry
 
-**Estado**: PROPOSED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
 Actualmente las herramientas están definidas en `tools-config.ts` como objetos estáticos y la herramienta activa se gestiona en `toolsStore`. No hay ciclo de vida por herramienta ni contexto.
 
-### Decisión (propuesta)
-Implementar un Tool Registry formal con interfaz `Tool` que incluya `onActivate`, `onDeactivate`, y handlers de eventos. Cada designer activa solo las herramientas que le corresponden según sus `DesignerCapabilities`.
+### Decisión
+Implementar un Tool Registry formal con interfaz `Tool` que admite hooks `onActivate`, `onDeactivate` y handlers de eventos. Cada designer activa solo las herramientas que le corresponden según sus `DesignerCapabilities`.
 
 ### Consecuencias
 - Herramientas reutilizables sin duplicación
@@ -61,6 +61,12 @@ Implementar un Tool Registry formal con interfaz `Tool` que incluya `onActivate`
 
 ### Alternativas consideradas
 - Mantener el sistema actual de `toolsStore` simple (viable a corto plazo, no escala)
+
+### Estado de implementación
+- BLOCK 06 añade el registro y el contexto tipado al Design Core. Las herramientas se filtran por las capabilities explícitas que recibe el registry; no se inventan perfiles para D1/D3.
+- El ID activo continúa siendo estado Zustand; el registry no mantiene una segunda copia. `useActiveTool.activateTool` ejecuta la transición de ciclo de vida antes de actualizar el estado.
+- `tools-config.ts` conserva exports compatibles y `toolsStore` permanece como puente legacy hasta validar su integración en los diseñadores.
+- `document`, `commandSystem`, `selectionManager` y `viewport` son nullable en el contexto mientras el runtime actual no los conecte a todos los diseñadores. Las herramientas legacy son descriptores sin handlers de eventos ni efectos de activación; no se simula funcionalidad.
 
 ---
 
@@ -132,7 +138,7 @@ Abstraer `ProductSurface` con `printableArea`, `safeArea` y `bleed` derivados de
 
 ## ADR-006 — Designer 2 Free 3D Orbit
 
-**Estado**: ACCEPTED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
@@ -153,7 +159,7 @@ Mantener la cámara libre con OrbitControls sin restricciones de zona. El usuari
 
 ## ADR-007 — Non-destructive Image Processing
 
-**Estado**: ACCEPTED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
@@ -171,7 +177,7 @@ El asset original (`originalImageSrc`) es **inmutable**. Todas las transformacio
 
 ## ADR-008 — Original Asset Immutable
 
-**Estado**: ACCEPTED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Decisión
@@ -181,7 +187,7 @@ Derivado de ADR-007. La URL del asset original (`originalImageSrc` en `CanvasEle
 
 ## ADR-009 — Incremental Migration
 
-**Estado**: ACCEPTED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
@@ -202,7 +208,7 @@ La Design Platform se construye incrementalmente, bloque por bloque. En cada blo
 
 ## ADR-010 — No Fake 3D / No Fake Processing
 
-**Estado**: ACCEPTED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Decisión
@@ -218,7 +224,7 @@ Un procesamiento de imagen que no tiene backend real (Python, C++) puede tener U
 
 ## ADR-011 — Zustand como State Manager Global del Designer
 
-**Estado**: ACCEPTED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto

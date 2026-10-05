@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 05 completado; BLOCK 06 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 06 completado; BLOCK 07 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -206,6 +206,8 @@
 - El comportamiento de las herramientas actuales se mantiene
 
 **IMPORTANTE**: `tools-config.ts` y `toolsStore` no se eliminan hasta que el ToolRegistry esté validado.
+
+**Estado**: COMPLETADO — registry compartido, filtrado por capabilities y transición de ciclo de vida; compatibilidad legacy preservada.
 
 **Siguiente bloque**: BLOCK 07
 

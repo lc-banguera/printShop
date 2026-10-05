@@ -25,6 +25,8 @@
 | Capacidad | D1 Personalizer | D2 Builder | D3 Editor | Shared Core Target |
 |---|:---:|:---:|:---:|:---:|
 | **Selection** | ❓ | ✅ | ❓ | BLOCK 05 |
+| **Canvas shape tools (rectangle/ellipse/line)** | ❓ | ❓ | ❓ | BLOCK 06 |
+| **Canvas navigation tools (hand/zoom)** | ❓ | ❓ | ❓ | BLOCK 06 |
 | **Transform (move/scale/rotate)** | ❓ | ✅ | ❓ | BLOCK 05 |
 | **Multi-selection** | ❓ | 🟡 | ❓ | BLOCK 05 |
 | **Layers panel** | ❓ | ✅ | ❓ | BLOCK 04 |
