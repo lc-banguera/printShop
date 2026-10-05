@@ -22,7 +22,7 @@
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
 | BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Las mutaciones principales de D2 ya pasan por managers/comandos del Core, pero `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles; mapearlos a tools alteraría su semántica y los descriptores registrados no tienen handlers de interacción. |
 | BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
-| BLOCK 14 — Designer 3 Easy | PENDING (alcance parcial independiente) | No hay servicio Python en el repositorio. Se evaluará por separado la integración acotada de filtros raster de BLOCK 11; eliminación de fondo y export de producción permanecen bloqueados. |
+| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | El ajuste de contraste se integra con el Worker de BLOCK 11. El bloque completo sigue bloqueado: no hay servicio Python, transformaciones reales por preset ni export de producción. |
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
@@ -228,8 +228,22 @@
 - Decisión: BLOCK 12 queda `BLOCKED (PARTIAL)`, no `DONE`. No se modificó código para aparentar una integración del registry. ADR-019 registra esta frontera.
 - BLOCK 13 no es independiente: además de depender de BLOCK 12, la especificación de D1 mantiene sus capacidades como `UNKNOWN`.
 - Dependencias posteriores verificadas: no hay archivos Python ni servicio de background removal en el repositorio; `server` es Express y contiene endpoints de pagos/suscripciones, no APIs de diseño/documentos/producción. Tampoco se encontró proyecto Spring Boot.
-- Trabajo independiente candidato: conectar en D3 Easy el filtro de contraste que ya tiene equivalencia exacta en la preview CSS con el Worker de BLOCK 11. Esto no requiere D1, calibración 3D, servicio Python ni backend, pero no cierra BLOCK 14.
+- Trabajo independiente identificado: conectar en D3 Easy el filtro de contraste que ya tiene equivalencia exacta en la preview CSS con el Worker de BLOCK 11. Se completó como subalcance de BLOCK 14 sin requerir D1, calibración 3D, servicio Python ni backend; no cierra BLOCK 14.
 - No se inicia BLOCK 15 porque las interacciones de Advanced son `UNKNOWN` y la ruta comparte un layout con `/designer/personalize`; capas/texto/formas/efectos no están definidos con suficiente precisión para implementarlos sin inventar comportamiento.
 - BLOCK 16–19 no se ejecutan en esta evaluación: faltan APIs de producción/documentos, contratos de persistencia y un perfil de rendimiento; sus dependencias declaradas tampoco están completas.
 - Cambios de código en esta evaluación de BLOCK 12: ninguno. Build base actual (`npm run build --prefix frontend`): **PASS**; Vite conserva su advertencia de chunk mayor a 500 kB. La última validación runtime D2 está registrada arriba en BLOCK 10/11; no se atribuyen pruebas nuevas a esta evaluación.
-- Commit de esta evaluación: se registra por separado como cambio documental. Siguiente trabajo técnicamente independiente: subalcance de filtros reales para Designer 3 Easy; después, reevaluar BLOCK 12 cuando exista un contrato de interacción de tools compatible con D2.
+- Commit de esta evaluación documental: `d3e7c0f docs(architecture): record designer integration blockers`.
+- Siguiente paso: reevaluar BLOCK 12 cuando exista un contrato de interacción de tools compatible con D2; BLOCK 14 requiere servicio Python real, definición de transformaciones por preset y motor de producción para cerrarse.
+
+## Registro de subalcance independiente de BLOCK 14 — Contraste real en Designer 3 Easy
+
+- Archivos funcionales: `frontend/src/features/designer/pages/designer-easy-mode-page.tsx`.
+- Cambio: "Mejorar contraste" procesa el `File` original en el Worker compartido con `contrast: 110`, equivalente al valor visible `contrast-110` de la preview actual. La salida es un PNG nuevo del mismo ancho/alto en píxeles; el archivo original no se sustituye ni modifica.
+- Estados honestos: solo "Color mejorado" pasa a `Procesado` tras respuesta exitosa del Worker. Eliminación de fondo, semitransparencias y semitono no se marcan como completados. Guardar, aplicar presets, eliminar fondo y exportar quedan disabled con motivos; no se afirma salida 300 DPI ni aplicación de perfiles.
+- Base previa: `npm run build --prefix frontend` pasó antes del cambio (`tsc` + Vite; warning conocido de chunk >500 kB).
+- Validación posterior: build **PASS**; ESLint focalizado en `designer-easy-mode-page.tsx` **PASS**; `problems` sin errores. El repositorio no configura runner de pruebas frontend.
+- Navegador: `/designer/easy`, upload de `img1.jpg` y ejecución de contraste **PASS**. Antes y salida se mostraron como URLs blob distintas, ambas con dimensiones 500×500; el indicador pasó de `Pendiente` a `Procesado`. Guardar, Aplicar, Eliminar fondo y Exportar se observaron disabled.
+- Responsive: `html.scrollWidth` coincidió con `html.clientWidth` a 375 px y 1024 px. No se observaron errores críticos durante la interacción.
+- `git diff --check`: **PASS** antes del commit.
+- Dependencias restantes: servicio real para background removal; alcance de filtros por preset; motor de producción para exportar alta resolución/300 DPI. BLOCK 14 permanece `PARTIAL / BLOCKED`.
+- Commit: `feat(designer3): process contrast adjustments in worker`. Siguiente bloque evaluado: BLOCK 15, que sigue `BLOCKED` por el alcance `UNKNOWN` de Advanced y su dependencia de BLOCK 14 completo.

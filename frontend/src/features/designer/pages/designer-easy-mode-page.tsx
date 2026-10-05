@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { ArrowRight, Download, ImagePlus, Layers3, SlidersHorizontal, Sparkles, Wand2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { processArtworkImage } from '@/core/design/processing';
 import { registerUploadedDesign, releaseUploadedDesign } from '../services/design-resources';
 
 const presets = [
@@ -36,23 +37,88 @@ export function DesignerEasyModePage() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [selectedPresetId, setSelectedPresetId] = useState('dtf');
   const [imageSrc, setImageSrc] = useState(defaultPreview);
+  const [sourceFile, setSourceFile] = useState<File | null>(null);
+  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
+  const [processedDimensions, setProcessedDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processingError, setProcessingError] = useState<string | null>(null);
   const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
   const [showBeforeAfter, setShowBeforeAfter] = useState(true);
+  const processingRequestId = useRef(0);
+  const processedImageUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!uploadedAssetId) return;
     return () => releaseUploadedDesign(uploadedAssetId);
   }, [uploadedAssetId]);
 
+  useEffect(
+    () => () => {
+      processingRequestId.current += 1;
+      if (processedImageUrlRef.current) {
+        URL.revokeObjectURL(processedImageUrlRef.current);
+      }
+    },
+    [],
+  );
+
   const selectedPreset = presets.find((preset) => preset.id === selectedPresetId) ?? presets[0];
+
+  const replaceProcessedImage = (url: string | null) => {
+    if (processedImageUrlRef.current) {
+      URL.revokeObjectURL(processedImageUrlRef.current);
+    }
+    processedImageUrlRef.current = url;
+    setProcessedImageUrl(url);
+  };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const asset = registerUploadedDesign(file);
-    setUploadedAssetId(asset.id);
-    setImageSrc(asset.image);
+    try {
+      const asset = registerUploadedDesign(file);
+      processingRequestId.current += 1;
+      replaceProcessedImage(null);
+      setProcessedDimensions(null);
+      setIsProcessing(false);
+      setProcessingError(null);
+      setSourceFile(file);
+      setUploadedAssetId(asset.id);
+      setImageSrc(asset.image);
+    } catch (error) {
+      setProcessingError(error instanceof Error ? error.message : 'No se pudo cargar la imagen.');
+    } finally {
+      event.currentTarget.value = '';
+    }
+  };
+
+  const handleImproveContrast = async () => {
+    if (!sourceFile || isProcessing) return;
+
+    const requestId = ++processingRequestId.current;
+    setIsProcessing(true);
+    setProcessingError(null);
+
+    try {
+      const result = await processArtworkImage(sourceFile, { contrast: 110 });
+      const resultUrl = URL.createObjectURL(result.blob);
+      if (requestId !== processingRequestId.current) {
+        URL.revokeObjectURL(resultUrl);
+        return;
+      }
+
+      replaceProcessedImage(resultUrl);
+      setProcessedDimensions({ width: result.width, height: result.height });
+    } catch (error) {
+      if (requestId === processingRequestId.current) {
+        setProcessingError(error instanceof Error ? error.message : 'No se pudo procesar la imagen.');
+      }
+    } finally {
+      if (requestId === processingRequestId.current) {
+        setIsProcessing(false);
+      }
+    }
   };
 
   return (
@@ -67,7 +133,12 @@ export function DesignerEasyModePage() {
             <Link to="/designer/advanced" className="rounded-xl border border-[#e4e7f0] bg-white px-3 py-2 text-sm font-semibold text-[#171421] transition-colors hover:bg-[#f7f8ff]">
               Modo avanzado
             </Link>
-            <button type="button" className="rounded-xl bg-[#5046e5] px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#4539d3]">
+            <button
+              type="button"
+              disabled
+              title="El guardado requiere persistencia, aún no disponible."
+              className="rounded-xl bg-[#5046e5] px-3 py-2 text-sm font-semibold text-white opacity-50"
+            >
               Guardar
             </button>
           </div>
@@ -117,7 +188,12 @@ export function DesignerEasyModePage() {
                   <ImagePlus className="h-4 w-4" />
                   Subir imagen
                 </button>
-                <button type="button" className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5046e5] px-3 py-2 text-sm font-semibold text-white hover:bg-[#4539d3]">
+                <button
+                  type="button"
+                  disabled
+                  title="Los perfiles no tienen transformaciones reales definidas."
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#5046e5] px-3 py-2 text-sm font-semibold text-white opacity-50"
+                >
                   <ArrowRight className="h-4 w-4" />
                   Aplicar
                 </button>
@@ -146,7 +222,11 @@ export function DesignerEasyModePage() {
                 <div className="overflow-hidden rounded-[22px] border border-[#dfe3f4] bg-[#171421] p-3">
                   <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-white/70">Después</p>
                   <div className="relative h-[380px] overflow-hidden rounded-[16px]">
-                    <img src={imageSrc} alt="Resultado preparado" className="h-full w-full object-cover grayscale-[0.2] contrast-110 brightness-105 saturate-120" />
+                    <img
+                      src={processedImageUrl ?? imageSrc}
+                      alt={processedImageUrl ? 'Resultado con contraste procesado' : 'Vista previa visual, sin procesamiento aplicado'}
+                      className={`h-full w-full object-cover ${processedImageUrl ? '' : 'grayscale-[0.2] contrast-110 brightness-105 saturate-120'}`}
+                    />
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_0%,_rgba(255,255,255,0.1)_30%,_rgba(0,0,0,0.34)_100%)]" />
                   </div>
                 </div>
@@ -164,10 +244,18 @@ export function DesignerEasyModePage() {
               <div className="rounded-2xl border border-[#eceff7] bg-[#fafbff] p-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#5e5d72]">Proceso</p>
                 <div className="mt-3 space-y-2 text-sm text-[#171421]">
-                  {['Fondo eliminado', 'Semitransparencias', 'Semitono', 'Color mejorado'].map((item) => (
-                    <div key={item} className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
-                      <span>{item}</span>
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#22c55e]" />
+                  {[
+                    { label: 'Fondo eliminado', status: 'No disponible', complete: false },
+                    { label: 'Semitransparencias', status: 'No procesado', complete: false },
+                    { label: 'Semitono', status: 'No procesado', complete: false },
+                    { label: 'Color mejorado', status: processedImageUrl ? 'Procesado' : 'Pendiente', complete: Boolean(processedImageUrl) },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between rounded-xl bg-white px-3 py-2">
+                      <span>{item.label}</span>
+                      <span className="flex items-center gap-2 text-xs text-foregroundMuted">
+                        {item.status}
+                        <span className={`h-2.5 w-2.5 rounded-full ${item.complete ? 'bg-success' : 'bg-foregroundSubtle'}`} />
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -176,25 +264,52 @@ export function DesignerEasyModePage() {
               <div className="rounded-2xl border border-[#eceff7] bg-[#fafbff] p-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#5e5d72]">Herramientas</p>
                 <div className="mt-3 grid gap-2">
-                  {[
-                    { label: 'Eliminar fondo', icon: Sparkles },
-                    { label: 'Mejorar contraste', icon: Layers3 },
-                    { label: 'Exportar', icon: Download },
-                  ].map(({ label, icon: Icon }) => (
-                    <button key={label} type="button" className="flex items-center justify-between rounded-xl border border-[#e5e8f2] bg-white px-3 py-2 text-sm font-medium text-[#171421] hover:bg-[#f4f6ff]">
-                      <span>{label}</span>
-                      <Icon className="h-4 w-4 text-[#5e5d72]" />
-                    </button>
-                  ))}
+                  <button
+                    type="button"
+                    disabled
+                    title="El servicio real de eliminación de fondo no está disponible."
+                    className="flex cursor-not-allowed items-center justify-between rounded-xl border border-[#e5e8f2] bg-white px-3 py-2 text-left text-sm font-medium text-[#171421] opacity-50"
+                  >
+                    <span>Eliminar fondo</span>
+                    <Sparkles className="h-4 w-4 text-[#5e5d72]" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleImproveContrast}
+                    disabled={!sourceFile || isProcessing}
+                    title={!sourceFile ? 'Sube una imagen para procesar el contraste.' : undefined}
+                    className="flex items-center justify-between rounded-xl border border-[#e5e8f2] bg-white px-3 py-2 text-left text-sm font-medium text-[#171421] hover:bg-[#f4f6ff] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <span>{isProcessing ? 'Procesando contraste…' : 'Mejorar contraste'}</span>
+                    <Layers3 className="h-4 w-4 text-[#5e5d72]" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled
+                    title="La exportación de producción se habilitará con el motor de producción."
+                    className="flex cursor-not-allowed items-center justify-between rounded-xl border border-[#e5e8f2] bg-white px-3 py-2 text-left text-sm font-medium text-[#171421] opacity-50"
+                  >
+                    <span>Exportar</span>
+                    <Download className="h-4 w-4 text-[#5e5d72]" />
+                  </button>
                 </div>
+                <p className="mt-3 text-xs leading-5 text-foregroundMuted">
+                  Solo el ajuste de contraste procesa la imagen subida. Los perfiles, la eliminación de fondo y la exportación de producción aún no están conectados.
+                </p>
+                {isProcessing && <p role="status" className="mt-2 text-xs text-foregroundMuted">Procesando en segundo plano…</p>}
+                {processingError && <p role="alert" className="mt-2 text-xs text-danger">{processingError}</p>}
               </div>
 
               <div className="rounded-2xl border border-[#eceff7] bg-[#f5f3ff] p-3">
                 <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#5046e5]">Salida</p>
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-[#171421]">PNG listo para impresión</p>
-                    <p className="text-xs text-[#5e5d72]">300 DPI · Transparente</p>
+                    <p className="text-sm font-bold text-[#171421]">
+                      {processedDimensions
+                        ? `PNG procesado · ${processedDimensions.width} × ${processedDimensions.height} px`
+                        : 'Sin salida de producción'}
+                    </p>
+                    <p className="text-xs text-[#5e5d72]">No se ha verificado resolución de 300 DPI.</p>
                   </div>
                   <Download className="h-4 w-4 text-[#5046e5]" />
                 </div>

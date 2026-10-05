@@ -375,7 +375,9 @@
 
 **Requisito externo**: Servicio Python de background removal debe estar disponible.
 
-**Subalcance independiente**: La aplicación del filtro de contraste cuya equivalencia ya está presente en la preview CSS puede conectarse al Worker de BLOCK 11 sin depender de D1 ni de Python. Este subalcance no completa BLOCK 14. La eliminación de fondo debe permanecer disabled mientras no exista servicio real; la exportación de producción depende de BLOCK 16.
+**Subalcance independiente completado**: "Mejorar contraste" conecta el valor `contrast-110` ya presente en la preview con el Worker de BLOCK 11 para la imagen subida. Este subalcance no completa BLOCK 14. La eliminación de fondo permanece disabled mientras no exista servicio real; los presets continúan disabled hasta definir transformaciones reales; la exportación de producción depende de BLOCK 16.
+
+**Estado actual**: `PARTIAL / BLOCKED`. Solo el ajuste de contraste está integrado. No hay servicio Python, los perfiles no tienen transformaciones reales definidas y no existe exportación de producción.
 
 **Resultado esperado**:
 - El botón "Eliminar fondo" llama a un servicio real

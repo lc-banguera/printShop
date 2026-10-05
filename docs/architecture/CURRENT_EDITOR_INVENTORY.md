@@ -118,19 +118,19 @@ BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Regis
 
 ---
 
-## 2. DESIGNER 3 EASY — Estado: PARTIAL (UI only)
+## 2. DESIGNER 3 EASY — Estado: PARTIAL (UI + contraste raster)
 
 ### 2.1 Entry Point
 
 | Ruta | Componente | Estado |
 |---|---|---|
-| `/designer/easy` | `DesignerEasyModePage` | ✅ IMPLEMENTED (UI) |
+| `/designer/easy` | `DesignerEasyModePage` | 🟡 PARTIAL |
 
 ### 2.2 Componentes
 
 | Componente | Archivo | Función | Estado |
 |---|---|---|---|
-| `DesignerEasyModePage` | `pages/designer-easy-mode-page.tsx` (209L) | Página completa del modo fácil | ✅ (UI) |
+| `DesignerEasyModePage` | `pages/designer-easy-mode-page.tsx` | Workspace de modo fácil y operación Worker de contraste | 🟡 |
 
 ### 2.3 Funcionalidad real
 
@@ -139,23 +139,24 @@ BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Regis
 ✅ Selección de preset: DTF, serigrafía, vinilo, sublimación  
 ✅ Toggle mostrar/ocultar comparación  
 ✅ Navegación a modo avanzado (`/designer/advanced`)  
-✅ Botón "Guardar" (sin backend)
+✅ "Mejorar contraste" procesa la imagen subida con el Worker compartido de BLOCK 11 (`contrast: 110`); muestra un PNG nuevo a la resolución en píxeles de origen y conserva el archivo fuente<br>
+✅ El estado de "Color mejorado" refleja si esa operación Worker terminó correctamente
 
-### 2.4 Funcionalidad simulada (UI sin backend)
+### 2.4 Controles deshabilitados o preview solamente
 
-🎭 "Eliminar fondo" — botón clickeable sin funcionalidad  
-🎭 "Mejorar contraste" — botón clickeable sin funcionalidad  
-🎭 "Exportar" — botón clickeable sin funcionalidad  
-🎭 "Aplicar" — aplica preset visualmente con CSS filters (no procesamiento real)  
-🎭 "Fondo eliminado / Semitransparencias / Semitono / Color mejorado" — indicadores verdes hardcoded, no reflejan estado real
+🟡 Los presets se pueden seleccionar, pero sus transformaciones no están definidas; "Aplicar" permanece disabled. La preview CSS no representa procesamiento real<br>
+🟡 "Eliminar fondo" permanece disabled porque no hay servicio Python de background removal<br>
+🟡 "Exportar" permanece disabled porque no hay salida de producción verificada<br>
+🟡 "Guardar" permanece disabled porque no hay persistencia<br>
+🟡 Semitransparencias, semitono y eliminación de fondo no se declaran procesados; sus estados ya no se muestran como completados por defecto
 
 ### 2.5 Funcionalidad ausente
 
-❌ Procesamiento real conectado a Designer 3 Easy (la API compartida de filtros de BLOCK 11 aún no está integrada)
 ❌ Servicio Python de background removal
 ❌ Background removal real  
-❌ Export de alta resolución  
+❌ Export de alta resolución / perfil de 300 DPI<br>
 ❌ Persistencia
+🟡 Los demás filtros de `ArtworkFilters` aún no están integrados en D3 Easy
 
 ---
 

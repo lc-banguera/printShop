@@ -367,9 +367,11 @@ El índice en memoria no cachea los bytes del asset. Los uploads usan object URL
 **Modo Easy** (`/designer/easy`):
 - Upload de imagen
 - Selección de preset: DTF, serigrafía, vinilo, sublimación
-- Vista antes/después con CSS filters (NO es procesamiento real)
-- Botones: Eliminar fondo, Mejorar contraste, Exportar (SIN funcionalidad backend)
-- **Estado**: IMPLEMENTED (UI only — la API compartida de filtros existe, pero no está integrada a Easy)
+- La preview CSS sigue siendo visual; los presets no tienen transformaciones reales definidas y "Aplicar" permanece disabled
+- "Mejorar contraste" procesa el archivo subido en el Worker compartido usando `contrast: 110`, conserva el archivo fuente y muestra un PNG del mismo tamaño en píxeles
+- Eliminación de fondo, exportación de producción y guardar permanecen disabled: no hay servicio Python, motor de producción ni persistencia disponibles
+- Solo el indicador de color mejorado refleja el procesamiento real; semitransparencias, semitono y eliminación de fondo no se marcan como completados
+- **Estado**: PARTIAL — se completó el subalcance independiente de contraste de BLOCK 14; el bloque completo sigue bloqueado
 
 **Modo Advanced** (`/designer/advanced`):
 - **Estado**: UNKNOWN para capacidades específicas; `DesignerLayout` existe y se monta en la ruta

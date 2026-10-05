@@ -407,4 +407,27 @@ No mapear los tabs de paneles a IDs de herramientas ni invocar `activateTool` si
 
 ---
 
+## ADR-020 — Contraste local real y límites honestos en Designer 3 Easy
+
+**Estado**: ACCEPTED<br>
+**Fecha**: 2026-10-05
+
+### Contexto
+BLOCK 11 proporciona `processArtworkImage` en un Web Worker. La preview existente de Designer 3 Easy contiene `contrast-110`, mientras que el botón "Mejorar contraste" no tenía efecto. No hay servicio Python de eliminación de fondo ni motor de producción.
+
+### Decisión
+Conectar únicamente "Mejorar contraste" al Worker usando el valor existente `contrast: 110` sobre el `File` original. Mostrar la salida PNG a las mismas dimensiones en píxeles y mantener el original intacto. Mantener disabled los controles de eliminación de fondo, aplicación de presets sin transformaciones definidas, guardado y exportación de producción; los estados solo reflejan operaciones realmente ejecutadas.
+
+### Consecuencias
+- Se puede comprobar un procesamiento raster local real sin depender de D1, calibración 3D o el servicio Python.
+- Este subalcance no cierra BLOCK 14 ni afirma aplicar perfiles de impresión, eliminar fondo o producir un PNG de 300 DPI.
+- Los errores del Worker se presentan en UI y no se sustituyen por un resultado simulado.
+
+### Alternativas consideradas
+- Seguir mostrando los indicadores como completados por defecto (rechazado: no representaba operaciones reales).
+- Inventar transformaciones para DTF, serigrafía, vinilo y sublimación (rechazado: sus parámetros no están especificados).
+- Presentar el PNG rasterizado como exportación de producción/300 DPI (rechazado: falta motor y perfil de producción).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

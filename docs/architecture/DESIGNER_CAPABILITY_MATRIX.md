@@ -85,15 +85,15 @@
 
 | Capacidad | D1 | D2 | D3 | Notas |
 |---|:---:|:---:|:---:|:---:|
-| **CSS visual filters** | ❓ | 📋 | 🟡 | D3 Easy: filtros CSS aplicados visualmente (no destructivos reales) |
-| **Background removal** | ➖ | ➖ | 🟡 | D3 Easy: botón existe, sin backend |
+| **CSS visual filters** | ❓ | 📋 | 🟡 | D3 Easy: preview CSS; no equivale a procesamiento raster |
+| **Background removal** | ➖ | ➖ | 🚫 | D3 Easy: control disabled hasta disponer de servicio real |
 | **Halftone** | ➖ | ➖ | 📋 | PLANNED para D3 Advanced |
-| **Remove semi-transparency** | ➖ | ➖ | 🟡 | D3 Easy: listado en UI, sin procesamiento |
-| **Color correction** | ➖ | ➖ | 📋 | PLANNED |
+| **Remove semi-transparency** | ➖ | ➖ | 🚫 | D3 Easy: no hay procesamiento real |
+| **Color correction** | ➖ | ➖ | 🟡 | D3 Easy: Worker aplica contraste 110% al archivo subido |
 | **Advanced image editing** | ➖ | ➖ | 📋 | D3 Advanced — UNKNOWN |
 | **AI generate (text to image)** | ➖ | ➖ | 📋 | Botón "IA Generar" en D2 sidebar sin backend |
 
-BLOCK 11 añade un procesador compartido de filtros en Web Worker. La capacidad aún no se marca como integrada en ningún designer: sus flujos y resultados visuales no consumen la API.
+BLOCK 11 añade un procesador compartido de filtros en Web Worker. D3 Easy consume actualmente el filtro de contraste para archivos subidos; el resto de filtros y perfiles siguen sin integrar.
 
 ---
 
@@ -101,9 +101,9 @@ BLOCK 11 añade un procesador compartido de filtros en Web Worker. La capacidad 
 
 | Capacidad | D1 | D2 | D3 | Notas |
 |---|:---:|:---:|:---:|:---:|
-| **Save design** | ❓ | 🟡 | 🟡 | D2: botón "Guardar" sin persistencia real |
-| **Download design** | ❓ | 🟡 | 🟡 | D2: botón "Descargar" sin implementación; D3: botón sin backend |
-| **Export for production** | ❓ | 📋 | 📋 | PLANNED |
+| **Save design** | ❓ | 🟡 | 🚫 | D2: sin persistencia; D3 Easy: control disabled |
+| **Download design** | ❓ | 🟡 | 🚫 | D2: botón "Descargar" sin implementación; D3 Easy: control disabled |
+| **Export for production** | ❓ | 📋 | 🚫 | D3 Easy: disabled hasta disponer de salida/perfil de producción |
 | **Print preflight** | ❓ | 📋 | 📋 | PLANNED (C++) |
 
 ---

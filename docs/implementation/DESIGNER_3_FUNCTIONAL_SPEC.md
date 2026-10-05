@@ -20,13 +20,15 @@ Consultar [CURRENT_EDITOR_INVENTORY.md](../architecture/CURRENT_EDITOR_INVENTORY
 | Selección de preset DTF, serigrafía, vinilo o sublimación | `IMPLEMENTED` como selección visible |
 | Mostrar/ocultar comparación | `IMPLEMENTED` |
 | Navegación hacia `/designer/advanced` | `IMPLEMENTED` como navegación; destino funcional no verificado |
-| Guardar | `PARTIAL`; no hay persistencia backend verificada |
-| Eliminar fondo, mejorar contraste y exportar | `PARTIAL`; controles visibles, sin funcionalidad backend verificada |
-| Indicadores de resultado de procesamiento | `PARTIAL`; el inventario los describe como valores visuales hardcoded, no como estado real |
-| Procesador compartido de filtros raster | API Worker disponible desde BLOCK 11; no integrada en Designer 3 Easy |
-| Background removal, procesamiento conectado a Easy y exportación de alta resolución | No implementados según inventario |
+| Guardar | `BLOCKED`; control disabled mientras no exista persistencia |
+| Mejorar contraste | `PARTIAL`; para una imagen subida, procesa el original en el Worker con `contrast: 110` y presenta un PNG del mismo tamaño en píxeles |
+| Indicadores de procesamiento | `PARTIAL`; solo "Color mejorado" refleja la operación Worker; otros pasos no se presentan como completados |
+| Presets / "Aplicar" | `PARTIAL`; la selección es visible y la preview CSS no es procesamiento; "Aplicar" está disabled porque no hay transformaciones reales definidas por perfil |
+| Eliminar fondo | `BLOCKED`; control disabled, no se encontró servicio Python |
+| Exportar / salida de producción | `BLOCKED`; control disabled, no hay export 300 DPI ni perfil de producción |
+| Procesador compartido de filtros raster | Integrado en D3 Easy para el ajuste de contraste; los demás filtros aún no están conectados |
 
-Los filtros CSS son una vista previa. No se debe informar que se eliminó un fondo, que se procesó el archivo o que se exportó un resultado real sin verificar la operación correspondiente.
+Los filtros CSS siguen siendo una vista previa. El procesamiento de contraste usa una copia PNG y no modifica el `File` fuente. No se debe informar que se eliminó un fondo, se aplicó un perfil de impresión o se exportó un resultado de producción.
 
 ## 3. Designer 3 Advanced — estado observado
 
@@ -42,9 +44,10 @@ No se deben derivar requisitos para Advanced a partir de la interfaz Easy, Desig
 
 1. Inspeccionar el layout compartido y verificar sus interacciones antes de atribuir capacidades específicas a Advanced.
 2. Confirmar en código los controles y estados de Easy antes de cualquier cambio en su comportamiento.
-3. Definir, con aprobación, los resultados esperados de guardar, exportar, eliminar fondo y mejorar contraste antes de conectar servicios.
-4. Mantener explícito que la preview CSS no está conectada a la API Worker y no es evidencia de procesamiento real en Easy.
-5. Actualizar este documento y la matriz con evidencia real antes de BLOCK 14 o BLOCK 15, según corresponda.
+3. Definir transformaciones reales para cada perfil antes de habilitar "Aplicar".
+4. Conectar un servicio real antes de habilitar eliminación de fondo y un motor de producción antes de habilitar export.
+5. Mantener explícito que la preview CSS no es procesamiento real; solo el ajuste de contraste consume actualmente la API Worker.
+6. Actualizar este documento y la matriz con evidencia real antes de continuar BLOCK 14 o BLOCK 15.
 
 Estos pendientes no introducen decisiones de producto; preservan como `UNKNOWN` aquello no comprobado.
 
