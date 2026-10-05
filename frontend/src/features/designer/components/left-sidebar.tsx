@@ -19,6 +19,7 @@ import { ScrollArea } from '@/shared/ui/scroll-area';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/shared/ui/tooltip';
 import { getDesignResources } from '../services';
 import { DESIGN_DRAG_MIME_TYPE, type DesignDragPayload, type DesignResource } from '@/types/design-resource';
+import { LazyGalleryImage } from './lazy-gallery-image';
 
 const designResources = getDesignResources();
 
@@ -167,7 +168,7 @@ export function LeftSidebar() {
                       draggable
                       onDragStart={(event) => handleDesignDragStart(event, resource)}
                     >
-                      <img
+                      <LazyGalleryImage
                         src={resource.image}
                         alt={resource.name}
                         className="h-full w-full rounded-lg object-contain transition-transform duration-200 group-hover:scale-[1.03]"
@@ -207,7 +208,5 @@ export function LeftSidebar() {
     </TooltipProvider>
   );
 }
-
-
 
 

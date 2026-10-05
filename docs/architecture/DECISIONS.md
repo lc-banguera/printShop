@@ -430,4 +430,27 @@ Conectar únicamente "Mejorar contraste" al Worker usando el valor existente `co
 
 ---
 
+## ADR-021 — Carga diferida de miniaturas de bibliotecas de diseño
+
+**Estado**: ACCEPTED<br>
+**Fecha**: 2026-10-05
+
+### Contexto
+Las bibliotecas de diseños de D2 y del sidebar compartido renderizan miniaturas locales en listas desplazables. La descarga de imágenes fuera del viewport no necesita persistencia de documentos ni APIs de producción. La carga nativa por sí sola seguía solicitando las 28 miniaturas actuales.
+
+### Decisión
+Usar un componente compartido que asigna `src` cuando `IntersectionObserver` detecta una miniatura a 200 px del viewport; entonces inicia su carga y decodificación asíncronas. Mantener sin cambios la carga de la imagen seleccionada en el canvas y la miniatura del producto.
+
+### Consecuencias
+- Las miniaturas fuera del umbral no solicitan sus assets hasta acercarse al viewport; la carga diferida no modifica la selección, el contenido ni los modelos de documento.
+- Este subalcance no completa BLOCK 18: la fluidez de Konva con documentos grandes sigue requiriendo una carga de prueba y profiling definidos.
+- La optimización no depende de la persistencia de BLOCK 17; la validación integral con documentos restaurados sí.
+
+### Alternativas consideradas
+- Confiar solo en `loading="lazy"` (rechazado: la prueba inicial solicitó las 28 miniaturas actuales).
+- Importar otro loader o añadir infraestructura de caché (rechazado: `IntersectionObserver` nativo cubre el requisito).
+- Aplicar lazy loading a la imagen activa del canvas (rechazado: puede estar visible y es contenido principal).
+
+---
+
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*

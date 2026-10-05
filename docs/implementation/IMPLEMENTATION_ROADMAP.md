@@ -446,9 +446,11 @@
 
 **Objetivo**: Optimizar rendimiento: Web Workers, OffscreenCanvas, lazy loading de assets.
 
-**Dependencias**: BLOCK 17
+**Dependencias**: BLOCK 17 para validar el flujo integral con documentos persistidos. La carga diferida de miniaturas de bibliotecas existentes es independiente.
 
-**Estado actual**: `BLOCKED`. El Worker de filtros existe; la carga diferida y el rendimiento con documentos de múltiples elementos no cuentan todavía con una carga objetivo o evidencia de profiling.
+**Estado actual**: `PARTIAL / BLOCKED`. BLOCK 11 ya procesa imágenes en Worker. Un `IntersectionObserver` compartido difiere la asignación de `src` en miniaturas de las bibliotecas D2 y del sidebar; este subalcance no depende de BLOCK 17. La fluidez de Konva con documentos de múltiples elementos aún no cuenta con una carga objetivo ni evidencia de profiling.
+
+**Subalcance independiente completado**: diferir la descarga/decodificación de miniaturas hasta 200 px del viewport. No altera el documento, la imagen colocada ni la miniatura del producto.
 
 **Resultado esperado**:
 - El procesamiento de imágenes no bloquea el UI

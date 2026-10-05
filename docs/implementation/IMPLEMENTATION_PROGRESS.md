@@ -26,7 +26,7 @@
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
-| BLOCK 18 — Performance | BLOCKED | Depende de BLOCK 17; no se ha establecido una carga/perfil de rendimiento medible para optimizar sin conjeturas. |
+| BLOCK 18 — Performance | PARTIAL / BLOCKED | Las miniaturas de bibliotecas D2 y sidebar compartido usan lazy loading nativo sin depender de BLOCK 17. La validación de Konva con documentos de múltiples elementos sigue bloqueada por falta de carga objetivo y profiling. |
 | BLOCK 19 — Testing + Stabilization | BLOCKED | Depende de los bloques pendientes y de que los flujos de D1/D3 tengan alcance verificable. |
 
 ## Registro de BLOCK 00
@@ -247,3 +247,12 @@
 - `git diff --check`: **PASS** antes del commit.
 - Dependencias restantes: servicio real para background removal; alcance de filtros por preset; motor de producción para exportar alta resolución/300 DPI. BLOCK 14 permanece `PARTIAL / BLOCKED`.
 - Commit: `feat(designer3): process contrast adjustments in worker`. Siguiente bloque evaluado: BLOCK 15, que sigue `BLOCKED` por el alcance `UNKNOWN` de Advanced y su dependencia de BLOCK 14 completo.
+
+## Registro de subalcance independiente de BLOCK 18 — Miniaturas con carga diferida
+
+- Archivos funcionales: `frontend/src/features/designer/components/lazy-gallery-image.tsx`, `frontend/src/features/designer/pages/designer-2-workspace.tsx`, `frontend/src/features/designer/components/left-sidebar.tsx`.
+- Cambio: el componente compartido asigna `src` al acercarse a 200 px del viewport y luego usa carga eager + decodificación asíncrona. La imagen activa del canvas y la miniatura del producto no cambian. Se eligió `IntersectionObserver` porque la prueba inicial confirmó que `loading="lazy"` solo no difería las 28 imágenes actuales.
+- Dependencia: la optimización de las bibliotecas no requiere BLOCK 17 ni inventa persistencia, documentos o APIs. BLOCK 18 completo sigue necesitando carga objetivo y profiling para render de Konva con documentos grandes.
+- Validación: `npm run build --prefix frontend` **PASS**; ESLint focalizado **PASS**; `problems` sin errores. Navegador a 375×800: 18 de 28 miniaturas tenían `src` antes del scroll y las 28 después; sin overflow horizontal (360 px de contenido para 360 px disponibles). En el viewport inicial de 768 px: 27 de 28 antes del scroll y 28 después. `git diff --check`: **PASS** antes del commit.
+- Estado: BLOCK 18 permanece `PARTIAL / BLOCKED`.
+- Commit: `perf(designer): lazy-load design library thumbnails`.

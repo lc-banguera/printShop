@@ -38,6 +38,7 @@ import {
 } from '../services/design-resources';
 import type { DesignResource } from '@/types/design-resource';
 import { ProductViewer } from '../components/product-viewer';
+import { LazyGalleryImage } from '../components/lazy-gallery-image';
 import { useViewerStore } from '@/store/viewer-store';
 import { useCanvasStore } from '@/store/canvas-store';
 import { getDesigner2ProductModel } from '../data/designer-2-product-models';
@@ -644,7 +645,11 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                       className="group relative aspect-square overflow-hidden rounded-control border border-border bg-surfaceMuted p-1.5 transition-colors hover:border-primary focus-visible:outline-none"
                       title={`Colocar ${resource.name}`}
                     >
-                      <img src={resource.image} alt={resource.name} className="h-full w-full object-contain" />
+                      <LazyGalleryImage
+                        src={resource.image}
+                        alt={resource.name}
+                        className="h-full w-full object-contain"
+                      />
                       <span className="absolute inset-x-1 bottom-1 truncate rounded bg-surface/90 px-1 py-0.5 text-[9px] text-foregroundMuted opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
                         {resource.name}
                       </span>
