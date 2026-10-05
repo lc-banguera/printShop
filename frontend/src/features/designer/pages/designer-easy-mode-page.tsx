@@ -599,10 +599,23 @@ export function DesignerEasyModePage() {
   // La referencia usa un lienzo vertical deliberadamente dominante. Su alto se
   // conserva proporcional al documento y el área de trabajo recorta solo su
   // vista, sin deformar el contenido.
-  const availWidth = Math.max(100, workspaceSize.width - 80);
+  const rulerSpace = 28;
+  const workspaceInset = Math.max(32, Math.round(workspaceSize.width * 0.034));
+  const availWidth = Math.max(100, workspaceSize.width - workspaceInset * 2 - rulerSpace);
   const ratio = safeWidthCm / safeHeightCm;
 
-  const canvasWidthPx = Math.min(Math.round(workspaceSize.width * 0.5625), availWidth);
+  // El escalado parte de la densidad visible de la regla en la referencia
+  // (≈11.47 px por cm para un documento de 58 cm) y se adapta al ancho real
+  // del workspace. Así el lienzo conserva la ocupación visual del master sin
+  // depender de un porcentaje fijo del contenedor.
+  const referenceWorkspaceWidth = 1183;
+  const referenceRulerDensity = 11.47;
+  const responsiveRulerDensity =
+    referenceRulerDensity * (workspaceSize.width / referenceWorkspaceWidth);
+  const canvasWidthPx = Math.min(
+    availWidth,
+    Math.round(safeWidthCm * responsiveRulerDensity),
+  );
   const canvasHeightPx = Math.round(canvasWidthPx / ratio);
 
   const canvasStyle = {
@@ -625,9 +638,9 @@ export function DesignerEasyModePage() {
       {/* ══════════════════════════════════════════════════════════
           HEADER — réplica exacta 1:1 de designer_easy.png
       ══════════════════════════════════════════════════════════ */}
-      <header className="z-20 flex h-20 min-h-20 shrink-0 items-center justify-between border-b border-[#e2e8f0] bg-white px-8">
+      <header className="z-20 flex h-20 min-h-20 shrink-0 items-center border-b border-[#e2e8f0] bg-white px-[clamp(16px,1.9vw,32px)]">
         {/* Izquierda: logo + menú */}
-        <div className="flex shrink-0 items-center gap-[76px]">
+        <div className="flex min-w-0 items-center gap-[clamp(26px,4.55vw,76px)]">
           <Link
             to="/designer/easy"
             aria-label="PrintShop, modo básico"
@@ -643,7 +656,7 @@ export function DesignerEasyModePage() {
 
           <nav
             aria-label="Menú del editor"
-            className="hidden items-center gap-8 text-[15px] font-medium text-[#475569] md:flex"
+            className="hidden items-center gap-[clamp(18px,1.9vw,32px)] text-[clamp(13px,0.9vw,15px)] font-medium text-[#475569] lg:flex"
           >
             <button type="button" className="transition-colors hover:text-[#0f172a]">
               Archivo
@@ -658,8 +671,8 @@ export function DesignerEasyModePage() {
         </div>
 
         {/* Centro: selector de técnica estampado DTF */}
-        <div className="flex shrink-0 items-center justify-center">
-          <label className="flex h-14 w-[275px] cursor-pointer items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white px-5 shadow-xs">
+        <div className="ml-[clamp(52px,7.95vw,133px)] flex shrink-0 items-center justify-center">
+          <label className="flex h-[clamp(44px,3.35vw,56px)] w-[clamp(220px,16.45vw,275px)] cursor-pointer items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white px-4 shadow-xs">
             <Shirt className="h-6 w-6 shrink-0 text-[#4f46e5]" strokeWidth={2} />
             <span className="min-w-0 flex-1">
               <span className="block text-[10px] font-medium leading-none text-[#94a3b8] mb-0.5">
@@ -679,7 +692,7 @@ export function DesignerEasyModePage() {
         </div>
 
         {/* Derecha: controles de exportación y herramientas */}
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="ml-auto flex min-w-0 items-center justify-end gap-[clamp(4px,0.7vw,12px)]">
           {/* Undo / Redo */}
           <div className="flex items-center gap-0.5">
             <button
@@ -701,7 +714,7 @@ export function DesignerEasyModePage() {
           </div>
 
           {/* Zoom pill */}
-          <div className="flex h-11 items-center gap-1.5 rounded-2xl border border-[#e2e8f0] bg-white px-4 text-[15px] font-medium text-[#334155] shadow-xs">
+          <div className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs">
             <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
             <span>100%</span>
             <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
@@ -712,7 +725,7 @@ export function DesignerEasyModePage() {
             type="button"
             aria-label="Herramienta mano"
             title="Herramienta mano"
-            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs hover:bg-[#f8fafc] transition-colors"
+            className="flex h-[clamp(36px,2.63vw,44px)] w-[clamp(36px,2.63vw,44px)] shrink-0 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs hover:bg-[#f8fafc] transition-colors"
           >
             <Hand className="h-4 w-4" />
           </button>
@@ -720,7 +733,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PNG */}
           <button
             type="button"
-            className="flex h-12 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-[#f1f3f6] px-5 text-[15px] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
+            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#f1f3f6] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
           >
             Descargar PNG
           </button>
@@ -728,7 +741,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PDF */}
           <button
             type="button"
-            className="flex h-12 items-center justify-center rounded-2xl bg-[#4f46e5] px-5 text-[15px] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
+            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-xl bg-[#4f46e5] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
           >
             Descargar PDF
           </button>
@@ -747,11 +760,16 @@ export function DesignerEasyModePage() {
       {/* ══════════════════════════════════════════════════════════
           CUERPO PRINCIPAL — Toolbar + Panel + Workspace
       ══════════════════════════════════════════════════════════ */}
-      <div className="flex min-h-0 flex-1 overflow-hidden">
+      <div
+        className="grid min-h-0 flex-1 overflow-hidden"
+        style={{
+          gridTemplateColumns: 'clamp(68px, 6.46vw, 108px) clamp(304px, 22.85vw, 382px) minmax(0, 1fr)',
+        }}
+      >
         {/* ─── SIDEBAR TOOLBAR ─── 76px de ancho como en la referencia */}
         <nav
           aria-label="Herramientas de Modo Básico"
-          className="flex w-[108px] min-w-[108px] shrink-0 flex-col items-center gap-2 border-r border-[#e2e8f0] bg-white py-4 overflow-y-auto"
+          className="flex min-w-0 flex-col items-center gap-[clamp(6px,0.48vw,8px)] overflow-y-auto border-r border-[#e2e8f0] bg-white py-[clamp(10px,0.95vw,16px)]"
         >
           {sidebarTools.map((tool) => {
             const Icon = tool.icon;
@@ -762,7 +780,7 @@ export function DesignerEasyModePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   style={{ backgroundColor: '#eff2fe' }}
-                  className="flex h-[85px] w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-2xl text-[#4f46e5] transition-colors"
+                  className="mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 rounded-xl text-[#4f46e5] transition-colors"
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.8} />
                   <span className="text-[11px] font-semibold">{tool.label}</span>
@@ -774,7 +792,7 @@ export function DesignerEasyModePage() {
               <button
                 key={tool.id}
                 type="button"
-                className="flex h-[85px] w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl text-[#64748b] hover:text-[#0f172a] transition-colors"
+                className="mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 rounded-lg text-[#64748b] hover:text-[#0f172a] transition-colors"
               >
                 <Icon className="h-5 w-5" strokeWidth={1.6} />
                 <span className="text-[11px] font-medium">{tool.label}</span>
@@ -784,7 +802,7 @@ export function DesignerEasyModePage() {
         </nav>
 
         {/* ─── PANEL LATERAL DE CONFIGURACIÓN ─── */}
-        <aside className="flex w-[382px] min-w-[382px] shrink-0 flex-col border-r border-[#e2e8f0] bg-white overflow-y-auto px-6 py-3">
+        <aside className="flex min-w-0 flex-col overflow-y-auto border-r border-[#e2e8f0] bg-white px-[clamp(18px,1.43vw,24px)] py-3">
           {/* 1. AGREGAR IMAGEN */}
           <section>
             <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
