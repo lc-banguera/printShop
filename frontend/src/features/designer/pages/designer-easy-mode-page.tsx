@@ -238,9 +238,13 @@ export function DesignerEasyModePage() {
     if (file) loadFile(file);
   };
 
-  const canvasStyle = {
+  const canvasAspectRatio = Math.max(0.01, widthCm / Math.max(0.1, heightCm));
+  const canvasFrameStyle = {
     aspectRatio: `${Math.max(1, widthCm)} / ${Math.max(1, heightCm)}`,
-    width: '100%',
+    width: `min(100%, calc((100vh - 128px) * ${canvasAspectRatio}))`,
+    maxHeight: 'calc(100vh - 128px)',
+  };
+  const canvasStyle = {
     backgroundColor: getCanvasColor(canvasSettings),
     backgroundImage:
       canvasSettings.background === 'transparent'
@@ -251,28 +255,28 @@ export function DesignerEasyModePage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col overflow-hidden bg-[#f3f4f6] font-sans text-[#171923]">
-      <header className="z-20 flex min-h-20 flex-wrap items-center gap-x-7 gap-y-2 border-b border-[#e7e8ec] bg-white px-4 py-2 lg:h-20 lg:flex-nowrap lg:px-8">
-        <Link to="/designer/easy" aria-label="PrintShop, modo básico" className="flex shrink-0 items-center gap-3">
-          <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-[#5848f4] text-xl font-semibold text-white shadow-sm">P</span>
-          <span className="text-[20px] font-semibold tracking-[-0.04em] text-[#151720]">PrintShop</span>
+    <div className="flex h-screen max-h-screen w-screen max-w-[100vw] flex-col overflow-hidden bg-[#f3f4f6] font-sans text-[#171923]">
+      <header className="z-20 flex h-16 min-h-16 shrink-0 flex-nowrap items-center gap-3 overflow-x-auto border-b border-[#e7e8ec] bg-white px-4 py-2">
+        <Link to="/designer/easy" aria-label="PrintShop, modo básico" className="flex shrink-0 items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#5848f4] text-lg font-semibold text-white shadow-sm">P</span>
+          <span className="text-[18px] font-semibold tracking-[-0.04em] text-[#151720]">PrintShop</span>
         </Link>
 
-        <nav aria-label="Menú del editor" className="hidden items-center gap-7 text-sm font-medium text-[#596070] md:flex">
+        <nav aria-label="Menú del editor" className="hidden shrink-0 items-center gap-4 text-sm font-medium text-[#596070] md:flex">
           <span>Archivo</span>
           <span>Editar</span>
           <span>Ver</span>
         </nav>
 
-        <label className="relative order-3 flex h-[56px] min-w-[225px] flex-1 items-center gap-3 rounded-[17px] border border-[#e1e3e9] bg-white px-4 shadow-[0_1px_3px_rgba(20,24,40,0.05)] md:order-none md:ml-auto md:max-w-[276px]">
-          <Shirt className="h-6 w-6 shrink-0 text-[#5146f5]" strokeWidth={2} />
+        <label className="relative mx-auto flex h-11 w-[210px] shrink-0 items-center gap-2 rounded-[12px] border border-[#e1e3e9] bg-white px-3">
+          <Shirt className="h-5 w-5 shrink-0 text-[#5146f5]" strokeWidth={2} />
           <span className="min-w-0 flex-1">
-            <span className="block text-[10px] leading-4 text-[#9298a5]">Técnica de estampado</span>
+            <span className="block whitespace-nowrap text-[10px] leading-3 text-[#9298a5]">Técnica de estampado</span>
             <select
               aria-label="Técnica de estampado"
               value={technique}
               onChange={(event) => setTechnique(event.target.value)}
-              className="w-full appearance-none bg-transparent text-sm font-semibold leading-5 text-[#171923] outline-none"
+              className="w-full appearance-none bg-transparent text-sm font-semibold leading-4 text-[#171923] outline-none"
             >
               <option value="dtf">DTF</option>
             </select>
@@ -280,29 +284,29 @@ export function DesignerEasyModePage() {
           <ChevronDown className="h-4 w-4 shrink-0 text-[#171923]" />
         </label>
 
-        <div className="order-4 flex items-center gap-1 md:order-none md:ml-6">
-          <button type="button" disabled aria-label="Deshacer no disponible" title="Deshacer no está disponible en Modo Básico." className="rounded-lg p-2 text-[#aeb2bd] disabled:cursor-not-allowed">
+        <div className="flex shrink-0 items-center gap-1">
+          <button type="button" disabled aria-label="Deshacer no disponible" title="Deshacer no está disponible en Modo Básico." className="rounded-lg p-1.5 text-[#aeb2bd] disabled:cursor-not-allowed">
             <Undo2 className="h-5 w-5" />
           </button>
-          <button type="button" disabled aria-label="Rehacer no disponible" title="Rehacer no está disponible en Modo Básico." className="rounded-lg p-2 text-[#aeb2bd] disabled:cursor-not-allowed">
+          <button type="button" disabled aria-label="Rehacer no disponible" title="Rehacer no está disponible en Modo Básico." className="rounded-lg p-1.5 text-[#aeb2bd] disabled:cursor-not-allowed">
             <Redo2 className="h-5 w-5" />
           </button>
-          <button type="button" disabled aria-label="Zoom al 100%" className="ml-3 flex h-10 items-center gap-2 rounded-full border border-[#e7e8ed] px-3 text-sm font-medium text-[#626977] opacity-70">
+          <button type="button" disabled aria-label="Zoom al 100%" className="ml-1 flex h-9 items-center gap-2 rounded-full border border-[#e7e8ed] px-3 text-sm font-medium text-[#626977] opacity-70">
             <Focus className="h-4 w-4" />
             100%
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
-          <button type="button" disabled aria-label="Herramienta mano no disponible" title="La navegación de lienzo no está disponible en Modo Básico." className="ml-1 rounded-full border border-[#e7e8ed] p-2.5 text-[#aeb2bd] disabled:cursor-not-allowed">
+          <button type="button" disabled aria-label="Herramienta mano no disponible" title="La navegación de lienzo no está disponible en Modo Básico." className="rounded-full border border-[#e7e8ed] p-2 text-[#aeb2bd] disabled:cursor-not-allowed">
             <Hand className="h-5 w-5" />
           </button>
         </div>
 
-        <div className="order-5 ml-auto flex items-center gap-2 md:order-none md:ml-7">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <button
             type="button"
             disabled
             title="La exportación todavía no está disponible."
-            className="flex h-11 items-center gap-2 rounded-[16px] border border-[#e7e8ed] bg-[#fafbfc] px-4 text-sm font-semibold text-[#171923] opacity-50 disabled:cursor-not-allowed"
+            className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[12px] border border-[#e7e8ed] bg-[#fafbfc] px-3 text-sm font-semibold text-[#171923] opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="h-4 w-4" />
             Descargar PNG
@@ -311,7 +315,7 @@ export function DesignerEasyModePage() {
             type="button"
             disabled
             title="La exportación todavía no está disponible."
-            className="flex h-11 items-center gap-2 rounded-[16px] bg-[#5848f4] px-4 text-sm font-semibold text-white opacity-50 disabled:cursor-not-allowed"
+            className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[12px] bg-[#5848f4] px-3 text-sm font-semibold text-white opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="h-4 w-4" />
             Descargar PDF
@@ -322,9 +326,9 @@ export function DesignerEasyModePage() {
         </div>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[72px_minmax(0,1fr)] lg:grid-cols-[108px_380px_minmax(0,1fr)]">
-        <nav aria-label="Herramientas de Modo Básico" className="col-span-2 col-start-1 row-start-2 flex flex-row items-center gap-2 overflow-x-auto border-b border-[#e7e8ec] bg-white px-3 py-2 lg:col-span-1 lg:row-span-1 lg:row-start-1 lg:flex-col lg:gap-2 lg:overflow-visible lg:border-b-0 lg:border-r lg:px-3 lg:py-4">
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="flex w-[72px] shrink-0 flex-col items-center gap-1.5 rounded-[15px] bg-[#f1f0ff] px-2 py-3 text-[#5146f5] lg:w-full">
+      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-[60px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)_minmax(160px,35vh)] lg:grid-cols-[76px_minmax(0,1fr)_320px] lg:grid-rows-1">
+        <nav aria-label="Herramientas de Modo Básico" className="col-start-1 row-span-2 row-start-1 flex min-h-0 flex-col items-center gap-2 overflow-y-auto border-r border-[#e7e8ec] bg-white px-1.5 py-3 lg:px-2">
+          <button type="button" onClick={() => fileInputRef.current?.click()} className="flex w-full shrink-0 flex-col items-center gap-1 rounded-[11px] bg-[#f1f0ff] px-1 py-2 text-[#5146f5]">
             <CloudUpload className="h-6 w-6" strokeWidth={2} />
             <span className="text-[11px] font-medium">Archivo</span>
           </button>
@@ -334,7 +338,7 @@ export function DesignerEasyModePage() {
               type="button"
               disabled
               title={`${label} no está disponible en Modo Básico.`}
-              className="flex w-[72px] shrink-0 flex-col items-center gap-1.5 rounded-[15px] px-2 py-3 text-[#586071] opacity-80 disabled:cursor-not-allowed lg:w-full"
+              className="flex w-full shrink-0 flex-col items-center gap-1 rounded-[11px] px-1 py-2 text-[#586071] opacity-80 disabled:cursor-not-allowed"
             >
               <Icon className="h-6 w-6" strokeWidth={1.8} />
               <span className="text-[11px] font-medium">{label}</span>
@@ -342,7 +346,7 @@ export function DesignerEasyModePage() {
           ))}
         </nav>
 
-        <aside className="col-span-2 col-start-1 row-start-3 overflow-y-auto border-b border-[#e7e8ec] bg-white px-5 py-5 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-h-[calc(100vh-80px)] lg:border-b-0 lg:border-r lg:px-6 lg:py-6">
+        <aside className="col-start-2 row-start-2 min-h-0 min-w-0 overflow-y-auto border-t border-[#e7e8ec] bg-white px-4 py-3 lg:col-start-3 lg:row-start-1 lg:border-l lg:border-t-0">
           <section>
             <h1 className="mb-4 text-[19px] font-semibold tracking-[-0.03em] text-[#171923]">Agregar imagen</h1>
             <div
@@ -486,16 +490,16 @@ export function DesignerEasyModePage() {
 
         </aside>
 
-        <main aria-label="Área de trabajo del lienzo" className="col-span-2 col-start-1 row-start-4 flex min-h-[560px] min-w-0 flex-col overflow-hidden bg-[#f3f4f6] lg:col-span-1 lg:col-start-3 lg:row-start-1 lg:min-h-0">
-          <div className="relative flex min-h-0 flex-1 items-start justify-center overflow-auto px-6 pb-8 pt-[76px] sm:px-10 lg:px-12">
-            <div className="relative w-[min(100%,56.25vw,667px)] shrink-0">
-              <div className="absolute -top-9 left-0 flex w-full justify-between text-[11px] text-[#727988]">
+        <main aria-label="Área de trabajo del lienzo" className="col-start-2 row-start-1 flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#f3f4f6]">
+          <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden px-10 py-8 sm:px-12">
+            <div className="relative flex shrink-0 items-center justify-center" style={canvasFrameStyle}>
+              <div className="absolute -top-7 left-0 flex w-full justify-between text-[11px] text-[#727988]">
               <span>cm</span>
               {rulerWidthMarks.map((mark) => <span key={mark}>{mark}</span>)}
               </div>
               <div
                 aria-hidden="true"
-                className="absolute -top-5 left-0 h-3 w-full border-b border-[#b8bdc7]"
+                className="absolute -top-4 left-0 h-2 w-full border-b border-[#b8bdc7]"
                 style={{
                   backgroundImage: 'repeating-linear-gradient(90deg, #858c99 0 1px, transparent 1px 12px)',
                   backgroundPosition: '0 bottom',
@@ -504,12 +508,12 @@ export function DesignerEasyModePage() {
                 }}
               />
 
-              <div className="absolute -left-9 top-0 flex h-full flex-col items-end justify-between pr-2 text-[11px] text-[#727988]">
+              <div className="absolute -left-7 top-0 flex h-full flex-col items-end justify-between pr-1 text-[11px] text-[#727988]">
                 {rulerHeightMarks.map((mark) => <span key={mark}>{mark}</span>)}
               </div>
               <div
                 aria-hidden="true"
-                className="absolute -left-5 top-0 h-full w-3 border-r border-[#b8bdc7]"
+                className="absolute -left-4 top-0 h-full w-2 border-r border-[#b8bdc7]"
                 style={{
                   backgroundImage: 'repeating-linear-gradient(180deg, #858c99 0 1px, transparent 1px 12px)',
                   backgroundPosition: 'right top',
@@ -521,7 +525,7 @@ export function DesignerEasyModePage() {
               <div
                 role="img"
                 aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
-                className="relative z-10 flex w-full items-center justify-center overflow-hidden bg-white shadow-[0_3px_12px_rgba(26,30,43,0.12)]"
+                className="relative z-10 flex h-full w-full items-center justify-center overflow-hidden bg-white shadow-[0_3px_12px_rgba(26,30,43,0.12)]"
                 style={canvasStyle}
               >
                 {selectedImage && (
@@ -535,7 +539,7 @@ export function DesignerEasyModePage() {
               </div>
             </div>
 
-            <div className="fixed right-5 top-[116px] z-10 flex flex-col items-center gap-1 rounded-[17px] bg-white p-2 shadow-[0_5px_18px_rgba(25,30,44,0.12)]">
+            <div className="absolute right-3 top-3 z-10 flex flex-col items-center gap-1 rounded-[13px] bg-white p-1.5 shadow-[0_5px_18px_rgba(25,30,44,0.12)]">
               <button type="button" disabled aria-label="Ajustar lienzo a pantalla no disponible" title="Ajuste de viewport no disponible en Modo Básico." className="rounded-lg p-2.5 text-[#737a89] opacity-60 disabled:cursor-not-allowed">
                 <Focus className="h-5 w-5" />
               </button>
@@ -556,7 +560,7 @@ export function DesignerEasyModePage() {
               disabled
               aria-label="Descargar resultado"
               title="La exportación de producción todavía no está disponible."
-              className="fixed bottom-5 right-5 z-10 flex h-10 items-center gap-2 rounded-[13px] border border-[#e0e3e9] bg-white px-3 text-xs font-semibold text-[#707786] opacity-60 disabled:cursor-not-allowed"
+              className="absolute bottom-3 right-3 z-10 flex h-9 items-center gap-2 rounded-[11px] border border-[#e0e3e9] bg-white px-3 text-xs font-semibold text-[#707786] opacity-60 disabled:cursor-not-allowed"
             >
               <Download className="h-4 w-4" />
               Exportar
