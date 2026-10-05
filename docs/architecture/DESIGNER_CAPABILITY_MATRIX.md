@@ -108,17 +108,17 @@
 
 ## Notas sobre D1 (Designer 1 / Personalizer)
 
-**Estado**: UNKNOWN
+**Estado**: UNKNOWN (capacidades); la ruta está conectada a un layout compartido.
 
-El `DesignerHubPage` define el D1 con ruta `/designer/personalize`. Sin embargo, durante la inspección de código **no se encontró un componente `DesignerPersonalizePage` o equivalente**. Los componentes de la carpeta `designer/pages/` son:
+El router en `App.tsx` conecta `/designer/personalize` con `DesignerLayout`, también usado por `/designer/advanced`. Esto confirma un destino de UI, pero no demuestra que las capacidades implementen el propósito de Personalizer. Los componentes dedicados en `designer/pages/` son:
 
 - `designer-hub-page.tsx` — Hub selector
 - `designer-builder-page.tsx` + `designer-2-workspace.tsx` — Designer 2
 - `designer-easy-mode-page.tsx` — Designer 3 Easy
-- (sin componente para `/designer/personalize`)
-- (sin componente para `/designer/advanced`)
+- No se encontró una página dedicada de Personalizer.
+- No se encontró una página dedicada de Advanced.
 
-La matriz marca `D1` como `❓` en todas las capacidades hasta que se verifique o implemente el componente.
+La matriz conserva `D1` como `❓` en todas las capacidades hasta que se verifique su comportamiento específico. Las capacidades de Advanced también permanecen `UNKNOWN` donde no hay evidencia.
 
 ---
 

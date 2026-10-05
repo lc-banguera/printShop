@@ -319,6 +319,12 @@ Autosave de borradores, cache de assets, estado del documento.
 #### Backend (Spring Boot + PostgreSQL + Object Storage) — PLANNED
 APIs de diseño: crear, guardar, cargar documentos. Assets binarios → Object Storage.
 
+### 6.12 Asset Registry
+
+BLOCK 10 añade `AssetManager` en `core/design/assets` para registrar descriptores inmutables (`id`, `name`, `url`, `origin`, `category`) en memoria. La biblioteca local de Vite y los uploads temporales de Designer 2/Designer 3 Easy pasan por el manager; la interfaz legacy `DesignResource` se conserva como adaptador.
+
+El índice en memoria no cachea los bytes del asset. Los uploads usan object URLs que se revocan al liberar el recurso; IndexedDB, persistencia de drafts y almacenamiento binario remoto siguen `PLANNED`.
+
 ---
 
 ## 7. Rutas de los Designers (Estado Real)
@@ -328,9 +334,9 @@ APIs de diseño: crear, guardar, cargar documentos. Assets binarios → Object S
 | `/designer` | `DesignerHubPage` | Hub | IMPLEMENTED |
 | `/designer/new` | `DesignerBuilderPage` | D2 (selección) | IMPLEMENTED |
 | `/designer/new?product=camisetas` | `Designer2Workspace` | D2 (workspace) | IMPLEMENTED |
-| `/designer/personalize` | UNKNOWN — componente no encontrado | D1 | UNKNOWN |
+| `/designer/personalize` | `DesignerLayout` | D1 | UI presente; flujo/capacidades específicas UNKNOWN |
 | `/designer/easy` | `DesignerEasyModePage` | D3 Easy | IMPLEMENTED |
-| `/designer/advanced` | UNKNOWN — componente no encontrado | D3 Advanced | UNKNOWN |
+| `/designer/advanced` | `DesignerLayout` | D3 Advanced | UI presente; capacidades específicas UNKNOWN |
 
 ---
 

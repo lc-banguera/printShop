@@ -2,7 +2,7 @@
 
 **Versión:** 0.1.0-draft  
 **Última actualización:** 2026-10-05  
-**Estado de evidencia:** `UNKNOWN` — no se verificó un componente funcional de Personalizer.
+**Estado de evidencia:** `UNKNOWN` para capacidades D1; el router resuelve la ruta a un layout compartido, sin evidencia suficiente de que implemente el flujo Personalizer.
 
 ## 1. Propósito documentado
 
@@ -12,7 +12,7 @@ Designer 1, también llamado **Personalizer**, se describe en la arquitectura co
 
 | Elemento | Evidencia disponible | Estado |
 |---|---|---|
-| Ruta `/designer/personalize` | El Hub y la documentación de arquitectura la mencionan. El componente destino no fue localizado durante la inspección registrada. | `UNKNOWN` |
+| Ruta `/designer/personalize` | `App.tsx` la conecta con `DesignerLayout`, también usado por `/designer/advanced`; el layout no confirma por sí mismo un flujo D1. | `UNKNOWN` en cuanto a comportamiento D1 |
 | Pantalla / workspace | No hay componente confirmado en el inventario actual. | `UNKNOWN` |
 | Catálogo o producto de entrada | No verificado para esta experiencia. | `UNKNOWN` |
 | Herramientas, capas y selección | No verificado para esta experiencia. | `UNKNOWN` |
@@ -30,11 +30,10 @@ Consultar [CURRENT_EDITOR_INVENTORY.md](../architecture/CURRENT_EDITOR_INVENTORY
 
 ## 4. Pendientes de verificación antes de implementar D1
 
-1. Inspeccionar el router real y confirmar el destino y resultado de `/designer/personalize`.
-2. Confirmar si existe una implementación del Personalizer en otra ubicación y actualizar el inventario con evidencia.
-3. Si no existe implementación, obtener definición funcional aprobada para el producto inicial, el flujo de personalización, las operaciones disponibles y el resultado esperado.
-4. Confirmar contratos de entrada/salida y persistencia con sus propietarios antes de especificar integración.
-5. Actualizar esta especificación y la matriz de capacidades antes de iniciar BLOCK 13.
+1. Inspeccionar `DesignerLayout` y verificar si sus interacciones corresponden al propósito D1.
+2. Obtener definición funcional aprobada para el producto inicial, el flujo de personalización, las operaciones disponibles y el resultado esperado si el layout actual no lo cubre.
+3. Confirmar contratos de entrada/salida y persistencia con sus propietarios antes de especificar integración.
+4. Actualizar esta especificación y la matriz de capacidades antes de iniciar BLOCK 13.
 
 Estos puntos son `UNKNOWN`/pendientes y no son decisiones propuestas sobre el producto.
 

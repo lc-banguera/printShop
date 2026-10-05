@@ -158,22 +158,17 @@
 
 ---
 
-## 3. DESIGNER 3 ADVANCED — Estado: UNKNOWN
+## 3. DESIGNER 3 ADVANCED — Estado: PARTIAL (pantalla; capacidades UNKNOWN)
 
 ### 3.1 Entry Point
 
 | Ruta | Componente | Estado |
 |---|---|---|
-| `/designer/advanced` | DESCONOCIDO | ❓ UNKNOWN |
+| `/designer/advanced` | `DesignerLayout` | ✅ IMPLEMENTED (UI) |
 
-El `DesignerHubPage` define la ruta `/designer/advanced`. Sin embargo, **no se encontró un componente correspondiente** en `designer/pages/` durante la inspección.
+El router (`App.tsx`) conecta `/designer/advanced` con `DesignerLayout`, que compone `DesignerHeader`, `LeftSidebar`, `CanvasArea`, `RightSidebar` y `BottomPanel`. La ruta cargó en navegador; el viewer 3D se montó. Esto verifica que existe una pantalla, pero no determina que todas las capacidades de D3 Advanced estén implementadas ni define su alcance.
 
-**Posibilidades**:
-- El componente existe en otra ubicación no inspeccionada
-- La ruta redirige a un 404
-- El componente está en un directorio compartido
-
-**Acción requerida**: verificar las rutas registradas en el router antes de implementar.
+**Acción requerida**: inspeccionar y documentar las interacciones reales de `DesignerLayout` antes de atribuir capacidades a D3 Advanced. No inferir comportamiento desde D2 Easy o D2 Builder.
 
 ---
 
@@ -183,11 +178,11 @@ El `DesignerHubPage` define la ruta `/designer/advanced`. Sin embargo, **no se e
 
 | Ruta | Componente | Estado |
 |---|---|---|
-| `/designer/personalize` | DESCONOCIDO | ❓ UNKNOWN |
+| `/designer/personalize` | `DesignerLayout` | 🟡 La ruta y el layout existen; propósito/capacidades D1 siguen UNKNOWN |
 
-El `DesignerHubPage` define la ruta `/designer/personalize`. No se encontró componente correspondiente en inspección.
+El router (`App.tsx`) conecta `/designer/personalize` con el mismo `DesignerLayout` usado por `/designer/advanced`. La presencia del layout no confirma un flujo D1 de personalización de producto.
 
-**Acción requerida**: verificar las rutas registradas en el router antes de implementar Designer 1.
+**Acción requerida**: definir y verificar el comportamiento específico de D1 antes de atribuir capabilities o iniciar su integración.
 
 ---
 
