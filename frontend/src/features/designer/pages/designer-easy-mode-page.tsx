@@ -5,7 +5,6 @@ import {
   ChevronUp,
   CloudUpload,
   Crosshair,
-  Eye,
   Grid2X2,
   Hand,
   Layers,
@@ -17,7 +16,6 @@ import {
   RotateCcw,
   Shapes,
   Shirt,
-  Sparkles,
   Type,
   Undo2,
   Upload,
@@ -28,6 +26,7 @@ import {
 import { Link, useLocation } from 'react-router-dom';
 
 import { processArtworkImage } from '@/core/design/processing';
+import { removeBackgroundLocal } from '@/features/store/designer/imageProcessor';
 import { registerUploadedDesign, releaseUploadedDesign } from '../services/design-resources';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -314,11 +313,21 @@ interface SteppedInputProps {
   min?: string;
   max?: string;
   step?: string;
+  className?: string;
   onChange: (value: string) => void;
   onStep: (direction: 1 | -1) => void;
 }
 
-function SteppedInput({ label, value, min, max, step, onChange, onStep }: SteppedInputProps) {
+function SteppedInput({
+  label,
+  value,
+  min,
+  max,
+  step,
+  className,
+  onChange,
+  onStep,
+}: SteppedInputProps) {
   return (
     <div className="relative flex items-center">
       <input
@@ -329,26 +338,28 @@ function SteppedInput({ label, value, min, max, step, onChange, onStep }: Steppe
         step={step}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="h-10 w-full rounded-xl border border-[#e2e8f0] bg-white pl-3.5 pr-8 text-[14px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+        className={`h-9 w-full rounded-xl border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+          className ?? ''
+        }`}
       />
-      <div className="absolute right-2 flex flex-col items-center">
+      <div className="absolute right-1.5 flex flex-col items-center">
         <button
           type="button"
           tabIndex={-1}
           aria-label={`Aumentar ${label}`}
           onClick={() => onStep(1)}
-          className="flex h-3.5 w-3.5 items-center justify-center text-[#94a3b8] hover:text-[#0f172a]"
+          className="flex h-3 w-3 items-center justify-center text-[#94a3b8] hover:text-[#0f172a]"
         >
-          <ChevronUp className="h-3 w-3" strokeWidth={2.2} />
+          <ChevronUp className="h-2.5 w-2.5" strokeWidth={2.2} />
         </button>
         <button
           type="button"
           tabIndex={-1}
           aria-label={`Disminuir ${label}`}
           onClick={() => onStep(-1)}
-          className="flex h-3.5 w-3.5 items-center justify-center text-[#94a3b8] hover:text-[#0f172a]"
+          className="flex h-3 w-3 items-center justify-center text-[#94a3b8] hover:text-[#0f172a]"
         >
-          <ChevronDown className="h-3 w-3" strokeWidth={2.2} />
+          <ChevronDown className="h-2.5 w-2.5" strokeWidth={2.2} />
         </button>
       </div>
     </div>
@@ -383,6 +394,8 @@ export function DesignerEasyModePage() {
   const [showProcessedImage, setShowProcessedImage] = useState(true);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [removeSemitransparencies, setRemoveSemitransparencies] = useState(false);
+  const [historyStack, setHistoryStack] = useState<string[]>([]);
+  const [isRemovingBg, setIsRemovingBg] = useState(false);
 
   // Responsive workspace size tracking
   const [workspaceSize, setWorkspaceSize] = useState({ width: 1100, height: 850 });
@@ -441,11 +454,13 @@ export function DesignerEasyModePage() {
       replaceProcessedImage(null);
       setProcessedDimensions(null);
       setIsProcessing(false);
+      setIsRemovingBg(false);
       setProcessingError(null);
       setSourceFile(file);
       setUploadedAssetId(asset.id);
       setImageSrc(asset.image);
       setShowProcessedImage(true);
+      setHistoryStack([]);
     } catch (error) {
       setProcessingError(error instanceof Error ? error.message : 'No se pudo cargar la imagen.');
     }
@@ -455,6 +470,50 @@ export function DesignerEasyModePage() {
     const file = event.target.files?.[0];
     if (file) loadFile(file);
     event.currentTarget.value = '';
+  };
+
+  const handleRemoveBackground = async () => {
+    if (!selectedImage || isRemovingBg) return;
+    setIsRemovingBg(true);
+    setProcessingError(null);
+    try {
+      setHistoryStack((prev) => [...prev, selectedImage]);
+      const resultDataUrl = await removeBackgroundLocal(selectedImage, {
+        tolerance: 32,
+        feather: 1,
+      });
+      replaceProcessedImage(resultDataUrl);
+      setShowProcessedImage(true);
+    } catch (error) {
+      setProcessingError(
+        error instanceof Error ? error.message : 'No se pudo eliminar el fondo de la imagen.',
+      );
+    } finally {
+      setIsRemovingBg(false);
+    }
+  };
+
+  const handleUndo = () => {
+    if (historyStack.length === 0) return;
+    const previous = historyStack[historyStack.length - 1];
+    setHistoryStack((prev) => prev.slice(0, -1));
+    replaceProcessedImage(previous);
+    setShowProcessedImage(true);
+  };
+
+  const handleDuplicate = () => {
+    if (!selectedImage) return;
+    setHistoryStack((prev) => [...prev, selectedImage]);
+  };
+
+  const handleClearImage = () => {
+    if (selectedImage) {
+      setHistoryStack((prev) => [...prev, selectedImage]);
+    }
+    setImageSrc(null);
+    setSourceFile(null);
+    replaceProcessedImage(null);
+    setProcessedDimensions(null);
   };
 
   const handleImproveContrast = async () => {
@@ -537,21 +596,14 @@ export function DesignerEasyModePage() {
   };
 
   // ─── Proportional Dominant Canvas Geometry ─────────────────────────────────
-  // In designer_easy.png (viewport 1672x941):
-  // Workspace available height is ~885px.
-  // Canvas height is ~760px (leaving balanced margins top and bottom).
-  // Canvas aspect ratio is 58 / 100 = 0.58 -> width is ~440px.
-  const availHeight = Math.max(100, workspaceSize.height - 110);
+  // La referencia usa un lienzo vertical deliberadamente dominante. Su alto se
+  // conserva proporcional al documento y el área de trabajo recorta solo su
+  // vista, sin deformar el contenido.
   const availWidth = Math.max(100, workspaceSize.width - 80);
   const ratio = safeWidthCm / safeHeightCm;
 
-  let canvasHeightPx = availHeight;
-  let canvasWidthPx = Math.round(canvasHeightPx * ratio);
-
-  if (canvasWidthPx > availWidth) {
-    canvasWidthPx = availWidth;
-    canvasHeightPx = Math.round(canvasWidthPx / ratio);
-  }
+  const canvasWidthPx = Math.min(Math.round(workspaceSize.width * 0.5625), availWidth);
+  const canvasHeightPx = Math.round(canvasWidthPx / ratio);
 
   const canvasStyle = {
     backgroundColor: getCanvasColor(canvasSettings),
@@ -573,15 +625,15 @@ export function DesignerEasyModePage() {
       {/* ══════════════════════════════════════════════════════════
           HEADER — réplica exacta 1:1 de designer_easy.png
       ══════════════════════════════════════════════════════════ */}
-      <header className="z-20 flex h-14 min-h-14 shrink-0 items-center justify-between border-b border-[#e2e8f0] bg-white px-5">
+      <header className="z-20 flex h-20 min-h-20 shrink-0 items-center justify-between border-b border-[#e2e8f0] bg-white px-8">
         {/* Izquierda: logo + menú */}
-        <div className="flex shrink-0 items-center gap-8">
+        <div className="flex shrink-0 items-center gap-[76px]">
           <Link
             to="/designer/easy"
             aria-label="PrintShop, modo básico"
-            className="flex shrink-0 items-center gap-2.5"
+            className="flex shrink-0 items-center gap-4"
           >
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#4f46e5] text-[16px] font-bold text-white shadow-xs">
+            <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#4f46e5] text-[16px] font-bold text-white shadow-xs">
               P
             </span>
             <span className="text-[17px] font-bold tracking-tight text-[#0f172a]">
@@ -591,7 +643,7 @@ export function DesignerEasyModePage() {
 
           <nav
             aria-label="Menú del editor"
-            className="hidden items-center gap-7 text-[13px] font-medium text-[#475569] md:flex"
+            className="hidden items-center gap-8 text-[15px] font-medium text-[#475569] md:flex"
           >
             <button type="button" className="transition-colors hover:text-[#0f172a]">
               Archivo
@@ -607,8 +659,8 @@ export function DesignerEasyModePage() {
 
         {/* Centro: selector de técnica estampado DTF */}
         <div className="flex shrink-0 items-center justify-center">
-          <label className="flex h-11 w-[220px] cursor-pointer items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white px-4 shadow-xs">
-            <Shirt className="h-5 w-5 shrink-0 text-[#4f46e5]" strokeWidth={2} />
+          <label className="flex h-14 w-[275px] cursor-pointer items-center gap-3 rounded-2xl border border-[#e2e8f0] bg-white px-5 shadow-xs">
+            <Shirt className="h-6 w-6 shrink-0 text-[#4f46e5]" strokeWidth={2} />
             <span className="min-w-0 flex-1">
               <span className="block text-[10px] font-medium leading-none text-[#94a3b8] mb-0.5">
                 Técnica de estampado
@@ -627,7 +679,7 @@ export function DesignerEasyModePage() {
         </div>
 
         {/* Derecha: controles de exportación y herramientas */}
-        <div className="flex shrink-0 items-center gap-2.5">
+        <div className="flex shrink-0 items-center gap-3">
           {/* Undo / Redo */}
           <div className="flex items-center gap-0.5">
             <button
@@ -649,7 +701,7 @@ export function DesignerEasyModePage() {
           </div>
 
           {/* Zoom pill */}
-          <div className="flex h-9 items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-white px-3 text-[13px] font-medium text-[#334155] shadow-xs">
+          <div className="flex h-11 items-center gap-1.5 rounded-2xl border border-[#e2e8f0] bg-white px-4 text-[15px] font-medium text-[#334155] shadow-xs">
             <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
             <span>100%</span>
             <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
@@ -660,7 +712,7 @@ export function DesignerEasyModePage() {
             type="button"
             aria-label="Herramienta mano"
             title="Herramienta mano"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs hover:bg-[#f8fafc] transition-colors"
+            className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs hover:bg-[#f8fafc] transition-colors"
           >
             <Hand className="h-4 w-4" />
           </button>
@@ -668,7 +720,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PNG */}
           <button
             type="button"
-            className="flex h-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#f1f3f6] px-4 text-[13px] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
+            className="flex h-12 items-center justify-center rounded-2xl border border-[#e2e8f0] bg-[#f1f3f6] px-5 text-[15px] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
           >
             Descargar PNG
           </button>
@@ -676,7 +728,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PDF */}
           <button
             type="button"
-            className="flex h-9 items-center justify-center rounded-xl bg-[#4f46e5] px-4 text-[13px] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
+            className="flex h-12 items-center justify-center rounded-2xl bg-[#4f46e5] px-5 text-[15px] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
           >
             Descargar PDF
           </button>
@@ -699,7 +751,7 @@ export function DesignerEasyModePage() {
         {/* ─── SIDEBAR TOOLBAR ─── 76px de ancho como en la referencia */}
         <nav
           aria-label="Herramientas de Modo Básico"
-          className="flex w-[76px] min-w-[76px] shrink-0 flex-col items-center gap-1.5 border-r border-[#e2e8f0] bg-white py-3.5 overflow-y-auto"
+          className="flex w-[108px] min-w-[108px] shrink-0 flex-col items-center gap-2 border-r border-[#e2e8f0] bg-white py-4 overflow-y-auto"
         >
           {sidebarTools.map((tool) => {
             const Icon = tool.icon;
@@ -710,7 +762,7 @@ export function DesignerEasyModePage() {
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   style={{ backgroundColor: '#eff2fe' }}
-                  className="flex h-[56px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-2xl text-[#4f46e5] transition-colors"
+                  className="flex h-[85px] w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-2xl text-[#4f46e5] transition-colors"
                 >
                   <Icon className="h-5 w-5" strokeWidth={1.8} />
                   <span className="text-[11px] font-semibold">{tool.label}</span>
@@ -722,7 +774,7 @@ export function DesignerEasyModePage() {
               <button
                 key={tool.id}
                 type="button"
-                className="flex h-[56px] w-[62px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl text-[#64748b] hover:text-[#0f172a] transition-colors"
+                className="flex h-[85px] w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl text-[#64748b] hover:text-[#0f172a] transition-colors"
               >
                 <Icon className="h-5 w-5" strokeWidth={1.6} />
                 <span className="text-[11px] font-medium">{tool.label}</span>
@@ -731,8 +783,8 @@ export function DesignerEasyModePage() {
           })}
         </nav>
 
-        {/* ─── PANEL LATERAL DE CONFIGURACIÓN ─── 360px de ancho ─── */}
-        <aside className="flex w-[360px] min-w-[360px] shrink-0 flex-col border-r border-[#e2e8f0] bg-white overflow-y-auto px-6 py-5">
+        {/* ─── PANEL LATERAL DE CONFIGURACIÓN ─── */}
+        <aside className="flex w-[382px] min-w-[382px] shrink-0 flex-col border-r border-[#e2e8f0] bg-white overflow-y-auto px-6 py-3">
           {/* 1. AGREGAR IMAGEN */}
           <section>
             <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
@@ -783,41 +835,10 @@ export function DesignerEasyModePage() {
               </p>
             )}
 
-            {sourceFile && (
-              <div className="mt-2.5 flex flex-wrap items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleImproveContrast}
-                  disabled={isProcessing}
-                  className="flex h-7 items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-[11px] font-semibold text-[#334155] hover:bg-[#f8fafc] disabled:opacity-50"
-                >
-                  <Sparkles className="h-3 w-3 text-[#4f46e5]" />
-                  {isProcessing ? 'Procesando…' : 'Mejorar contraste'}
-                </button>
-
-                {processedImageUrl && (
-                  <button
-                    type="button"
-                    onClick={() => setShowProcessedImage((current) => !current)}
-                    aria-pressed={showProcessedImage}
-                    className="flex h-7 items-center gap-1.5 rounded-lg border border-[#e2e8f0] bg-white px-2.5 text-[11px] font-semibold text-[#334155] hover:bg-[#f8fafc]"
-                  >
-                    <Eye className="h-3 w-3" />
-                    {showProcessedImage ? 'Ver original' : 'Ver resultado'}
-                  </button>
-                )}
-
-                {processedDimensions && (
-                  <span className="w-full text-[11px] text-[#64748b]">
-                    PNG procesado · {processedDimensions.width} × {processedDimensions.height} px
-                  </span>
-                )}
-              </div>
-            )}
           </section>
 
           {/* 2. LIENZO */}
-          <section className="mt-5">
+          <section className="mt-3 border-t border-[#eef0f4] pt-3">
             <h2 className="mb-2.5 text-[15px] font-bold text-[#0f172a]">
               Lienzo
             </h2>
@@ -885,7 +906,7 @@ export function DesignerEasyModePage() {
           </section>
 
           {/* 3. FONDO DEL LIENZO */}
-          <section className="mt-5">
+          <section className="mt-3 border-t border-[#eef0f4] pt-3">
             <h2 className="mb-3 text-[15px] font-bold text-[#0f172a]">
               Fondo del lienzo
             </h2>
@@ -932,58 +953,53 @@ export function DesignerEasyModePage() {
             </div>
           </section>
 
-          {/* 4. AGREGAR DISEÑOS */}
-          <section className="mt-5">
+          {/* 4. ACCIONES DEL DISEÑO */}
+          <section className="mt-3 border-t border-[#eef0f4] pt-3">
             <h2 className="mb-3 text-[15px] font-bold text-[#0f172a]">
-              Agregar diseños
+              Acciones del diseño
             </h2>
 
-            {/* Botón principal: + SUBIR IMAGEN */}
+            {/* Acción sobre la imagen ya cargada; nunca abre un segundo cargador. */}
             <button
               type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#18181b] px-4 text-[12px] font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black"
+              onClick={handleRemoveBackground}
+              disabled={!selectedImage || isRemovingBg}
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#18181b] px-4 text-[12px] font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
             >
-              + SUBIR IMAGEN
+              {isRemovingBg ? 'ELIMINANDO FONDO…' : 'ELIMINAR FONDO'}
             </button>
 
             {/* Fila de 3 botones: ATRÁS, DUPLICAR, BORRAR */}
             <div className="mt-2.5 grid grid-cols-3 gap-2">
               <button
                 type="button"
-                onClick={() => {
-                  if (processedImageUrl) setShowProcessedImage(false);
-                }}
-                className="flex h-9 items-center justify-center gap-1 rounded-xl border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] hover:bg-[#f8fafc] transition-colors"
+                onClick={handleUndo}
+                disabled={historyStack.length === 0}
+                className="flex h-9 items-center justify-center gap-1 rounded-xl border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <RotateCcw className="h-3 w-3" />
                 <span>ATRÁS</span>
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  // Duplicar reservado
-                }}
-                className="flex h-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] hover:bg-[#f8fafc] transition-colors"
+                onClick={handleDuplicate}
+                disabled={!selectedImage}
+                className="flex h-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 DUPLICAR
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setImageSrc(null);
-                  setSourceFile(null);
-                  replaceProcessedImage(null);
-                  setProcessedDimensions(null);
-                }}
-                className="flex h-9 items-center justify-center rounded-xl border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] hover:bg-[#fef2f2] transition-colors"
+                onClick={handleClearImage}
+                disabled={!selectedImage}
+                className="flex h-9 items-center justify-center rounded-xl border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 BORRAR
               </button>
             </div>
 
             {/* Banner naranja: Eliminar semitransparencias */}
-            <div className="mt-3.5 flex items-center justify-between rounded-2xl border border-[#fed7aa] bg-[#fff7ed] p-3.5">
+            <div className="mt-3.5 flex items-center justify-between rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-3.5">
               <div>
                 <p className="text-[13px] font-bold text-[#ea580c]">
                   Eliminar semitransparencias
@@ -1021,10 +1037,10 @@ export function DesignerEasyModePage() {
         <main
           ref={workspaceRef}
           aria-label="Área de trabajo del lienzo"
-          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f4f5f8] flex items-center justify-center p-4 select-none"
+          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f4f5f8] select-none"
         >
           {/* Contenedor central: reglas perfectamente unidas al lienzo dominante */}
-          <div className="relative flex flex-col items-start">
+          <div className="absolute left-[calc(50%-20px)] top-[49px] flex -translate-x-1/2 flex-col items-start">
             {/* Fila superior: esquina (cm) + regla horizontal */}
             <div className="flex items-end">
               <div className="flex h-[22px] w-[28px] shrink-0 items-center justify-end pr-1 text-[10px] font-medium text-[#64748b]">
@@ -1069,7 +1085,7 @@ export function DesignerEasyModePage() {
           </div>
 
           {/* ── Controles flotantes en la parte superior derecha ── */}
-          <div className="absolute right-6 top-6 z-20 flex flex-col items-center gap-1 rounded-2xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+          <div className="absolute right-6 top-9 z-20 flex flex-col items-center gap-1 rounded-2xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
             <button
               type="button"
               aria-label="Centrar lienzo"
