@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 02 completado; BLOCK 03 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 03 completado; BLOCK 04 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -130,6 +130,8 @@
 **Riesgos**:
 - Cambio en la API del store puede romper consumidores
 - Solución: mantener la API pública del store igual, cambiar solo la implementación interna
+
+**Estado**: COMPLETADO — undo/redo se ejecuta mediante comandos; la API pública del canvasStore se conserva.
 
 **Siguiente bloque**: BLOCK 04
 

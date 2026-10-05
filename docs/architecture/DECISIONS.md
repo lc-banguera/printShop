@@ -66,13 +66,13 @@ Implementar un Tool Registry formal con interfaz `Tool` que incluya `onActivate`
 
 ## ADR-003 — Shared Command System
 
-**Estado**: PROPOSED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
 El sistema actual de undo/redo usa snapshots completos del array `elements[]` en `canvasStore`. Esto tiene limitaciones: no captura cambios de color de prenda, zoom, ni guías; el redo no reconstruye correctamente el estado futuro; y los snapshots son costosos en memoria para documentos grandes.
 
-### Decisión (propuesta)
+### Decisión
 Reemplazar el sistema de snapshots por un Command System formal en BLOCK 03. Cada operación (AddElement, MoveElement, DeleteElement, etc.) es un `Command` con `execute()`, `undo()`, `redo()`.
 
 ### Consecuencias
@@ -81,7 +81,8 @@ Reemplazar el sistema de snapshots por un Command System formal en BLOCK 03. Cad
 - Requiere migración del código existente que usa `_history` directamente
 
 ### Estado de implementación
-- El `_history` actual NO debe eliminarse hasta que el Command System esté implementado y validado
+- BLOCK 03 añade `CommandSystem` y comandos de add/update/remove/reorder; el `canvasStore` conserva sus acciones públicas.
+- `_history` y `_historyIndex` siguen disponibles como proyección legacy, pero no son la fuente de verdad de undo/redo. Se retirarán solo después de validación en producción.
 
 ---
 

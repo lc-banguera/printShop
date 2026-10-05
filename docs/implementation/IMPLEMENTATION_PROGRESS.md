@@ -11,8 +11,8 @@
 | BLOCK 00 — Baseline + Inventario | DONE | Entregables documentales completos. No se modificó código funcional. El estado de build se registra abajo. |
 | BLOCK 01 — Design Core (Fundación) | DONE | Contratos TypeScript puros bajo `frontend/src/core/design/types`; tipos existentes y stores intactos. Build y lint focalizado pasan. Commit registrado en historial. |
 | BLOCK 02 — Document Model | DONE | Creación/versionado, validación, JSON serializer y adaptador de canvas; build, lint focalizado y pruebas runtime pasan. Commit independiente. |
-| BLOCK 03 — Command System + History | PENDING | Siguiente bloque del roadmap. |
-| BLOCK 04 — Layers | PENDING | No iniciado. |
+| BLOCK 03 — Command System + History | DONE | CommandSystem y comandos add/update/remove/reorder integrados al store; undo/redo y ramificación verificados. Build/lint/runtime pasan. Commit independiente. |
+| BLOCK 04 — Layers | PENDING | Siguiente bloque del roadmap. |
 | BLOCK 05 — Selection + Transform | PENDING | No iniciado. |
 | BLOCK 06 — Tool Registry + Tool Context | PENDING | No iniciado. |
 | BLOCK 07 — Product Surface | PENDING | No iniciado. |
@@ -68,6 +68,20 @@
 - Commit: cierre funcional en commit independiente de BLOCK 02 con convención `feat(document): ...`.
 - Siguiente bloque: **BLOCK 03 — Command System + History**.
 
+## Registro de BLOCK 03 — Command System + History
+
+- Archivos: `frontend/src/core/design/commands/*`, `frontend/src/store/canvas-store.ts` y `frontend/src/types/canvas.ts`.
+- Cambio: se añadió CommandSystem con cursor de undo/redo y comandos compartidos para añadir, actualizar, eliminar y reordenar elementos. El `canvasStore` mantiene sus acciones públicas y delega esas operaciones al sistema de comandos.
+- Compatibilidad: `_history`, `_historyIndex` y `HistoryEntry` permanecen como proyección de snapshots legacy hasta validación en producción; no controlan ya undo/redo. Se mantiene también la semántica actual de selección y de las acciones `groupSelectedElements`/`ungroupSelectedElements`.
+- Build: **PASS** (`npm run build --prefix frontend`).
+- ESLint focalizado: **PASS** para comandos, store y tipo de canvas.
+- Checks runtime integrados: **PASS** — añadir/actualizar/eliminar/reordenar, undo/redo, límites vacíos y ramificación después de undo.
+- Tests del repo: no hay runner/suite frontend configurada.
+- Rutas/UI: se conservan selectores y acciones existentes; no se cambiaron componentes ni rutas. La camiseta Designer 2 mantiene su build y las mismas operaciones de store.
+- `git diff --check`: **PASS** antes del commit.
+- Commit: cierre funcional en commit independiente de BLOCK 03 con convención `feat(commands): ...`.
+- Siguiente bloque: **BLOCK 04 — Layers**.
+
 ## Historial
 
 | Fecha | Bloque | Cambio |
@@ -75,3 +89,4 @@
 | 2026-10-05 | BLOCK 00 | Se completó la documentación faltante y se registraron las limitaciones de evidencia. |
 | 2026-10-05 | BLOCK 01 | Se añadieron contratos TypeScript puros y se validó build/lint sin modificar los tipos ni stores existentes. |
 | 2026-10-05 | BLOCK 02 | Se implementaron creación, validación, serialización JSON y adaptación del canvas; build, lint y checks runtime aprobados. |
+| 2026-10-05 | BLOCK 03 | Se integraron comandos compartidos al canvasStore; undo/redo y ramificación validados sin retirar el historial legacy. |

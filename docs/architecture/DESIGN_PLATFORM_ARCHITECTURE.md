@@ -244,17 +244,17 @@ interface ProductSurface {
 ### 6.6 Command System (objetivo)
 
 ```typescript
-interface Command {
+interface Command<TContext> {
   id: string;
   name: string;
-  execute(): void;
-  undo(): void;
-  redo(): void;
-  canMerge?(other: Command): boolean;  // para batching de transforms
+  execute(context: TContext): void;
+  undo(context: TContext): void;
+  redo(context: TContext): void;
+  canMerge?(other: Command<TContext>): boolean;  // para batching de transforms
 }
 ```
 
-El `CommandSystem` reemplazará el sistema de snapshots actual en BLOCK 03.
+El `CommandSystem` es la fuente de verdad de undo/redo desde BLOCK 03. El snapshot `_history` se conserva temporalmente como proyección de compatibilidad hasta validar el sistema en producción.
 
 ### 6.7 Tool Registry (objetivo)
 

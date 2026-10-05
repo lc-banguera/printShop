@@ -60,8 +60,9 @@ export interface CanvasState {
   selectedElementIds: string[];
   elements: CanvasElement[];
 
-  /** History scaffold for future undo/redo */
+  /** @deprecated Compatibility snapshot projection; CommandSystem owns executable history. */
   _history: HistoryEntry[];
+  /** @deprecated Compatibility cursor for _history. */
   _historyIndex: number;
 
   // Actions
