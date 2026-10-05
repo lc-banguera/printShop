@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type ChangeEvent,
@@ -55,6 +56,14 @@ interface CanvasConfigState {
   backgroundColor: string;
 }
 
+interface CanvasViewport {
+  widthPx: number;
+  heightPx: number;
+  leftPx: number;
+  topPx: number;
+  zoomPercent: number;
+}
+
 interface BackgroundOption {
   id: string;
   label: string;
@@ -66,6 +75,49 @@ interface BackgroundOption {
 
 const DEFAULT_WIDTH_CM = '35';
 const DEFAULT_HEIGHT_CM = '50';
+const RULER_WIDTH_PX = 28;
+const RULER_HEIGHT_PX = 22;
+
+function calculateCanvasViewport(
+  workspaceWidth: number,
+  workspaceHeight: number,
+  widthCm: number,
+  heightCm: number,
+): CanvasViewport | null {
+  if (
+    workspaceWidth <= 0 ||
+    workspaceHeight <= 0 ||
+    widthCm <= 0 ||
+    heightCm <= 0
+  ) {
+    return null;
+  }
+
+  const horizontalMargin = 32;
+  const topMargin = 32;
+  const bottomReservedSpace = 84;
+  const maxCanvasWidth = Math.max(
+    1,
+    workspaceWidth - horizontalMargin * 2 - RULER_WIDTH_PX * 2,
+  );
+  const maxCanvasHeight = Math.max(
+    1,
+    workspaceHeight - topMargin - bottomReservedSpace - RULER_HEIGHT_PX,
+  );
+  const scale = Math.min(maxCanvasWidth / widthCm, maxCanvasHeight / heightCm);
+  const widthPx = widthCm * scale;
+  const heightPx = heightCm * scale;
+
+  return {
+    widthPx,
+    heightPx,
+    leftPx: workspaceWidth / 2 - widthPx / 2 - RULER_WIDTH_PX,
+    topPx:
+      (topMargin + workspaceHeight - bottomReservedSpace - heightPx) / 2 -
+      RULER_HEIGHT_PX,
+    zoomPercent: Math.round((scale / (96 / 2.54)) * 100),
+  };
+}
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -82,8 +134,14 @@ function readCanvasConfig(locationState: unknown): CanvasConfigState | null {
 
   if (
     typeof config.widthPx !== 'number' ||
+    !Number.isFinite(config.widthPx) ||
+    config.widthPx <= 0 ||
     typeof config.heightPx !== 'number' ||
+    !Number.isFinite(config.heightPx) ||
+    config.heightPx <= 0 ||
     typeof config.dpi !== 'number' ||
+    !Number.isFinite(config.dpi) ||
+    config.dpi <= 0 ||
     !isBackground(config.background) ||
     typeof config.backgroundColor !== 'string'
   ) {
@@ -190,18 +248,25 @@ function HorizontalRuler({ widthPx, lengthCm }: HorizontalRulerProps) {
   return (
     <svg
       width={widthPx}
-      height={22}
+      height={RULER_HEIGHT_PX}
       className="block select-none overflow-visible"
-      style={{ width: `${widthPx}px`, height: '22px' }}
+      style={{ width: `${widthPx}px`, height: `${RULER_HEIGHT_PX}px` }}
     >
-      <line x1={0} y1={22} x2={widthPx} y2={22} stroke="#94a3b8" strokeWidth={1} />
+      <line
+        x1={0}
+        y1={RULER_HEIGHT_PX}
+        x2={widthPx}
+        y2={RULER_HEIGHT_PX}
+        stroke="#94a3b8"
+        strokeWidth={1}
+      />
       {ticks.map((t, idx) => (
         <line
           key={`tick-h-${idx}`}
           x1={t.x}
-          y1={22 - t.height}
+          y1={RULER_HEIGHT_PX - t.height}
           x2={t.x}
-          y2={22}
+          y2={RULER_HEIGHT_PX}
           stroke={t.stroke}
           strokeWidth={1}
         />
@@ -268,18 +333,25 @@ function VerticalRuler({ heightPx, lengthCm }: VerticalRulerProps) {
 
   return (
     <svg
-      width={28}
+      width={RULER_WIDTH_PX}
       height={heightPx}
       className="block select-none overflow-visible"
-      style={{ width: '28px', height: `${heightPx}px` }}
+      style={{ width: `${RULER_WIDTH_PX}px`, height: `${heightPx}px` }}
     >
-      <line x1={28} y1={0} x2={28} y2={heightPx} stroke="#94a3b8" strokeWidth={1} />
+      <line
+        x1={RULER_WIDTH_PX}
+        y1={0}
+        x2={RULER_WIDTH_PX}
+        y2={heightPx}
+        stroke="#94a3b8"
+        strokeWidth={1}
+      />
       {ticks.map((t, idx) => (
         <line
           key={`tick-v-${idx}`}
-          x1={28 - t.width}
+          x1={RULER_WIDTH_PX - t.width}
           y1={t.y}
-          x2={28}
+          x2={RULER_WIDTH_PX}
           y2={t.y}
           stroke={t.stroke}
           strokeWidth={1}
@@ -404,6 +476,7 @@ export function DesignerEasyModePage() {
   const [canvasSettings, setCanvasSettings] = useState(() =>
     createInitialCanvasSettings(location.state),
   );
+  const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(null);
   const [keepRatio, setKeepRatio] = useState(false);
   const [canvasRatio, setCanvasRatio] = useState(
     () => Number(canvasSettings.widthCm) / Math.max(0.1, Number(canvasSettings.heightCm)),
@@ -423,9 +496,6 @@ export function DesignerEasyModePage() {
   const [removeSemitransparencies, setRemoveSemitransparencies] = useState(false);
   const [historyStack, setHistoryStack] = useState<string[]>([]);
   const [isRemovingBg, setIsRemovingBg] = useState(false);
-
-  // Responsive workspace size tracking
-  const [workspaceSize, setWorkspaceSize] = useState({ width: 1100, height: 850 });
 
   const processingRequestId = useRef(0);
   const processedImageUrlRef = useRef<string | null>(null);
@@ -502,23 +572,41 @@ export function DesignerEasyModePage() {
     navigate(hasCanvasCreationContext ? '/store/designer' : '/products');
   };
 
-  useEffect(() => {
+  const fitCanvasToWorkspace = () => {
     const el = workspaceRef.current;
     if (!el) return;
 
-    const handleResize = (entries: ResizeObserverEntry[]) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0) {
-          setWorkspaceSize({ width, height });
-        }
-      }
+    const { width, height } = el.getBoundingClientRect();
+    setCanvasViewport(
+      calculateCanvasViewport(width, height, safeWidthCm, safeHeightCm),
+    );
+  };
+
+  const centerCanvasInWorkspace = () => {
+    fitCanvasToWorkspace();
+  };
+
+  useLayoutEffect(() => {
+    const el = workspaceRef.current;
+    if (!el) return;
+
+    const updateCanvasViewport = (width: number, height: number) => {
+      setCanvasViewport(
+        calculateCanvasViewport(width, height, safeWidthCm, safeHeightCm),
+      );
     };
 
-    const observer = new ResizeObserver(handleResize);
+    const { width, height } = el.getBoundingClientRect();
+    updateCanvasViewport(width, height);
+
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        updateCanvasViewport(entry.contentRect.width, entry.contentRect.height);
+      }
+    });
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [safeHeightCm, safeWidthCm]);
 
   useEffect(() => {
     if (!uploadedAssetId) return;
@@ -687,29 +775,6 @@ export function DesignerEasyModePage() {
     if (file) loadFile(file);
   };
 
-  // ─── Proportional Dominant Canvas Geometry ─────────────────────────────────
-  // La referencia usa un lienzo vertical deliberadamente dominante. Su alto se
-  // conserva proporcional al documento y el área de trabajo recorta solo su
-  // vista, sin deformar el contenido.
-  const rulerSpace = 28;
-  const workspaceInset = Math.max(32, Math.round(workspaceSize.width * 0.034));
-  const availWidth = Math.max(100, workspaceSize.width - workspaceInset * 2 - rulerSpace);
-  const ratio = safeWidthCm / safeHeightCm;
-
-  // El escalado parte de la densidad visible de la regla en la referencia
-  // (≈11.47 px por cm para un documento de 58 cm) y se adapta al ancho real
-  // del workspace. Así el lienzo conserva la ocupación visual del master sin
-  // depender de un porcentaje fijo del contenedor.
-  const referenceWorkspaceWidth = 1183;
-  const referenceRulerDensity = 11.47;
-  const responsiveRulerDensity =
-    referenceRulerDensity * (workspaceSize.width / referenceWorkspaceWidth);
-  const canvasWidthPx = Math.min(
-    availWidth,
-    Math.round(safeWidthCm * responsiveRulerDensity),
-  );
-  const canvasHeightPx = Math.round(canvasWidthPx / ratio);
-
   const canvasStyle = {
     backgroundColor: getCanvasColor(canvasSettings),
     backgroundImage:
@@ -787,7 +852,7 @@ export function DesignerEasyModePage() {
           {/* Zoom pill */}
           <div className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs">
             <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
-            <span>100%</span>
+            <span>{canvasViewport?.zoomPercent ?? 0}%</span>
             <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
           </div>
 
@@ -1094,7 +1159,7 @@ export function DesignerEasyModePage() {
                 type="button"
                 onClick={handleUndo}
                 disabled={historyStack.length === 0}
-                className="flex h-9 items-center justify-center gap-1 rounded-xl border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
+                className="flex h-9 items-center justify-center gap-1 rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <RotateCcw className="h-3 w-3" />
                 <span>ATRÁS</span>
@@ -1103,7 +1168,7 @@ export function DesignerEasyModePage() {
                 type="button"
                 onClick={handleDuplicate}
                 disabled={!selectedImage}
-                className="flex h-9 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
+                className="flex h-9 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 DUPLICAR
               </button>
@@ -1111,14 +1176,14 @@ export function DesignerEasyModePage() {
                 type="button"
                 onClick={handleClearImage}
                 disabled={!selectedImage}
-                className="flex h-9 items-center justify-center rounded-xl border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-45"
+                className="flex h-9 items-center justify-center rounded-[5px] border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 BORRAR
               </button>
             </div>
 
             {/* Banner naranja: Eliminar semitransparencias */}
-            <div className="mt-3.5 flex items-center justify-between rounded-lg border border-[#fed7aa] bg-[#fff7ed] p-3.5">
+            <div className="mt-3.5 flex items-center justify-between rounded-[5px] border border-[#fed7aa] bg-[#fff7ed] p-3.5">
               <div>
                 <p className="text-[13px] font-bold text-[#ea580c]">
                   Eliminar semitransparencias
@@ -1158,50 +1223,61 @@ export function DesignerEasyModePage() {
           aria-label="Área de trabajo del lienzo"
           className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f4f5f8] select-none"
         >
-          {/* Contenedor central: reglas perfectamente unidas al lienzo dominante */}
-          <div className="absolute left-[calc(50%-20px)] top-[49px] flex -translate-x-1/2 flex-col items-start">
-            {/* Fila superior: esquina (cm) + regla horizontal */}
-            <div className="flex items-end">
-              <div className="flex h-[22px] w-[28px] shrink-0 items-center justify-end pr-1 text-[10px] font-medium text-[#64748b]">
-                cm
-              </div>
-              <div style={{ width: `${canvasWidthPx}px` }}>
-                <HorizontalRuler widthPx={canvasWidthPx} lengthCm={safeWidthCm} />
-              </div>
-            </div>
-
-            {/* Fila inferior: regla vertical + lienzo */}
-            <div className="flex items-start">
-              <div style={{ height: `${canvasHeightPx}px` }}>
-                <VerticalRuler heightPx={canvasHeightPx} lengthCm={safeHeightCm} />
-              </div>
-
-              {/* Lienzo / Canvas dominante */}
-              <div
-                role="img"
-                aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
-                className="relative shrink-0 overflow-hidden border border-[#cbd5e1] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
-                style={{
-                  width: `${canvasWidthPx}px`,
-                  height: `${canvasHeightPx}px`,
-                  ...canvasStyle,
-                }}
-              >
-                {selectedImage && (
-                  <img
-                    src={selectedImage}
-                    alt={
-                      processedImageUrl && showProcessedImage
-                        ? 'Imagen con contraste procesado'
-                        : 'Imagen subida al lienzo'
-                    }
-                    className="h-full w-full select-none object-contain"
-                    draggable={false}
+          {/* Rulers and canvas share the same fitted viewport geometry. */}
+          {canvasViewport && (
+            <div
+              className="absolute flex flex-col items-start"
+              style={{ left: `${canvasViewport.leftPx}px`, top: `${canvasViewport.topPx}px` }}
+            >
+              {/* Fila superior: esquina (cm) + regla horizontal */}
+              <div className="flex items-end">
+                <div className="flex h-[22px] w-[28px] shrink-0 items-center justify-end pr-1 text-[10px] font-medium text-[#64748b]">
+                  cm
+                </div>
+                <div style={{ width: `${canvasViewport.widthPx}px` }}>
+                  <HorizontalRuler
+                    widthPx={canvasViewport.widthPx}
+                    lengthCm={safeWidthCm}
                   />
-                )}
+                </div>
+              </div>
+
+              {/* Fila inferior: regla vertical + lienzo */}
+              <div className="flex items-start">
+                <div style={{ height: `${canvasViewport.heightPx}px` }}>
+                  <VerticalRuler
+                    heightPx={canvasViewport.heightPx}
+                    lengthCm={safeHeightCm}
+                  />
+                </div>
+
+                {/* Lienzo / Canvas dominante */}
+                <div
+                  role="img"
+                  aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
+                  className="relative shrink-0 overflow-hidden border border-[#cbd5e1] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
+                  style={{
+                    width: `${canvasViewport.widthPx}px`,
+                    height: `${canvasViewport.heightPx}px`,
+                    ...canvasStyle,
+                  }}
+                >
+                  {selectedImage && (
+                    <img
+                      src={selectedImage}
+                      alt={
+                        processedImageUrl && showProcessedImage
+                          ? 'Imagen con contraste procesado'
+                          : 'Imagen subida al lienzo'
+                      }
+                      className="h-full w-full select-none object-contain"
+                      draggable={false}
+                    />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* ── Controles flotantes inferiores del workspace ── */}
           <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-xl border border-[#e2e8f0] bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
@@ -1217,6 +1293,7 @@ export function DesignerEasyModePage() {
               type="button"
               aria-label="Centrar lienzo"
               title="Centrar lienzo"
+              onClick={centerCanvasInWorkspace}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <Crosshair className="h-4 w-4" strokeWidth={1.8} />
@@ -1242,6 +1319,7 @@ export function DesignerEasyModePage() {
               type="button"
               aria-label="Ajustar a pantalla"
               title="Ajustar a pantalla"
+              onClick={fitCanvasToWorkspace}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <Maximize2 className="h-4 w-4" strokeWidth={1.8} />
