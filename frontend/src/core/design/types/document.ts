@@ -1,4 +1,4 @@
-import type { PrintableZoneId } from '@/types/product';
+import type { PrintableZoneConfig, PrintableZoneId } from '@/types/product';
 import type { DesignElement } from './element';
 
 export interface ProductReference {
@@ -18,14 +18,12 @@ export interface CoordinateSystem {
   height: number;
 }
 
-export interface PrintableArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
+export type PrintableArea = Pick<
+  PrintableZoneConfig,
+  'id' | 'name' | 'x' | 'y' | 'width' | 'height' | 'rotation' | 'enabled' | 'visible'
+>;
 
-export type SafeArea = PrintableArea;
+export type SafeArea = Pick<PrintableArea, 'x' | 'y' | 'width' | 'height'>;
 
 export interface BleedConfig {
   top: number;

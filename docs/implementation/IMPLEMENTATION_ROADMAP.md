@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-05  
-**Estado actual**: BLOCK 01 completado; BLOCK 02 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
+**Estado actual**: BLOCK 02 completado; BLOCK 03 es el siguiente — ver [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md)
 
 ---
 
@@ -99,6 +99,8 @@
 **Criterios de aceptación**:
 - Tests unitarios básicos (si el proyecto tiene setup de testing)
 - No se rompe Designer 2
+
+**Estado**: COMPLETADO — documento versionado, validado, serializable y adaptable desde el estado actual del canvas.
 
 **Siguiente bloque**: BLOCK 03
 

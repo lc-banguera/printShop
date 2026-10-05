@@ -87,19 +87,25 @@ Reemplazar el sistema de snapshots por un Command System formal en BLOCK 03. Cad
 
 ## ADR-004 — Shared Document Model (PrintShopDocument)
 
-**Estado**: PROPOSED  
+**Estado**: ACCEPTED
 **Fecha**: 2026-10-05
 
 ### Contexto
 No existe un modelo de documento formal. El estado del canvas vive en `canvasStore` (en memoria) y se pierde al recargar. No hay forma de serializar, guardar ni restaurar un diseño completo.
 
-### Decisión (propuesta)
+### Decisión
 Definir `PrintShopDocument` como el schema oficial del documento de diseño, con `schemaVersion` para migraciones futuras. El documento incluye todas las superficies, capas y elementos.
 
 ### Consecuencias
 - Permite persistencia real (IndexedDB, backend)
 - Permite versionado de documentos
 - Requiere serialización/deserialización de todos los tipos actuales
+
+### Estado de implementación
+- `CURRENT_DOCUMENT_SCHEMA_VERSION` inicia en `1.0.0`; BLOCK 02 crea y valida la estructura y proporciona round-trip JSON.
+- El adaptador actual crea una capa `Artwork` por superficie para los elementos planos de canvas y conserva el campo legacy `CanvasElement.layer` en cada elemento.
+- El adaptador conserva la configuración imprimible de las zonas y recibe explícitamente el ID y timestamps; no introduce persistencia ni cambia los stores.
+- Migraciones entre versiones y persistencia siguen pendientes para bloques posteriores.
 
 ---
 

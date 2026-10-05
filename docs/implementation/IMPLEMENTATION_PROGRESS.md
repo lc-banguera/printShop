@@ -1,6 +1,6 @@
 # PrintShop — Progreso de la Design Platform
 
-**Última actualización:** 2026-10-05  
+**Última actualización:** 2026-10-05
 **Rama de trabajo:** `feat/design-platform-implementation`
 **Fuente de secuencia:** [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)
 
@@ -10,8 +10,8 @@
 |---|---|---|
 | BLOCK 00 — Baseline + Inventario | DONE | Entregables documentales completos. No se modificó código funcional. El estado de build se registra abajo. |
 | BLOCK 01 — Design Core (Fundación) | DONE | Contratos TypeScript puros bajo `frontend/src/core/design/types`; tipos existentes y stores intactos. Build y lint focalizado pasan. Commit registrado en historial. |
-| BLOCK 02 — Document Model | PENDING | Siguiente bloque del roadmap. |
-| BLOCK 03 — Command System + History | PENDING | No iniciado. |
+| BLOCK 02 — Document Model | DONE | Creación/versionado, validación, JSON serializer y adaptador de canvas; build, lint focalizado y pruebas runtime pasan. Commit independiente. |
+| BLOCK 03 — Command System + History | PENDING | Siguiente bloque del roadmap. |
 | BLOCK 04 — Layers | PENDING | No iniciado. |
 | BLOCK 05 — Selection + Transform | PENDING | No iniciado. |
 | BLOCK 06 — Tool Registry + Tool Context | PENDING | No iniciado. |
@@ -53,9 +53,25 @@
 - Commit: registrado en el historial de esta rama como cierre separado de BLOCK 01.
 - Siguiente bloque: **BLOCK 02 — Document Model**.
 
+## Registro de BLOCK 02 — Document Model
+
+- Archivos: `frontend/src/core/design/types/document.ts` y `frontend/src/core/design/document/{schema-version,document-manager,serializer,document-adapter,index}.ts`.
+- Cambio: creación de documentos con schema `1.0.0`, validación estructural/versionada, serialización/deserialización JSON y conversión del estado plano actual del canvas a superficies y capas.
+- Fidelidad: se preservan las cinco zonas y su configuración imprimible, los elementos en su orden por zona y sus propiedades, incluido `CanvasElement.layer`; el adaptador copia los elementos y no comparte objetos mutables con el store.
+- Decisión: cada superficie exportada obtiene una capa estructural `Artwork`; la clasificación legacy `user`/`guide` se conserva en cada elemento. Los timestamps e ID del documento son entradas explícitas; no se agrega persistencia ni generación automática de identidad/fecha.
+- Build: **PASS** (`npm run build --prefix frontend`).
+- ESLint focalizado en los archivos del Design Core/document: **PASS**.
+- Checks runtime aislados: **PASS** — adaptación de las cinco zonas, preservación de atributos, copias independientes, round-trip JSON, JSON malformado, versión no soportada, incoherencia de zona y metadata inválida/cíclica.
+- Tests del repo: no se encontró runner ni suite frontend configurada.
+- Rutas/runtime de UI: sin cambios; D2 y sus stores no se modificaron.
+- `git diff --check`: **PASS** antes del commit.
+- Commit: cierre funcional en commit independiente de BLOCK 02 con convención `feat(document): ...`.
+- Siguiente bloque: **BLOCK 03 — Command System + History**.
+
 ## Historial
 
 | Fecha | Bloque | Cambio |
 |---|---|---|
 | 2026-10-05 | BLOCK 00 | Se completó la documentación faltante y se registraron las limitaciones de evidencia. |
 | 2026-10-05 | BLOCK 01 | Se añadieron contratos TypeScript puros y se validó build/lint sin modificar los tipos ni stores existentes. |
+| 2026-10-05 | BLOCK 02 | Se implementaron creación, validación, serialización JSON y adaptación del canvas; build, lint y checks runtime aprobados. |
