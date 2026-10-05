@@ -120,11 +120,15 @@ BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Regis
 
 ## 2. DESIGNER 3 EASY — Estado: PARTIAL (UI + contraste raster)
 
+El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se encontró un punto de montaje adicional en Cliente.
+
 ### 2.1 Entry Point
 
 | Ruta | Componente | Estado |
 |---|---|---|
 | `/designer/easy` | `DesignerEasyModePage` | 🟡 PARTIAL |
+| `/store/designer` → "Nuevo lienzo", Modo avanzado OFF | `DesignerEasyModePage` | La configuración se envía en `location.state`, pero Easy aún no la consume |
+| `/store/designer` → "Nuevo lienzo", Modo avanzado ON | `StoreDesigner` / `DesignerWorkspace` | Aplica la configuración al workspace existente |
 
 ### 2.2 Componentes
 
@@ -169,6 +173,8 @@ BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Regis
 | `/designer/advanced` | `DesignerLayout` | ✅ IMPLEMENTED (UI) |
 
 El router (`App.tsx`) conecta `/designer/advanced` con `DesignerLayout`, que compone `DesignerHeader`, `LeftSidebar`, `CanvasArea`, `RightSidebar` y `BottomPanel`. La ruta cargó en navegador; el viewer 3D se montó. Esto verifica que existe una pantalla, pero no determina que todas las capacidades de D3 Advanced estén implementadas ni define su alcance.
+
+El switch del modal "Nuevo lienzo" no navega a `/designer/advanced`: ON reutiliza el `DesignerWorkspace` actual de `StoreDesigner` y aplica la configuración allí. La ruta `/designer/advanced` no se usa como destino porque su layout compartido no constituye evidencia suficiente de un editor D3 Advanced.
 
 **Acción requerida**: inspeccionar y documentar las interacciones reales de `DesignerLayout` antes de atribuir capacidades a D3 Advanced. No inferir comportamiento desde D2 Easy o D2 Builder.
 

@@ -30,7 +30,7 @@ export interface NewCanvasConfig {
 interface NewCanvasModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApply: (config: NewCanvasConfig) => void;
+  onApply: (config: NewCanvasConfig, isAdvancedMode: boolean) => void;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -92,6 +92,7 @@ function mmToPx(mm: number, dpi: number): number {
 
 export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps) {
   const [name, setName] = React.useState("Mi nuevo diseño");
+  const [isAdvancedMode, setIsAdvancedMode] = React.useState(false);
   const [unit, setUnit] = React.useState<CanvasUnit>("px");
   const [dpi, setDpi] = React.useState(300);
   const [widthPx, setWidthPx] = React.useState(3000);
@@ -100,6 +101,10 @@ export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps
   const [backgroundColor, setBackgroundColor] = React.useState("#ffffff");
   const [selectedPreset, setSelectedPreset] = React.useState("custom");
   const [keepRatio, setKeepRatio] = React.useState(false);
+
+  React.useEffect(() => {
+    if (isOpen) setIsAdvancedMode(false);
+  }, [isOpen]);
 
   // Derived display values in current unit
   const displayW = pxToUnit(widthPx, dpi, unit);
@@ -152,15 +157,18 @@ export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps
 
   const handleApply = () => {
     if (widthPx < 1 || heightPx < 1) return;
-    onApply({
-      name: name.trim() || "Nuevo diseño",
-      widthPx,
-      heightPx,
-      dpi,
-      background,
-      backgroundColor:
-        background === "color" ? backgroundColor : background === "white" ? "#ffffff" : "transparent",
-    });
+    onApply(
+      {
+        name: name.trim() || "Nuevo diseño",
+        widthPx,
+        heightPx,
+        dpi,
+        background,
+        backgroundColor:
+          background === "color" ? backgroundColor : background === "white" ? "#ffffff" : "transparent",
+      },
+      isAdvancedMode,
+    );
     onClose();
   };
 
@@ -402,10 +410,30 @@ export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-[#E5E7EB] px-4 py-3">
-          <p className="text-[9px] text-[#94A3B8]">
-            {widthPx} × {heightPx} px · {dpi} DPI
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#E5E7EB] px-4 py-3">
+          <div className="flex items-center gap-2">
+            <span id="new-canvas-advanced-mode-label" className="text-[11px] font-medium text-[#475569]">
+              Modo avanzado
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={isAdvancedMode}
+              aria-labelledby="new-canvas-advanced-mode-label"
+              onClick={() => setIsAdvancedMode((current) => !current)}
+              className={cn(
+                "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2",
+                isAdvancedMode ? "bg-[#2563EB]" : "bg-[#CBD5E1]"
+              )}
+            >
+              <span
+                className={cn(
+                  "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform",
+                  isAdvancedMode ? "translate-x-4" : "translate-x-0.5"
+                )}
+              />
+            </button>
+          </div>
           <div className="flex gap-2">
             <button
               type="button"

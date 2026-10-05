@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useNavigate } from "react-router-dom";
 import {
   UploadCloud,
   Sparkles,
@@ -328,6 +329,7 @@ const mockLinkableProducts = [
 
 /* ── Componente Principal ────────────────────────────────────────────────── */
 export default function StoreDesigner() {
+  const navigate = useNavigate();
   // Estado principal: 'hub' (Pantalla inicial) o 'editor' (Área de trabajo)
   const [viewState, setViewState] = React.useState<"hub" | "editor">("hub");
   const [activeDesign, setActiveDesign] = React.useState<DesignItem | null>(
@@ -632,7 +634,12 @@ export default function StoreDesigner() {
   };
 
   /** Crea el nuevo documento real con la configuración del modal */
-  const handleNewCanvasApply = (config: NewCanvasConfig) => {
+  const handleNewCanvasApply = (config: NewCanvasConfig, isAdvancedMode: boolean) => {
+    if (!isAdvancedMode) {
+      navigate("/designer/easy", { state: { newCanvasConfig: config } });
+      return;
+    }
+
     const bgColor =
       config.background === "white"
         ? "#ffffff"
