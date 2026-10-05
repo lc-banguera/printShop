@@ -1,30 +1,35 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react';
+
 import {
-  Check,
   ChevronDown,
+  ChevronUp,
+  CircleMinus,
   CloudUpload,
-  Download,
+  Crosshair,
   Eye,
-  Focus,
+  Grid2X2,
   Hand,
-  ImagePlus,
   Layers,
-  Link2,
   LayoutGrid,
+  Link2,
   Maximize,
   MoreVertical,
   Redo2,
+  Search,
   Shapes,
   Shirt,
   Sparkles,
   Type,
   Undo2,
   ZoomIn,
-  ZoomOut,
 } from 'lucide-react';
+
 import { Link, useLocation } from 'react-router-dom';
+
 import { processArtworkImage } from '@/core/design/processing';
 import { registerUploadedDesign, releaseUploadedDesign } from '../services/design-resources';
+
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 type CanvasBackground = 'transparent' | 'white' | 'color';
 
@@ -44,12 +49,29 @@ interface CanvasConfigState {
   backgroundColor: string;
 }
 
+interface BackgroundOption {
+  id: string;
+  label: string;
+  background: CanvasBackground;
+  color?: string;
+}
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const DEFAULT_WIDTH_CM = '58';
+const DEFAULT_HEIGHT_CM = '100';
+
+const TICK_COLOR = '#b0b4bc';
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
 function readCanvasConfig(locationState: unknown): CanvasConfigState | null {
   if (!isRecord(locationState) || !isRecord(locationState.newCanvasConfig)) return null;
+
   const config = locationState.newCanvasConfig;
   const isBackground = (value: unknown): value is CanvasBackground =>
     value === 'transparent' || value === 'white' || value === 'color';
@@ -76,31 +98,50 @@ function readCanvasConfig(locationState: unknown): CanvasConfigState | null {
 function createInitialCanvasSettings(locationState: unknown): EasyCanvasSettings {
   const config = readCanvasConfig(locationState);
   const dpi = config?.dpi ?? 300;
-  const widthCm = config ? (config.widthPx / dpi) * 2.54 : (3000 / dpi) * 2.54;
-  const heightCm = config ? (config.heightPx / dpi) * 2.54 : (3000 / dpi) * 2.54;
+
+  if (!config) {
+    return {
+      widthCm: DEFAULT_WIDTH_CM,
+      heightCm: DEFAULT_HEIGHT_CM,
+      dpi,
+      background: 'transparent',
+      backgroundColor: '#ffffff',
+    };
+  }
+
+  const widthCm = (config.widthPx / dpi) * 2.54;
+  const heightCm = (config.heightPx / dpi) * 2.54;
 
   return {
     widthCm: Number(widthCm.toFixed(1)).toString(),
     heightCm: Number(heightCm.toFixed(1)).toString(),
     dpi,
-    background: config?.background ?? 'transparent',
-    backgroundColor: config?.backgroundColor ?? '#ffffff',
+    background: config.background,
+    backgroundColor: config.backgroundColor,
   };
 }
 
-const backgroundOptions: { id: CanvasBackground; label: string }[] = [
-  { id: 'transparent', label: 'Fondo transparente' },
-  { id: 'white', label: 'Fondo blanco' },
-  { id: 'color', label: 'Color de fondo configurado' },
+const backgroundOptions: BackgroundOption[] = [
+  { id: 'transparent', label: 'Fondo transparente', background: 'transparent' },
+  { id: 'white', label: 'Fondo blanco', background: 'white' },
+  { id: 'light-gray', label: 'Fondo gris claro', background: 'color', color: '#d1d1d1' },
+  { id: 'gray', label: 'Fondo gris oscuro', background: 'color', color: '#6b6b6b' },
+  { id: 'black', label: 'Fondo negro', background: 'color', color: '#000000' },
 ];
 
 const unavailableTools = [
-  { label: 'Plantillas', icon: LayoutGrid },
+  { label: 'Plantillas', icon: Grid2X2 },
   { label: 'Elementos', icon: Shapes },
   { label: 'Texto', icon: Type },
-  { label: 'Formas', icon: Shapes },
+  { label: 'Formas', icon: LayoutGrid },
   { label: 'Capas', icon: Layers },
 ];
+
+function isBackgroundSelected(settings: EasyCanvasSettings, option: BackgroundOption): boolean {
+  if (option.background !== settings.background) return false;
+  if (option.background !== 'color') return true;
+  return settings.backgroundColor.toLowerCase() === option.color;
+}
 
 function getCanvasColor(settings: EasyCanvasSettings): string {
   if (settings.background === 'white') return '#ffffff';
@@ -108,18 +149,81 @@ function getCanvasColor(settings: EasyCanvasSettings): string {
   return 'transparent';
 }
 
-function createRulerMarks(lengthCm: number): number[] {
+function getRulerSteps(lengthCm: number): { labelStep: number; tickStep: number } {
+  if (lengthCm <= 300) return { labelStep: 10, tickStep: 1 };
+  if (lengthCm <= 1000) return { labelStep: 50, tickStep: 5 };
+  return { labelStep: 100, tickStep: 10 };
+}
+
+function createRulerMarks(lengthCm: number, labelStep: number): number[] {
   const marks: number[] = [];
-  for (let mark = 0; mark <= lengthCm && mark <= 1000; mark += 10) marks.push(mark);
-  if (marks[marks.length - 1] !== lengthCm) marks.push(lengthCm);
+  for (let mark = 0; mark <= lengthCm; mark += labelStep) marks.push(mark);
+
+  const last = marks[marks.length - 1];
+  if (last !== lengthCm && (lengthCm - last) / lengthCm > 0.04) marks.push(lengthCm);
+
   return marks;
 }
+
+// ─── SteppedInput ─────────────────────────────────────────────────────────────
+
+interface SteppedInputProps {
+  label: string;
+  value: string | number;
+  min: string;
+  max?: string;
+  step: string;
+  onChange: (value: string) => void;
+  onStep: (direction: 1 | -1) => void;
+}
+
+function SteppedInput({ label, value, min, max, step, onChange, onStep }: SteppedInputProps) {
+  return (
+    <span className="relative block">
+      <input
+        type="number"
+        aria-label={label}
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-9 w-full rounded-lg border border-[#dfe2e9] bg-white pl-3 pr-8 text-[13px] font-semibold text-[#171923] outline-none [appearance:textfield] focus:border-[#4f46f5] focus:ring-1 focus:ring-[#4f46f5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+      />
+      <span className="absolute right-2 top-1/2 flex -translate-y-1/2 flex-col">
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`Aumentar ${label}`}
+          onClick={() => onStep(1)}
+          className="flex h-[13px] w-3.5 items-center justify-center text-[#9aa0ab] hover:text-[#171923]"
+        >
+          <ChevronUp className="h-3 w-3" />
+        </button>
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label={`Disminuir ${label}`}
+          onClick={() => onStep(-1)}
+          className="flex h-[13px] w-3.5 items-center justify-center text-[#9aa0ab] hover:text-[#171923]"
+        >
+          <ChevronDown className="h-3 w-3" />
+        </button>
+      </span>
+    </span>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export function DesignerEasyModePage() {
   const location = useLocation();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   const [technique, setTechnique] = useState('dtf');
-  const [canvasSettings, setCanvasSettings] = useState(() => createInitialCanvasSettings(location.state));
+  const [canvasSettings, setCanvasSettings] = useState(() =>
+    createInitialCanvasSettings(location.state),
+  );
   const [keepRatio, setKeepRatio] = useState(false);
   const [canvasRatio, setCanvasRatio] = useState(
     () => Number(canvasSettings.widthCm) / Math.max(0.1, Number(canvasSettings.heightCm)),
@@ -127,19 +231,30 @@ export function DesignerEasyModePage() {
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [sourceFile, setSourceFile] = useState<File | null>(null);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
-  const [processedDimensions, setProcessedDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [processedDimensions, setProcessedDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
   const [showProcessedImage, setShowProcessedImage] = useState(true);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+
   const processingRequestId = useRef(0);
   const processedImageUrlRef = useRef<string | null>(null);
+
   const widthCm = Number(canvasSettings.widthCm) || 0;
   const heightCm = Number(canvasSettings.heightCm) || 0;
-  const selectedImage = showProcessedImage && processedImageUrl ? processedImageUrl : imageSrc;
-  const rulerWidthMarks = createRulerMarks(widthCm);
-  const rulerHeightMarks = createRulerMarks(heightCm);
+  const safeWidthCm = Math.max(0.1, widthCm);
+  const safeHeightCm = Math.max(0.1, heightCm);
+  const selectedImage =
+    showProcessedImage && processedImageUrl ? processedImageUrl : imageSrc;
+
+  const widthSteps = getRulerSteps(safeWidthCm);
+  const heightSteps = getRulerSteps(safeHeightCm);
+  const rulerWidthMarks = createRulerMarks(safeWidthCm, widthSteps.labelStep);
+  const rulerHeightMarks = createRulerMarks(safeHeightCm, heightSteps.labelStep);
 
   useEffect(() => {
     if (!uploadedAssetId) return;
@@ -185,6 +300,7 @@ export function DesignerEasyModePage() {
 
   const handleImproveContrast = async () => {
     if (!sourceFile || isProcessing) return;
+
     const requestId = ++processingRequestId.current;
     setIsProcessing(true);
     setProcessingError(null);
@@ -192,16 +308,20 @@ export function DesignerEasyModePage() {
     try {
       const result = await processArtworkImage(sourceFile, { contrast: 110 });
       const resultUrl = URL.createObjectURL(result.blob);
+
       if (requestId !== processingRequestId.current) {
         URL.revokeObjectURL(resultUrl);
         return;
       }
+
       replaceProcessedImage(resultUrl);
       setProcessedDimensions({ width: result.width, height: result.height });
       setShowProcessedImage(true);
     } catch (error) {
       if (requestId === processingRequestId.current) {
-        setProcessingError(error instanceof Error ? error.message : 'No se pudo procesar la imagen.');
+        setProcessingError(
+          error instanceof Error ? error.message : 'No se pudo procesar la imagen.',
+        );
       }
     } finally {
       if (requestId === processingRequestId.current) setIsProcessing(false);
@@ -212,11 +332,20 @@ export function DesignerEasyModePage() {
     setCanvasSettings((current) => {
       const next = { ...current, [axis]: value };
       const parsedValue = Number(value);
+
       if (!keepRatio || !Number.isFinite(parsedValue) || parsedValue <= 0) return next;
+
       if (axis === 'widthCm') next.heightCm = (parsedValue / canvasRatio).toFixed(1);
       else next.widthCm = (parsedValue * canvasRatio).toFixed(1);
+
       return next;
     });
+  };
+
+  const stepDimension = (axis: 'widthCm' | 'heightCm', direction: 1 | -1) => {
+    const current = Number(canvasSettings[axis]) || 0;
+    const next = Math.max(0.1, Number((current + direction).toFixed(1)));
+    handleDimensionChange(axis, next.toString());
   };
 
   const handleRatioToggle = () => {
@@ -231,6 +360,16 @@ export function DesignerEasyModePage() {
     }
   };
 
+  const stepDpi = (direction: 1 | -1) => handleDpiChange(String(canvasSettings.dpi + direction * 10));
+
+  const handleBackgroundSelect = (option: BackgroundOption) => {
+    setCanvasSettings((current) => ({
+      ...current,
+      background: option.background,
+      backgroundColor: option.color ?? current.backgroundColor,
+    }));
+  };
+
   const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     event.preventDefault();
     setIsDraggingFile(false);
@@ -238,117 +377,226 @@ export function DesignerEasyModePage() {
     if (file) loadFile(file);
   };
 
-  const canvasAspectRatio = Math.max(0.01, widthCm / Math.max(0.1, heightCm));
+  const canvasAspectRatio = Math.max(0.01, safeWidthCm / safeHeightCm);
+
   const canvasFrameStyle = {
-    aspectRatio: `${Math.max(1, widthCm)} / ${Math.max(1, heightCm)}`,
-    width: `min(100%, calc((100vh - 128px) * ${canvasAspectRatio}))`,
-    maxHeight: 'calc(100vh - 128px)',
+    aspectRatio: `${safeWidthCm} / ${safeHeightCm}`,
+    width: `min(100cqw, calc(100cqh * ${canvasAspectRatio}))`,
   };
+
   const canvasStyle = {
     backgroundColor: getCanvasColor(canvasSettings),
     backgroundImage:
       canvasSettings.background === 'transparent'
-        ? 'linear-gradient(45deg, #e4e6eb 25%, transparent 25%), linear-gradient(-45deg, #e4e6eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e4e6eb 75%), linear-gradient(-45deg, transparent 75%, #e4e6eb 75%)'
+        ? 'linear-gradient(45deg, #e8eaee 25%, transparent 25%), linear-gradient(-45deg, #e8eaee 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e8eaee 75%), linear-gradient(-45deg, transparent 75%, #e8eaee 75%)'
         : undefined,
-    backgroundSize: canvasSettings.background === 'transparent' ? '20px 20px' : undefined,
-    backgroundPosition: canvasSettings.background === 'transparent' ? '0 0, 0 10px, 10px -10px, -10px 0px' : undefined,
+    backgroundSize: canvasSettings.background === 'transparent' ? '24px 24px' : undefined,
+    backgroundPosition:
+      canvasSettings.background === 'transparent'
+        ? '0 0, 0 12px, 12px -12px, -12px 0px'
+        : undefined,
   };
 
+  const horizontalTicksStyle = {
+    backgroundImage: `linear-gradient(90deg, ${TICK_COLOR} 1px, transparent 1px), linear-gradient(90deg, ${TICK_COLOR} 1px, transparent 1px)`,
+    backgroundSize: `${(widthSteps.tickStep / safeWidthCm) * 100}% 5px, ${(widthSteps.labelStep / safeWidthCm) * 100}% 9px`,
+    backgroundPosition: 'left bottom, left bottom',
+    backgroundRepeat: 'repeat-x',
+  };
+
+  const verticalTicksStyle = {
+    backgroundImage: `linear-gradient(180deg, ${TICK_COLOR} 1px, transparent 1px), linear-gradient(180deg, ${TICK_COLOR} 1px, transparent 1px)`,
+    backgroundSize: `5px ${(heightSteps.tickStep / safeHeightCm) * 100}%, 9px ${(heightSteps.labelStep / safeHeightCm) * 100}%`,
+    backgroundPosition: 'right top, right top',
+    backgroundRepeat: 'repeat-y',
+  };
+
+  // ─── Render ───────────────────────────────────────────────────────────────
+
   return (
-    <div className="flex h-screen max-h-screen w-screen max-w-[100vw] flex-col overflow-hidden bg-[#f3f4f6] font-sans text-[#171923]">
-      <header className="z-20 flex h-16 min-h-16 shrink-0 flex-nowrap items-center gap-3 overflow-x-auto border-b border-[#e7e8ec] bg-white px-4 py-2">
-        <Link to="/designer/easy" aria-label="PrintShop, modo básico" className="flex shrink-0 items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-[9px] bg-[#5848f4] text-lg font-semibold text-white shadow-sm">P</span>
-          <span className="text-[18px] font-semibold tracking-[-0.04em] text-[#151720]">PrintShop</span>
-        </Link>
+    /* Shell: full viewport, no scroll global */
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-[#f0f1f4] font-sans text-[#171923]">
 
-        <nav aria-label="Menú del editor" className="hidden shrink-0 items-center gap-4 text-sm font-medium text-[#596070] md:flex">
-          <span>Archivo</span>
-          <span>Editar</span>
-          <span>Ver</span>
-        </nav>
+      {/* ══════════════════════════════════════════════════════════
+          HEADER — altura compacta ~56px como en la referencia
+      ══════════════════════════════════════════════════════════ */}
+      <header className="z-20 flex h-14 min-h-14 shrink-0 items-center border-b border-[#e3e5ea] bg-white px-4">
 
-        <label className="relative mx-auto flex h-11 w-[210px] shrink-0 items-center gap-2 rounded-[12px] border border-[#e1e3e9] bg-white px-3">
-          <Shirt className="h-5 w-5 shrink-0 text-[#5146f5]" strokeWidth={2} />
-          <span className="min-w-0 flex-1">
-            <span className="block whitespace-nowrap text-[10px] leading-3 text-[#9298a5]">Técnica de estampado</span>
-            <select
-              aria-label="Técnica de estampado"
-              value={technique}
-              onChange={(event) => setTechnique(event.target.value)}
-              className="w-full appearance-none bg-transparent text-sm font-semibold leading-4 text-[#171923] outline-none"
+        {/* Izquierda: logo + menú */}
+        <div className="flex min-w-0 shrink-0 items-center gap-5">
+          <Link
+            to="/designer/easy"
+            aria-label="PrintShop, modo básico"
+            className="flex shrink-0 items-center gap-2"
+          >
+            <span className="flex h-7 w-7 items-center justify-center rounded-[7px] bg-[#4f46f5] text-[15px] font-bold text-white">
+              P
+            </span>
+            <span className="text-[15px] font-semibold tracking-[-0.02em] text-[#151720]">
+              PrintShop
+            </span>
+          </Link>
+
+          <nav
+            aria-label="Menú del editor"
+            className="hidden items-center gap-5 text-[13px] font-medium text-[#555c69] sm:flex"
+          >
+            <button type="button" className="transition-colors hover:text-[#171923]">
+              Archivo
+            </button>
+            <button type="button" className="transition-colors hover:text-[#171923]">
+              Editar
+            </button>
+            <button type="button" className="transition-colors hover:text-[#171923]">
+              Ver
+            </button>
+          </nav>
+        </div>
+
+        {/* Centro: selector de técnica */}
+        <div className="mx-4 flex min-w-0 flex-1 justify-center">
+          <label className="flex h-10 w-[220px] max-w-full shrink-0 items-center gap-2.5 rounded-xl border border-[#dfe2e8] bg-white px-3 shadow-[0_1px_2px_rgba(24,28,38,0.04)]">
+            <Shirt className="h-5 w-5 shrink-0 text-[#4f46f5]" strokeWidth={1.9} />
+            <span className="min-w-0 flex-1">
+              <span className="block whitespace-nowrap text-[10px] leading-none text-[#8f95a2]">
+                Técnica de estampado
+              </span>
+              <select
+                aria-label="Técnica de estampado"
+                value={technique}
+                onChange={(event) => setTechnique(event.target.value)}
+                className="w-full appearance-none bg-transparent text-[14px] font-semibold leading-5 text-[#171923] outline-none"
+              >
+                <option value="dtf">DTF</option>
+              </select>
+            </span>
+            <ChevronDown className="h-4 w-4 shrink-0 text-[#555c69]" />
+          </label>
+        </div>
+
+        {/* Derecha: controles */}
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Undo / Redo */}
+          <div className="flex items-center gap-0.5">
+            <button
+              type="button"
+              disabled
+              aria-label="Deshacer no disponible"
+              title="Deshacer no está disponible en Modo Básico."
+              className="rounded-lg p-1.5 text-[#b0b5bf] disabled:cursor-not-allowed"
             >
-              <option value="dtf">DTF</option>
-            </select>
-          </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-[#171923]" />
-        </label>
+              <Undo2 className="h-[18px] w-[18px]" />
+            </button>
+            <button
+              type="button"
+              disabled
+              aria-label="Rehacer no disponible"
+              title="Rehacer no está disponible en Modo Básico."
+              className="rounded-lg p-1.5 text-[#b0b5bf] disabled:cursor-not-allowed"
+            >
+              <Redo2 className="h-[18px] w-[18px]" />
+            </button>
+          </div>
 
-        <div className="flex shrink-0 items-center gap-1">
-          <button type="button" disabled aria-label="Deshacer no disponible" title="Deshacer no está disponible en Modo Básico." className="rounded-lg p-1.5 text-[#aeb2bd] disabled:cursor-not-allowed">
-            <Undo2 className="h-5 w-5" />
-          </button>
-          <button type="button" disabled aria-label="Rehacer no disponible" title="Rehacer no está disponible en Modo Básico." className="rounded-lg p-1.5 text-[#aeb2bd] disabled:cursor-not-allowed">
-            <Redo2 className="h-5 w-5" />
-          </button>
-          <button type="button" disabled aria-label="Zoom al 100%" className="ml-1 flex h-9 items-center gap-2 rounded-full border border-[#e7e8ed] px-3 text-sm font-medium text-[#626977] opacity-70">
-            <Focus className="h-4 w-4" />
+          {/* Zoom */}
+          <button
+            type="button"
+            disabled
+            aria-label="Zoom al 100%"
+            className="flex h-8 w-[90px] items-center justify-center gap-1.5 rounded-lg border border-[#e2e5eb] bg-[#f6f7f9] text-[13px] font-medium text-[#555d6b] disabled:cursor-not-allowed"
+          >
+            <Search className="h-3.5 w-3.5" />
             100%
             <ChevronDown className="h-3.5 w-3.5" />
           </button>
-          <button type="button" disabled aria-label="Herramienta mano no disponible" title="La navegación de lienzo no está disponible en Modo Básico." className="rounded-full border border-[#e7e8ed] p-2 text-[#aeb2bd] disabled:cursor-not-allowed">
-            <Hand className="h-5 w-5" />
-          </button>
-        </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+          {/* Herramienta mano */}
+          <button
+            type="button"
+            disabled
+            aria-label="Herramienta mano no disponible"
+            title="La navegación de lienzo no está disponible en Modo Básico."
+            className="flex h-8 w-9 items-center justify-center rounded-lg border border-[#e2e5eb] bg-[#f6f7f9] text-[#555c69] disabled:cursor-not-allowed"
+          >
+            <Hand className="h-4 w-4" />
+          </button>
+
+          {/* Descargar PNG */}
           <button
             type="button"
             disabled
             title="La exportación todavía no está disponible."
-            className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[12px] border border-[#e7e8ed] bg-[#fafbfc] px-3 text-sm font-semibold text-[#171923] opacity-50 disabled:cursor-not-allowed"
+            className="hidden h-8 items-center justify-center whitespace-nowrap rounded-lg border border-[#e2e5eb] bg-[#f4f5f7] px-4 text-[13px] font-semibold text-[#242832] disabled:cursor-not-allowed sm:flex"
           >
-            <Download className="h-4 w-4" />
             Descargar PNG
           </button>
+
+          {/* Descargar PDF */}
           <button
             type="button"
             disabled
             title="La exportación todavía no está disponible."
-            className="flex h-9 items-center gap-2 whitespace-nowrap rounded-[12px] bg-[#5848f4] px-3 text-sm font-semibold text-white opacity-50 disabled:cursor-not-allowed"
+            className="hidden h-8 items-center justify-center whitespace-nowrap rounded-lg bg-[#4f46f5] px-4 text-[13px] font-semibold text-white disabled:cursor-not-allowed lg:flex"
           >
-            <Download className="h-4 w-4" />
             Descargar PDF
           </button>
-          <button type="button" disabled aria-label="Más opciones no disponible" className="hidden rounded-lg p-2 text-[#8c92a0] opacity-60 sm:block">
-            <MoreVertical className="h-5 w-5" />
+
+          {/* Más opciones */}
+          <button
+            type="button"
+            disabled
+            aria-label="Más opciones no disponible"
+            className="rounded-lg p-1 text-[#555c69] disabled:cursor-not-allowed"
+          >
+            <MoreVertical className="h-[18px] w-[18px]" />
           </button>
         </div>
       </header>
 
-      <div className="grid min-h-0 min-w-0 flex-1 grid-cols-[60px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)_minmax(160px,35vh)] lg:grid-cols-[76px_minmax(0,1fr)_320px] lg:grid-rows-1">
-        <nav aria-label="Herramientas de Modo Básico" className="col-start-1 row-span-2 row-start-1 flex min-h-0 flex-col items-center gap-2 overflow-y-auto border-r border-[#e7e8ec] bg-white px-1.5 py-3 lg:px-2">
-          <button type="button" onClick={() => fileInputRef.current?.click()} className="flex w-full shrink-0 flex-col items-center gap-1 rounded-[11px] bg-[#f1f0ff] px-1 py-2 text-[#5146f5]">
-            <CloudUpload className="h-6 w-6" strokeWidth={2} />
+      {/* ══════════════════════════════════════════════════════════
+          BODY — toolbar + panel + workspace
+      ══════════════════════════════════════════════════════════ */}
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+
+        {/* ─── SIDEBAR TOOLBAR ─── ~80px de ancho como en la referencia */}
+        <nav
+          aria-label="Herramientas de Modo Básico"
+          className="flex w-[80px] min-w-[80px] shrink-0 flex-col items-center gap-1 overflow-y-auto border-r border-[#e3e5ea] bg-white py-2"
+        >
+          {/* Archivo — activo (highlighted) */}
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            className="flex w-[64px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl bg-[#eeedff] py-3 text-[#4f46f5]"
+          >
+            <CloudUpload className="h-6 w-6" strokeWidth={1.8} />
             <span className="text-[11px] font-medium">Archivo</span>
           </button>
+
+          {/* Herramientas inactivas */}
           {unavailableTools.map(({ label, icon: Icon }) => (
             <button
               key={label}
               type="button"
               disabled
               title={`${label} no está disponible en Modo Básico.`}
-              className="flex w-full shrink-0 flex-col items-center gap-1 rounded-[11px] px-1 py-2 text-[#586071] opacity-80 disabled:cursor-not-allowed"
+              className="flex w-[64px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-xl py-3 text-[#6b717e] disabled:cursor-not-allowed"
             >
-              <Icon className="h-6 w-6" strokeWidth={1.8} />
-              <span className="text-[11px] font-medium">{label}</span>
+              <Icon className="h-6 w-6" strokeWidth={1.6} />
+              <span className="text-[11px] font-medium text-[#8b919e]">{label}</span>
             </button>
           ))}
         </nav>
 
-        <aside className="col-start-2 row-start-2 min-h-0 min-w-0 overflow-y-auto border-t border-[#e7e8ec] bg-white px-4 py-3 lg:col-start-3 lg:row-start-1 lg:border-l lg:border-t-0">
-          <section>
-            <h1 className="mb-4 text-[19px] font-semibold tracking-[-0.03em] text-[#171923]">Agregar imagen</h1>
+        {/* ─── PANEL LATERAL DE PROPIEDADES ─── ~300px de ancho */}
+        <aside className="flex w-[300px] min-w-[260px] shrink-0 flex-col overflow-y-auto border-r border-[#e3e5ea] bg-white">
+
+          {/* ── Agregar imagen ── */}
+          <div className="px-5 pb-4 pt-5">
+            <h1 className="mb-3 text-[15px] font-semibold tracking-[-0.01em] text-[#171923]">
+              Agregar imagen
+            </h1>
+
             <div
               onDragOver={(event) => {
                 event.preventDefault();
@@ -356,224 +604,319 @@ export function DesignerEasyModePage() {
               }}
               onDragLeave={() => setIsDraggingFile(false)}
               onDrop={handleDrop}
-              className={`flex min-h-[222px] flex-col items-center justify-center rounded-[14px] border border-dashed px-4 py-5 text-center transition-colors ${
-                isDraggingFile ? 'border-[#5146f5] bg-[#f6f5ff]' : 'border-[#d9dce4] bg-white'
+              className={`flex min-h-[160px] flex-col items-center justify-center rounded-2xl border border-dashed px-4 py-5 text-center transition-colors ${
+                isDraggingFile
+                  ? 'border-[#4f46f5] bg-[#f6f5ff]'
+                  : 'border-[#d0d4dc] bg-[#fafafa]'
               }`}
             >
-              <CloudUpload className="mb-2 h-9 w-9 text-[#151923]" strokeWidth={1.7} />
-              <p className="text-sm font-semibold text-[#171923]">{sourceFile ? sourceFile.name : 'Sube una imagen'}</p>
-              <p className="mt-1 text-xs text-[#9096a4]">JPG, PNG o SVG (máx. 50MB)</p>
+              <CloudUpload className="mb-2 h-8 w-8 text-[#2a2f3a]" strokeWidth={1.5} />
+              <p className="max-w-full truncate text-[13px] font-semibold text-[#171923]">
+                {sourceFile ? sourceFile.name : 'Sube una imagen'}
+              </p>
+              <p className="mt-0.5 text-[11px] text-[#9aa0ab]">JPG, PNG o SVG (máx. 50MB)</p>
+
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="mt-4 flex h-11 items-center gap-2 rounded-[16px] border border-[#e0e3e9] bg-[#fafbfc] px-5 text-sm font-semibold text-[#171923] shadow-[0_1px_3px_rgba(20,24,40,0.04)] transition-colors hover:bg-[#f5f6f8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5146f5]"
+                className="mt-3 flex h-9 items-center justify-center rounded-lg border border-[#dfe2e9] bg-white px-5 text-[13px] font-semibold text-[#222630] transition-colors hover:bg-[#f0f1f4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46f5]"
               >
-                <ImagePlus className="h-4 w-4" />
                 Seleccionar archivo
               </button>
             </div>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
-            {processingError && <p role="alert" className="mt-2 text-xs text-danger">{processingError}</p>}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleFileChange}
+            />
+
+            {processingError && (
+              <p role="alert" className="mt-2 text-[11px] text-red-600">
+                {processingError}
+              </p>
+            )}
+
             {sourceFile && (
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+              <div className="mt-2.5 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
                   onClick={handleImproveContrast}
                   disabled={isProcessing}
-                  className="flex h-9 items-center gap-2 rounded-[12px] border border-[#e0e3e9] bg-white px-3 text-xs font-semibold text-[#282c36] hover:bg-[#f7f8fa] disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-8 items-center gap-1.5 rounded-lg border border-[#e0e3e9] bg-white px-3 text-[11px] font-semibold text-[#282c36] hover:bg-[#f7f8fa] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <Sparkles className="h-4 w-4 text-[#5146f5]" />
+                  <Sparkles className="h-3.5 w-3.5 text-[#4f46f5]" />
                   {isProcessing ? 'Procesando…' : 'Mejorar contraste'}
                 </button>
+
                 {processedImageUrl && (
                   <button
                     type="button"
                     onClick={() => setShowProcessedImage((current) => !current)}
                     aria-pressed={showProcessedImage}
-                    className="flex h-9 items-center gap-2 rounded-[12px] border border-[#e0e3e9] bg-white px-3 text-xs font-semibold text-[#282c36] hover:bg-[#f7f8fa]"
+                    className="flex h-8 items-center gap-1.5 rounded-lg border border-[#e0e3e9] bg-white px-3 text-[11px] font-semibold text-[#282c36] hover:bg-[#f7f8fa]"
                   >
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-3.5 w-3.5" />
                     {showProcessedImage ? 'Ver original' : 'Ver resultado'}
                   </button>
                 )}
+
                 {processedDimensions && (
-                  <span className="w-full text-center text-xs text-[#697181]">
+                  <span className="w-full pt-0.5 text-[11px] text-[#697181]">
                     PNG procesado · {processedDimensions.width} × {processedDimensions.height} px
                   </span>
                 )}
-                {isProcessing && <span role="status" className="w-full text-center text-xs text-[#697181]">Procesando imagen en segundo plano…</span>}
+
+                {isProcessing && (
+                  <span role="status" className="w-full pt-0.5 text-[11px] text-[#697181]">
+                    Procesando imagen en segundo plano…
+                  </span>
+                )}
               </div>
             )}
-          </section>
+          </div>
 
-          <section className="mt-6 border-t border-[#e8e9ed] pt-5">
-            <h2 className="mb-5 text-[17px] font-semibold tracking-[-0.025em] text-[#171923]">Fondo del lienzo</h2>
-            <div className="flex items-center gap-3">
-              {backgroundOptions.map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  aria-label={option.label}
-                  aria-pressed={canvasSettings.background === option.id}
-                  title={option.label}
-                  onClick={() => setCanvasSettings((current) => ({ ...current, background: option.id }))}
-                  className={`flex h-[54px] w-[54px] shrink-0 items-center justify-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5146f5] focus-visible:ring-offset-2 ${
-                    canvasSettings.background === option.id ? 'border-[#5a4aff]' : 'border-[#eceef2]'
-                  }`}
-                >
-                  <span
-                    className={`h-[46px] w-[46px] rounded-full border border-[#e8e9ed] ${
-                      option.id === 'transparent' ? 'bg-[linear-gradient(45deg,#e1e3e8_25%,transparent_25%),linear-gradient(-45deg,#e1e3e8_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e1e3e8_75%),linear-gradient(-45deg,transparent_75%,#e1e3e8_75%)] [background-position:0_0,0_7px,7px_-7px,-7px_0] [background-size:14px_14px]' : ''
-                    } ${option.id === 'white' ? 'bg-white' : ''}`}
-                    style={option.id === 'color' ? { backgroundColor: canvasSettings.backgroundColor } : undefined}
-                  />
-                </button>
-              ))}
+          {/* ── Fondo del lienzo ── */}
+          <section className="border-t border-[#e8e9ed] px-5 pb-4 pt-4">
+            <h2 className="mb-3 text-[14px] font-semibold tracking-[-0.01em] text-[#171923]">
+              Fondo del lienzo
+            </h2>
+
+            <div className="flex items-center gap-2">
+              {backgroundOptions.map((option) => {
+                const selected = isBackgroundSelected(canvasSettings, option);
+
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    aria-label={option.label}
+                    aria-pressed={selected}
+                    title={option.label}
+                    onClick={() => handleBackgroundSelect(option)}
+                    className={`flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46f5] focus-visible:ring-offset-2 ${
+                      selected ? 'border-[#5a4aff]' : 'border-transparent'
+                    }`}
+                  >
+                    <span
+                      className={`h-9 w-9 rounded-full border border-[#dde0e7] ${
+                        option.id === 'transparent'
+                          ? 'bg-[linear-gradient(45deg,#e1e3e8_25%,transparent_25%),linear-gradient(-45deg,#e1e3e8_25%,transparent_25%),linear-gradient(45deg,transparent_75%,#e1e3e8_75%),linear-gradient(-45deg,transparent_75%,#e1e3e8_75%)] [background-position:0_0,0_6px,6px_-6px,-6px_0] [background-size:12px_12px]'
+                          : ''
+                      } ${option.id === 'white' ? 'bg-white' : ''}`}
+                      style={option.color ? { backgroundColor: option.color } : undefined}
+                    />
+                  </button>
+                );
+              })}
             </div>
           </section>
 
-          <section className="mt-6 border-t border-[#e8e9ed] pt-5">
-            <h2 className="mb-4 text-[17px] font-semibold tracking-[-0.025em] text-[#171923]">Lienzo</h2>
-            <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-              <label className="min-w-0 text-xs text-[#717887]">
-                Ancho (cm)
-                <input
-                  type="number"
+          {/* ── Lienzo ── */}
+          <section className="border-t border-[#e8e9ed] px-5 pb-5 pt-4">
+            <h2 className="mb-3 text-[14px] font-semibold tracking-[-0.01em] text-[#171923]">
+              Lienzo
+            </h2>
+
+            {/* Ancho / Alto */}
+            <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-1.5">
+              <label className="min-w-0 text-[12px] text-[#717887]">
+                <span className="mb-1.5 block">Ancho (cm)</span>
+                <SteppedInput
+                  label="Ancho"
                   min="0.1"
                   step="0.1"
                   value={canvasSettings.widthCm}
-                  onChange={(event) => handleDimensionChange('widthCm', event.target.value)}
-                  className="mt-2 h-12 w-full rounded-[14px] border border-[#e0e3e9] bg-white px-3 text-sm font-medium text-[#171923] outline-none focus:border-[#6355f5] focus:ring-2 focus:ring-[#6355f5]/15"
+                  onChange={(value) => handleDimensionChange('widthCm', value)}
+                  onStep={(direction) => stepDimension('widthCm', direction)}
                 />
               </label>
+
               <button
                 type="button"
                 aria-label={keepRatio ? 'Desbloquear proporción' : 'Mantener proporción'}
                 aria-pressed={keepRatio}
                 onClick={handleRatioToggle}
-                className={`mb-3 rounded-md p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5146f5] ${
-                  keepRatio ? 'text-[#5146f5]' : 'text-[#7f8695]'
+                className={`mb-2 rounded-md p-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46f5] ${
+                  keepRatio ? 'text-[#4f46f5]' : 'text-[#9aa0ab]'
                 }`}
               >
-                <Link2 className="h-5 w-5" />
+                <Link2 className="h-4 w-4" />
               </button>
-              <label className="min-w-0 text-xs text-[#717887]">
-                Alto (cm)
-                <input
-                  type="number"
+
+              <label className="min-w-0 text-[12px] text-[#717887]">
+                <span className="mb-1.5 block">Alto (cm)</span>
+                <SteppedInput
+                  label="Alto"
                   min="0.1"
                   step="0.1"
                   value={canvasSettings.heightCm}
-                  onChange={(event) => handleDimensionChange('heightCm', event.target.value)}
-                  className="mt-2 h-12 w-full rounded-[14px] border border-[#e0e3e9] bg-white px-3 text-sm font-medium text-[#171923] outline-none focus:border-[#6355f5] focus:ring-2 focus:ring-[#6355f5]/15"
+                  onChange={(value) => handleDimensionChange('heightCm', value)}
+                  onStep={(direction) => stepDimension('heightCm', direction)}
                 />
               </label>
             </div>
-            <label className="mt-5 block text-xs text-[#717887]">
-              Resolución
-              <span className="mt-2 grid grid-cols-[1fr_112px] gap-3">
-                <input
-                  type="number"
+
+            {/* Resolución */}
+            <div className="mt-3 text-[12px] text-[#717887]">
+              <span className="mb-1.5 block">Resolución</span>
+              <div className="grid grid-cols-[1fr_80px] gap-2">
+                <SteppedInput
+                  label="Resolución"
                   min="72"
                   max="2400"
+                  step="1"
                   value={canvasSettings.dpi}
-                  onChange={(event) => handleDpiChange(event.target.value)}
-                  className="h-12 min-w-0 rounded-[14px] border border-[#e0e3e9] bg-white px-3 text-sm font-medium text-[#171923] outline-none focus:border-[#6355f5] focus:ring-2 focus:ring-[#6355f5]/15"
+                  onChange={handleDpiChange}
+                  onStep={stepDpi}
                 />
-                <span className="flex h-12 items-center justify-between rounded-[14px] border border-[#e0e3e9] bg-white px-3 text-sm text-[#465063]">
+                <span className="flex h-9 items-center justify-between rounded-lg border border-[#dfe2e9] bg-white px-3 text-[13px] text-[#465063]">
                   DPI
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-3.5 w-3.5 text-[#9aa0ab]" />
                 </span>
-              </span>
-            </label>
+              </div>
+            </div>
           </section>
-
         </aside>
 
-        <main aria-label="Área de trabajo del lienzo" className="col-start-2 row-start-1 flex min-h-0 min-w-0 flex-col overflow-hidden bg-[#f3f4f6]">
-          <div className="relative flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-hidden px-10 py-8 sm:px-12">
-            <div className="relative flex shrink-0 items-center justify-center" style={canvasFrameStyle}>
-              <div className="absolute -top-7 left-0 flex w-full justify-between text-[11px] text-[#727988]">
-              <span>cm</span>
-              {rulerWidthMarks.map((mark) => <span key={mark}>{mark}</span>)}
-              </div>
-              <div
-                aria-hidden="true"
-                className="absolute -top-4 left-0 h-2 w-full border-b border-[#b8bdc7]"
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(90deg, #858c99 0 1px, transparent 1px 12px)',
-                  backgroundPosition: '0 bottom',
-                  backgroundSize: '100% 7px',
-                  backgroundRepeat: 'no-repeat',
-                }}
-              />
+        {/* ─── WORKSPACE (área principal) ─── */}
+        <main
+          aria-label="Área de trabajo del lienzo"
+          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#e9eaee]"
+        >
+          {/*
+            Distribución del workspace:
+            - Fila superior: esquina (20×20) + regla horizontal
+            - Columna izquierda: regla vertical (20px ancho)
+            - Centro: área de desplazamiento del canvas
+            - Columna derecha: controles de zoom flotantes
+          */}
 
-              <div className="absolute -left-7 top-0 flex h-full flex-col items-end justify-between pr-1 text-[11px] text-[#727988]">
-                {rulerHeightMarks.map((mark) => <span key={mark}>{mark}</span>)}
-              </div>
+          {/* Regla horizontal: banda gris con marcas */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute left-0 right-0 top-0 z-10 flex h-5 border-b border-[#d4d6db] bg-[#f0f1f4] select-none"
+          >
+            {/* Esquina */}
+            <div className="h-5 w-5 shrink-0 border-r border-[#d4d6db] bg-[#f0f1f4]" />
+            {/* Regla horizontal — usa el mismo canvas container para proporciones */}
+            <div className="relative flex-1 overflow-hidden text-[9px] text-[#8b919e]">
+              <span className="absolute left-1 top-0 text-[9px] leading-5 text-[#9aa0ab]">cm</span>
+              {rulerWidthMarks.map((mark) => (
+                <span
+                  key={mark}
+                  className="absolute top-0 -translate-x-1/2 leading-5"
+                  style={{ left: `${(mark / safeWidthCm) * 100}%` }}
+                >
+                  {mark}
+                </span>
+              ))}
+              {/* Ticks */}
               <div
-                aria-hidden="true"
-                className="absolute -left-4 top-0 h-full w-2 border-r border-[#b8bdc7]"
-                style={{
-                  backgroundImage: 'repeating-linear-gradient(180deg, #858c99 0 1px, transparent 1px 12px)',
-                  backgroundPosition: 'right top',
-                  backgroundSize: '7px 100%',
-                  backgroundRepeat: 'no-repeat',
-                }}
+                className="absolute inset-0"
+                style={horizontalTicksStyle}
               />
+            </div>
+          </div>
 
+          {/* Regla vertical: banda izquierda con marcas */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-0 left-0 top-5 z-10 w-5 border-r border-[#d4d6db] bg-[#f0f1f4] select-none"
+          >
+            <div className="relative h-full overflow-hidden text-[9px] text-[#8b919e]">
+              {rulerHeightMarks.map((mark) => (
+                <span
+                  key={mark}
+                  className="absolute right-0.5 -translate-y-1/2 leading-3"
+                  style={{
+                    top: `${(mark / safeHeightCm) * 100}%`,
+                    writingMode: 'horizontal-tb',
+                  }}
+                >
+                  {mark}
+                </span>
+              ))}
+              {/* Ticks */}
               <div
-                role="img"
-                aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
-                className="relative z-10 flex h-full w-full items-center justify-center overflow-hidden bg-white shadow-[0_3px_12px_rgba(26,30,43,0.12)]"
-                style={canvasStyle}
-              >
-                {selectedImage && (
-                  <img
-                    src={selectedImage}
-                    alt={processedImageUrl && showProcessedImage ? 'Imagen con contraste procesado' : 'Imagen subida al lienzo'}
-                    className="h-full w-full select-none object-contain"
-                    draggable={false}
-                  />
-                )}
+                className="absolute inset-0"
+                style={verticalTicksStyle}
+              />
+            </div>
+          </div>
+
+          {/* Canvas scroll area — dentro de las reglas */}
+          <div
+            className="absolute bottom-0 left-5 right-0 top-5 overflow-auto"
+          >
+            <div
+              className="flex h-full w-full items-start justify-center p-8"
+              style={{ containerType: 'size' }}
+            >
+              <div className="relative shrink-0" style={canvasFrameStyle}>
+                {/* Canvas */}
+                <div
+                  role="img"
+                  aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
+                  className="relative z-10 flex h-full w-full items-center justify-center overflow-hidden shadow-[0_4px_20px_rgba(26,30,43,0.14)]"
+                  style={canvasStyle}
+                >
+                  {selectedImage && (
+                    <img
+                      src={selectedImage}
+                      alt={
+                        processedImageUrl && showProcessedImage
+                          ? 'Imagen con contraste procesado'
+                          : 'Imagen subida al lienzo'
+                      }
+                      className="h-full w-full select-none object-contain"
+                      draggable={false}
+                    />
+                  )}
+                </div>
               </div>
             </div>
+          </div>
 
-            <div className="absolute right-3 top-3 z-10 flex flex-col items-center gap-1 rounded-[13px] bg-white p-1.5 shadow-[0_5px_18px_rgba(25,30,44,0.12)]">
-              <button type="button" disabled aria-label="Ajustar lienzo a pantalla no disponible" title="Ajuste de viewport no disponible en Modo Básico." className="rounded-lg p-2.5 text-[#737a89] opacity-60 disabled:cursor-not-allowed">
-                <Focus className="h-5 w-5" />
-              </button>
-              <button type="button" disabled aria-label="Acercar no disponible" className="rounded-lg p-2.5 text-[#252a35] opacity-60 disabled:cursor-not-allowed">
-                <ZoomIn className="h-5 w-5" />
-              </button>
-              <button type="button" disabled aria-label="Alejar no disponible" className="rounded-lg p-2.5 text-[#252a35] opacity-60 disabled:cursor-not-allowed">
-                <ZoomOut className="h-5 w-5" />
-              </button>
-              <span className="my-1 h-px w-6 bg-[#e8e9ed]" />
-              <button type="button" disabled aria-label="Pantalla completa no disponible" className="rounded-lg p-2.5 text-[#252a35] opacity-60 disabled:cursor-not-allowed">
-                <Maximize className="h-5 w-5" />
-              </button>
-            </div>
-
+          {/* ── Controles de viewport (derecha) ── */}
+          <div className="absolute right-3 top-8 z-10 flex flex-col items-center gap-0.5 rounded-2xl border border-[#dde0e7] bg-white p-1.5 shadow-[0_4px_16px_rgba(25,30,44,0.08)]">
             <button
               type="button"
               disabled
-              aria-label="Descargar resultado"
-              title="La exportación de producción todavía no está disponible."
-              className="absolute bottom-3 right-3 z-10 flex h-9 items-center gap-2 rounded-[11px] border border-[#e0e3e9] bg-white px-3 text-xs font-semibold text-[#707786] opacity-60 disabled:cursor-not-allowed"
+              aria-label="Centrar lienzo no disponible"
+              title="Ajuste de viewport no disponible en Modo Básico."
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
             >
-              <Download className="h-4 w-4" />
-              Exportar
+              <Crosshair className="h-5 w-5" strokeWidth={1.7} />
+            </button>
+            <button
+              type="button"
+              disabled
+              aria-label="Acercar no disponible"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+            >
+              <ZoomIn className="h-5 w-5" strokeWidth={1.7} />
+            </button>
+            <button
+              type="button"
+              disabled
+              aria-label="Alejar no disponible"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+            >
+              <CircleMinus className="h-5 w-5" strokeWidth={1.7} />
+            </button>
+            <span className="my-1 h-px w-6 bg-[#e8e9ed]" />
+            <button
+              type="button"
+              disabled
+              aria-label="Pantalla completa no disponible"
+              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#555c69] disabled:cursor-not-allowed"
+            >
+              <Maximize className="h-5 w-5" strokeWidth={1.7} />
             </button>
           </div>
-
-          <footer className="flex min-h-8 flex-wrap items-center justify-between gap-2 border-t border-[#e1e3e8] bg-white px-4 py-1.5 text-[10px] text-[#737a88]">
-            <span>Designer 3 · Modo Básico</span>
-            <span className="flex items-center gap-2">
-              <Check className="h-3.5 w-3.5 text-[#4b9a76]" />
-              {processedImageUrl ? 'Contraste procesado' : sourceFile ? 'Imagen cargada' : 'Listo para agregar imagen'}
-            </span>
-          </footer>
         </main>
       </div>
     </div>
