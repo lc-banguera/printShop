@@ -791,16 +791,6 @@ export function DesignerEasyModePage() {
             <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
           </div>
 
-          {/* Herramienta mano */}
-          <button
-            type="button"
-            aria-label="Herramienta mano"
-            title="Herramienta mano"
-            className="flex h-[clamp(36px,2.63vw,44px)] w-[clamp(36px,2.63vw,44px)] shrink-0 items-center justify-center rounded-xl border border-[#e2e8f0] bg-white text-[#475569] shadow-xs hover:bg-[#f8fafc] transition-colors"
-          >
-            <Hand className="h-4 w-4" />
-          </button>
-
           {/* Descargar PNG */}
           <button
             type="button"
@@ -1213,39 +1203,50 @@ export function DesignerEasyModePage() {
             </div>
           </div>
 
-          {/* ── Controles flotantes en la parte superior derecha ── */}
-          <div className="absolute right-6 top-9 z-20 flex flex-col items-center gap-1 rounded-2xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_4px_20px_rgba(0,0,0,0.08)]">
+          {/* ── Controles flotantes inferiores del workspace ── */}
+          <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-xl border border-[#e2e8f0] bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+            <button
+              type="button"
+              aria-label="Herramienta mano"
+              title="Herramienta mano"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
+            >
+              <Hand className="h-4 w-4" />
+            </button>
             <button
               type="button"
               aria-label="Centrar lienzo"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
+              title="Centrar lienzo"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <Crosshair className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <button
               type="button"
               aria-label="Acercar"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
+              title="Acercar"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
             </button>
             <button
               type="button"
               aria-label="Alejar"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
+              title="Alejar"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
             </button>
-            <div className="my-0.5 h-px w-5 bg-[#e2e8f0]" />
+            <div aria-hidden="true" className="mx-0.5 h-5 w-px bg-[#e2e8f0]" />
             <button
               type="button"
               aria-label="Ajustar a pantalla"
-              className="flex h-9 w-9 items-center justify-center rounded-xl text-[#475569] hover:bg-[#f1f5f9] transition-colors"
+              title="Ajustar a pantalla"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <Maximize2 className="h-4 w-4" strokeWidth={1.8} />
             </button>
           </div>
-
         </main>
       </div>
     </div>
