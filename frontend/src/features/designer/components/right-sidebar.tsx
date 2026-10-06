@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { Pipette, Lock, Unlock } from 'lucide-react';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { useCanvasStore } from '@/store/canvas-store';
@@ -21,8 +21,8 @@ export function RightSidebar() {
   const setSelectedSize = useViewerStore((state) => state.setSelectedSize ?? (() => {}));
   const selectedPrintMethod = useViewerStore((state) => state.selectedPrintMethod ?? '');
   const setSelectedPrintMethod = useViewerStore((state) => state.setSelectedPrintMethod ?? (() => {}));
+  const setGarmentColorPickerOpen = useViewerStore((state) => state.setGarmentColorPickerOpen);
 
-  const colorInputRef = useRef<HTMLInputElement>(null);
   const [aspectLocked, setAspectLocked] = useState(true);
 
   // Read sizes and print methods from the active product definition.
@@ -54,29 +54,6 @@ export function RightSidebar() {
         '#ffffff',
       ]
     : [];
-
-  // EyeDropper API (Chromium 95+) with native color input as fallback.
-  // NOTE: The EyeDropper API allows sampling any pixel from the screen including
-  // outside the browser window. A custom magnifier loop is intentionally omitted
-  // because reliably capturing arbitrary screen regions via canvas/MediaCapture
-  // requires screen-share permission, which degrades the UX significantly.
-  // The native EyeDropper provides the best real-world sampling experience.
-  const handlePickColor = async () => {
-    if ('EyeDropper' in window) {
-      try {
-        const eyeDropper = new (window as any).EyeDropper();
-        const result = await eyeDropper.open();
-        if (result?.sRGBHex && selectedElement) {
-          updateElement(selectedElement.id, { fill: result.sRGBHex });
-        }
-      } catch {
-        // User cancelled picker – no action needed
-      }
-    } else {
-      // Fallback: open native <input type="color"> for browsers without EyeDropper API
-      colorInputRef.current?.click();
-    }
-  };
 
   const handleWidthChange = (valStr: string) => {
     const val = parseFloat(valStr);
@@ -221,25 +198,15 @@ export function RightSidebar() {
                   ))}
                 </div>
 
-                {/* Eyedropper / Color Picker Tool
-                    Uses native EyeDropper API (Chromium 95+) when available.
-                    Falls back to <input type="color"> for other browsers.
-                    A custom magnifier pixel-grid requires screen-capture permissions
-                    and is intentionally not implemented to preserve UX simplicity. */}
                 <button
                   type="button"
-                  onClick={handlePickColor}
+                  onClick={() => setGarmentColorPickerOpen(true)}
                   className="flex h-7 w-7 items-center justify-center rounded-[5px] border border-[#e4e4ee] bg-[#fafafc] text-[#5046e5] hover:bg-[#eeebff] transition-all cursor-pointer"
-                  title="Cuentagotas — seleccionar color exacto de la pantalla"
+                  title="Abrir selector de color de prenda"
+                  aria-label="Abrir selector de color de prenda"
                 >
                   <Pipette className="h-3.5 w-3.5" />
                 </button>
-                <input
-                  ref={colorInputRef}
-                  type="color"
-                  className="sr-only"
-                  onChange={(e) => updateElement(selectedElement.id, { fill: e.target.value })}
-                />
               </div>
             </div>
           )}
