@@ -11,7 +11,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import { categoriesData } from "@/features/landing/data/categories.data";
 import { Button } from "@/shared/ui/button";
@@ -121,44 +121,9 @@ export function DesignerBuilderPage() {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 bg-[#F4F5FB] px-4 py-7 sm:px-6 lg:px-7 xl:px-8">
-          <ol
-            className="mx-auto mb-7 flex max-w-4xl items-center justify-center gap-2 overflow-x-auto pb-1 sm:gap-4"
-            aria-label="Pasos de creación"
-          />
-
-          <section className="relative min-h-[220px] overflow-hidden bg-[#F4F5FB] px-6 py-7 sm:px-9 sm:py-8 lg:min-h-[248px] lg:pr-[36%]">
-            <div className="relative z-10 max-w-2xl">
-              <h1 className="text-4xl font-extrabold leading-[0.98] tracking-[-0.045em] text-foreground sm:text-5xl">
-                ¿Qué quieres{" "}
-                <span className="text-primary">diseñar?</span>
-              </h1>
-
-              <p className="mt-4 max-w-xl text-sm leading-6 text-foregroundMuted sm:text-base">
-                Selecciona un producto y comienza a crear un diseño único
-                desde cero. Luego podrás personalizarlo y guardar tu proyecto.
-              </p>
-            </div>
-
-            <Link
-              to="/designer/new"
-              aria-label="Ir a la selección de productos"
-              className="group absolute bottom-0 right-9 hidden w-[278px] rounded-[5px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 lg:block"
-            >
-              <img
-                src={categoriesData[0].image}
-                alt=""
-                className="h-[235px] w-full object-contain object-bottom transition-transform duration-normal group-hover:scale-[1.02]"
-                style={{
-                  maskImage: "radial-gradient(ellipse at center, black 52%, transparent 100%)",
-                  WebkitMaskImage: "radial-gradient(ellipse at center, black 52%, transparent 100%)",
-                }}
-              />
-            </Link>
-          </section>
-
-          <section className="mt-7" aria-labelledby="available-products">
-            <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+        <main className="min-w-0 flex-1 bg-[#F4F5FB] px-4 pb-4 pt-4 sm:px-6 lg:px-7 xl:px-8">
+          <section aria-label="Seleccionar producto">
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
               {filteredCategories.map((category) => {
                 const selected = category.id === selectedCategoryId;
 
@@ -168,13 +133,13 @@ export function DesignerBuilderPage() {
                     type="button"
                     aria-pressed={selected}
                     onClick={() => setSelectedCategoryId(category.id)}
-                    className={`group flex h-full flex-col overflow-hidden rounded-[5px] border bg-white text-left transition-all duration-normal hover:-translate-y-0.5 hover:shadow-card ${
+                    className={`group flex h-full flex-col overflow-hidden rounded-[5px] border bg-white text-left transition-all duration-normal hover:-translate-y-0.5 hover:shadow-subtle ${
                       selected
                         ? "border-primary"
                         : "border-borderMuted hover:border-borderStrong"
                     }`}
                   >
-                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-3.5 sm:p-4">
+                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-2">
                       <img
                         src={category.image}
                         alt=""
@@ -182,7 +147,7 @@ export function DesignerBuilderPage() {
                       />
                     </div>
 
-                    <div className="flex min-w-0 flex-1 flex-col bg-white p-3.5 pt-3">
+                    <div className="flex min-w-0 flex-1 flex-col bg-white p-2.5">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="line-clamp-1 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
                           {category.name}
@@ -208,7 +173,7 @@ export function DesignerBuilderPage() {
             </div>
 
             {selectedCategory && (
-              <div className="mt-5 flex flex-col gap-3 rounded-[5px] border border-border bg-surfaceMuted p-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="mt-3 flex flex-col gap-3 rounded-[5px] border border-border bg-white p-3 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm text-foregroundMuted">
                   {selectedCategory.id === "camisetas"
                     ? "Camisetas cuenta con un modelo disponible para abrir el diseñador."
