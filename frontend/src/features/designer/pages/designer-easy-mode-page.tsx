@@ -5,7 +5,7 @@ import {
   useState,
   type ChangeEvent,
   type KeyboardEvent as ReactKeyboardEvent,
-} from 'react';
+} from "react";
 
 import {
   ArrowLeft,
@@ -33,18 +33,22 @@ import {
   Undo2,
   ZoomIn,
   ZoomOut,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { processArtworkImage } from '@/core/design/processing';
-import { removeBackgroundLocal } from '@/features/store/designer/imageProcessor';
-import type { DesignResource } from '@/types/design-resource';
-import { registerUploadedDesign, releaseUploadedDesign } from '../services/design-resources';
+import { processArtworkImage } from "@/core/design/processing";
+import { removeBackgroundLocal } from "@/features/store/designer/imageProcessor";
+import type { DesignResource } from "@/types/design-resource";
+import {
+  registerUploadedDesign,
+  releaseUploadedDesign,
+} from "../services/design-resources";
+import { useToast } from "@/shared/components/Toast/Toast";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type CanvasBackground = 'transparent' | 'white' | 'color';
+type CanvasBackground = "transparent" | "white" | "color";
 
 interface EasyCanvasSettings {
   widthCm: string;
@@ -85,6 +89,7 @@ interface UploadedFolder {
   id: string;
   name: string;
   assets: UploadedFolderAsset[];
+  ignoredCount?: number;
 }
 
 interface UploadedSubfolder {
@@ -102,8 +107,8 @@ interface BackgroundOption {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const DEFAULT_WIDTH_CM = '35';
-const DEFAULT_HEIGHT_CM = '50';
+const DEFAULT_WIDTH_CM = "35";
+const DEFAULT_HEIGHT_CM = "50";
 const RULER_WIDTH_PX = 28;
 const RULER_HEIGHT_PX = 22;
 
@@ -151,28 +156,29 @@ function calculateCanvasViewport(
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+  return typeof value === "object" && value !== null;
 }
 
 function readCanvasConfig(locationState: unknown): CanvasConfigState | null {
-  if (!isRecord(locationState) || !isRecord(locationState.newCanvasConfig)) return null;
+  if (!isRecord(locationState) || !isRecord(locationState.newCanvasConfig))
+    return null;
 
   const config = locationState.newCanvasConfig;
   const isBackground = (value: unknown): value is CanvasBackground =>
-    value === 'transparent' || value === 'white' || value === 'color';
+    value === "transparent" || value === "white" || value === "color";
 
   if (
-    typeof config.widthPx !== 'number' ||
+    typeof config.widthPx !== "number" ||
     !Number.isFinite(config.widthPx) ||
     config.widthPx <= 0 ||
-    typeof config.heightPx !== 'number' ||
+    typeof config.heightPx !== "number" ||
     !Number.isFinite(config.heightPx) ||
     config.heightPx <= 0 ||
-    typeof config.dpi !== 'number' ||
+    typeof config.dpi !== "number" ||
     !Number.isFinite(config.dpi) ||
     config.dpi <= 0 ||
     !isBackground(config.background) ||
-    typeof config.backgroundColor !== 'string'
+    typeof config.backgroundColor !== "string"
   ) {
     return null;
   }
@@ -186,7 +192,9 @@ function readCanvasConfig(locationState: unknown): CanvasConfigState | null {
   };
 }
 
-function createInitialCanvasSettings(locationState: unknown): EasyCanvasSettings {
+function createInitialCanvasSettings(
+  locationState: unknown,
+): EasyCanvasSettings {
   const config = readCanvasConfig(locationState);
   const dpi = config?.dpi ?? 300;
 
@@ -195,8 +203,8 @@ function createInitialCanvasSettings(locationState: unknown): EasyCanvasSettings
       widthCm: DEFAULT_WIDTH_CM,
       heightCm: DEFAULT_HEIGHT_CM,
       dpi,
-      background: 'transparent',
-      backgroundColor: '#ffffff',
+      background: "transparent",
+      backgroundColor: "#ffffff",
     };
   }
 
@@ -213,25 +221,35 @@ function createInitialCanvasSettings(locationState: unknown): EasyCanvasSettings
 }
 
 const backgroundOptions: BackgroundOption[] = [
-  { id: 'transparent', label: 'Fondo transparente', background: 'transparent' },
-  { id: 'white', label: 'Fondo blanco', background: 'white' },
-  { id: 'light-gray', label: 'Fondo gris claro', background: 'color', color: '#d1d5db' },
-  { id: 'gray', label: 'Fondo gris oscuro', background: 'color', color: '#4b5563' },
-  { id: 'black', label: 'Fondo negro', background: 'color', color: '#000000' },
+  { id: "transparent", label: "Fondo transparente", background: "transparent" },
+  { id: "white", label: "Fondo blanco", background: "white" },
+  {
+    id: "light-gray",
+    label: "Fondo gris claro",
+    background: "color",
+    color: "#d1d5db",
+  },
+  {
+    id: "gray",
+    label: "Fondo gris oscuro",
+    background: "color",
+    color: "#4b5563",
+  },
+  { id: "black", label: "Fondo negro", background: "color", color: "#000000" },
 ];
 
 const sidebarTools = [
-  { id: 'archivo', label: 'Archivo', icon: CloudUpload },
-  { id: 'subidos', label: 'Subidos', icon: Images },
-  { id: 'plantillas', label: 'Plantillas', icon: LayoutGrid },
-  { id: 'elementos', label: 'Elementos', icon: Shapes },
-  { id: 'texto', label: 'Texto', icon: Type },
-  { id: 'formas', label: 'Formas', icon: Grid2X2 },
-  { id: 'capas', label: 'Capas', icon: Layers },
+  { id: "archivo", label: "Archivo", icon: CloudUpload },
+  { id: "subidos", label: "Subidos", icon: Images },
+  { id: "plantillas", label: "Plantillas", icon: LayoutGrid },
+  { id: "elementos", label: "Elementos", icon: Shapes },
+  { id: "texto", label: "Texto", icon: Type },
+  { id: "formas", label: "Formas", icon: Grid2X2 },
+  { id: "capas", label: "Capas", icon: Layers },
 ] as const;
 
-type SidebarToolId = (typeof sidebarTools)[number]['id'];
-type UploadedLibraryTab = 'images' | 'folders';
+type SidebarToolId = (typeof sidebarTools)[number]["id"];
+type UploadedLibraryTab = "images" | "folders";
 
 function getFileIdentityKey(file: File): string {
   return JSON.stringify([
@@ -246,16 +264,19 @@ function normalizeFolderName(name: string): string {
   return name.trim().toLocaleLowerCase();
 }
 
-function isBackgroundSelected(settings: EasyCanvasSettings, option: BackgroundOption): boolean {
+function isBackgroundSelected(
+  settings: EasyCanvasSettings,
+  option: BackgroundOption,
+): boolean {
   if (option.background !== settings.background) return false;
-  if (option.background !== 'color') return true;
+  if (option.background !== "color") return true;
   return settings.backgroundColor.toLowerCase() === option.color?.toLowerCase();
 }
 
 function getCanvasColor(settings: EasyCanvasSettings): string {
-  if (settings.background === 'white') return '#ffffff';
-  if (settings.background === 'color') return settings.backgroundColor;
-  return 'transparent';
+  if (settings.background === "white") return "#ffffff";
+  if (settings.background === "color") return settings.backgroundColor;
+  return "transparent";
 }
 
 // ─── SVG Rulers ──────────────────────────────────────────────────────────────
@@ -279,7 +300,7 @@ function HorizontalRuler({ widthPx, lengthCm }: HorizontalRulerProps) {
     ticks.push({
       x,
       height: isMajor ? 7 : isMedium ? 5 : 3,
-      stroke: isMajor ? '#64748b' : isMedium ? '#94a3b8' : '#cbd5e1',
+      stroke: isMajor ? "#64748b" : isMedium ? "#94a3b8" : "#cbd5e1",
     });
   }
 
@@ -318,13 +339,13 @@ function HorizontalRuler({ widthPx, lengthCm }: HorizontalRulerProps) {
         />
       ))}
       {labels.map((l, idx) => {
-        let textAnchor: 'start' | 'middle' | 'end' = 'middle';
+        let textAnchor: "start" | "middle" | "end" = "middle";
         let posX = l.x;
         if (idx === 0) {
-          textAnchor = 'start';
+          textAnchor = "start";
           posX = 0;
         } else if (idx === labels.length - 1) {
-          textAnchor = 'end';
+          textAnchor = "end";
           posX = widthPx;
         }
         return (
@@ -365,7 +386,7 @@ function VerticalRuler({ heightPx, lengthCm }: VerticalRulerProps) {
     ticks.push({
       y,
       width: isMajor ? 7 : isMedium ? 5 : 3,
-      stroke: isMajor ? '#64748b' : isMedium ? '#94a3b8' : '#cbd5e1',
+      stroke: isMajor ? "#64748b" : isMedium ? "#94a3b8" : "#cbd5e1",
     });
   }
 
@@ -458,8 +479,8 @@ function SteppedInput({
     <div
       className={
         suffix
-          ? 'flex h-10 items-center rounded-xl border border-[#e2e8f0] bg-white focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]/20'
-          : 'relative flex items-center'
+          ? "flex h-10 items-center rounded-xl border border-[#e2e8f0] bg-white focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]/20"
+          : "relative flex items-center"
       }
     >
       <input
@@ -472,13 +493,19 @@ function SteppedInput({
         onChange={(event) => onChange(event.target.value)}
         className={
           suffix
-            ? `h-full min-w-0 flex-1 border-0 bg-transparent pl-3 pr-1 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${className ?? ''}`
+            ? `h-full min-w-0 flex-1 border-0 bg-transparent pl-3 pr-1 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${className ?? ""}`
             : `h-9 w-full rounded-xl border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
-                className ?? ''
+                className ?? ""
               }`
         }
       />
-      <div className={suffix ? 'flex flex-col items-center px-1' : 'absolute right-1.5 flex flex-col items-center'}>
+      <div
+        className={
+          suffix
+            ? "flex flex-col items-center px-1"
+            : "absolute right-1.5 flex flex-col items-center"
+        }
+      >
         <button
           type="button"
           tabIndex={-1}
@@ -520,30 +547,40 @@ export function DesignerEasyModePage() {
   const uploadOptionsButtonRef = useRef<HTMLButtonElement | null>(null);
   const uploadOptionsMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const [technique, setTechnique] = useState('dtf');
+  const [technique, setTechnique] = useState("dtf");
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const [canvasSettings, setCanvasSettings] = useState(() =>
     createInitialCanvasSettings(location.state),
   );
-  const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(null);
-  const [activeSidebarTool, setActiveSidebarTool] = useState<SidebarToolId>('archivo');
+  const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(
+    null,
+  );
+  const [activeSidebarTool, setActiveSidebarTool] =
+    useState<SidebarToolId>("archivo");
   const [keepRatio, setKeepRatio] = useState(false);
   const [canvasRatio, setCanvasRatio] = useState(
-    () => Number(canvasSettings.widthCm) / Math.max(0.1, Number(canvasSettings.heightCm)),
+    () =>
+      Number(canvasSettings.widthCm) /
+      Math.max(0.1, Number(canvasSettings.heightCm)),
   );
   const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
   const [uploadedFolders, setUploadedFolders] = useState<UploadedFolder[]>([]);
-  const [activeUploadedAssetId, setActiveUploadedAssetId] = useState<string | null>(null);
+  const [activeUploadedAssetId, setActiveUploadedAssetId] = useState<
+    string | null
+  >(null);
   const [uploadedLibraryTab, setUploadedLibraryTab] =
-    useState<UploadedLibraryTab>('images');
-  const [activeUploadedFolderId, setActiveUploadedFolderId] = useState<string | null>(null);
-  const [activeUploadedFolderPath, setActiveUploadedFolderPath] = useState('');
+    useState<UploadedLibraryTab>("images");
+  const [activeUploadedFolderId, setActiveUploadedFolderId] = useState<
+    string | null
+  >(null);
+  const [activeUploadedFolderPath, setActiveUploadedFolderPath] = useState("");
+  const [uploadSearch, setUploadSearch] = useState("");
   const [isUploadOptionsOpen, setIsUploadOptionsOpen] = useState(false);
-  const [uploadSearch, setUploadSearch] = useState('');
-  const [folderUploadStatus, setFolderUploadStatus] = useState<string | null>(null);
-  const [folderUploadHasError, setFolderUploadHasError] = useState(false);
+  const { showToast } = useToast();
   const [isImportingFolder, setIsImportingFolder] = useState(false);
-  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
+  const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(
+    null,
+  );
   const [processedDimensions, setProcessedDimensions] = useState<{
     width: number;
     height: number;
@@ -552,7 +589,8 @@ export function DesignerEasyModePage() {
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [showProcessedImage, setShowProcessedImage] = useState(true);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [removeSemitransparencies, setRemoveSemitransparencies] = useState(false);
+  const [removeSemitransparencies, setRemoveSemitransparencies] =
+    useState(false);
   const [historyStack, setHistoryStack] = useState<string[]>([]);
   const [isRemovingBg, setIsRemovingBg] = useState(false);
 
@@ -563,9 +601,10 @@ export function DesignerEasyModePage() {
   useEffect(() => {
     if (!isHeaderMenuOpen) return;
 
-    const firstMenuItem = headerMenuRef.current?.querySelector<HTMLButtonElement>(
-      '[role="menuitemradio"], [role="menuitem"]',
-    );
+    const firstMenuItem =
+      headerMenuRef.current?.querySelector<HTMLButtonElement>(
+        '[role="menuitemradio"], [role="menuitem"]',
+      );
     firstMenuItem?.focus();
 
     const handlePointerDown = (event: PointerEvent) => {
@@ -580,19 +619,19 @@ export function DesignerEasyModePage() {
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         event.preventDefault();
         setIsHeaderMenuOpen(false);
         headerMenuButtonRef.current?.focus();
       }
     };
 
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isHeaderMenuOpen]);
 
@@ -615,19 +654,19 @@ export function DesignerEasyModePage() {
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         event.preventDefault();
         setIsUploadOptionsOpen(false);
         uploadOptionsButtonRef.current?.focus();
       }
     };
 
-    document.addEventListener('pointerdown', handlePointerDown);
-    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      document.removeEventListener('pointerdown', handlePointerDown);
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isUploadOptionsOpen]);
 
@@ -640,9 +679,10 @@ export function DesignerEasyModePage() {
   const selectedImage =
     showProcessedImage && processedImageUrl
       ? processedImageUrl
-      : activeUploadedAsset?.image ?? null;
+      : (activeUploadedAsset?.image ?? null);
   const activeUploadedFolder =
-    uploadedFolders.find((folder) => folder.id === activeUploadedFolderId) ?? null;
+    uploadedFolders.find((folder) => folder.id === activeUploadedFolderId) ??
+    null;
   const uploadSearchTerm = uploadSearch.trim().toLocaleLowerCase();
   const matchingUploadedAssets = uploadedAssets.filter((asset) =>
     asset.name.toLocaleLowerCase().includes(uploadSearchTerm),
@@ -661,11 +701,11 @@ export function DesignerEasyModePage() {
 
     const pathPrefix = activeUploadedFolderPath
       ? `${activeUploadedFolderPath}/`
-      : '';
+      : "";
     for (const entry of activeUploadedFolder.assets) {
       if (pathPrefix && !entry.relativePath.startsWith(pathPrefix)) continue;
       const relativeToCurrent = entry.relativePath.slice(pathPrefix.length);
-      const [firstSegment, ...remainingSegments] = relativeToCurrent.split('/');
+      const [firstSegment, ...remainingSegments] = relativeToCurrent.split("/");
       if (!firstSegment) continue;
 
       if (remainingSegments.length > 0) {
@@ -682,7 +722,9 @@ export function DesignerEasyModePage() {
         continue;
       }
 
-      const asset = uploadedAssets.find((candidate) => candidate.id === entry.assetId);
+      const asset = uploadedAssets.find(
+        (candidate) => candidate.id === entry.assetId,
+      );
       if (asset) images.push(asset);
     }
 
@@ -694,8 +736,10 @@ export function DesignerEasyModePage() {
     };
   })();
 
-  const handleHeaderMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+  const handleHeaderMenuKeyDown = (
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ) => {
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
 
     const items = Array.from(
@@ -705,13 +749,17 @@ export function DesignerEasyModePage() {
     );
     if (items.length === 0) return;
 
-    const currentIndex = items.findIndex((item) => item === document.activeElement);
+    const currentIndex = items.findIndex(
+      (item) => item === document.activeElement,
+    );
     const nextIndex =
-      event.key === 'Home'
+      event.key === "Home"
         ? 0
-        : event.key === 'End'
+        : event.key === "End"
           ? items.length - 1
-          : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + items.length) %
+          : (currentIndex +
+              (event.key === "ArrowDown" ? 1 : -1) +
+              items.length) %
             items.length;
     items[nextIndex]?.focus();
   };
@@ -719,36 +767,42 @@ export function DesignerEasyModePage() {
   const handleUploadOptionsKeyDown = (
     event: ReactKeyboardEvent<HTMLDivElement>,
   ) => {
-    if (event.key === 'Escape') {
+    if (event.key === "Escape") {
       event.preventDefault();
       setIsUploadOptionsOpen(false);
       uploadOptionsButtonRef.current?.focus();
       return;
     }
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    if (!["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) return;
     event.preventDefault();
 
     const items = Array.from(
-      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
+      event.currentTarget.querySelectorAll<HTMLButtonElement>(
+        '[role="menuitem"]',
+      ),
     );
     if (items.length === 0) return;
 
-    const currentIndex = items.findIndex((item) => item === document.activeElement);
+    const currentIndex = items.findIndex(
+      (item) => item === document.activeElement,
+    );
     const nextIndex =
-      event.key === 'Home'
+      event.key === "Home"
         ? 0
-        : event.key === 'End'
+        : event.key === "End"
           ? items.length - 1
-          : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + items.length) %
+          : (currentIndex +
+              (event.key === "ArrowDown" ? 1 : -1) +
+              items.length) %
             items.length;
     items[nextIndex]?.focus();
   };
 
   const handleExitDesigner = () => {
     const hasCanvasCreationContext =
-      isRecord(location.state) && 'newCanvasConfig' in location.state;
+      isRecord(location.state) && "newCanvasConfig" in location.state;
     setIsHeaderMenuOpen(false);
-    navigate(hasCanvasCreationContext ? '/store/designer' : '/products');
+    navigate(hasCanvasCreationContext ? "/store/designer" : "/products");
   };
 
   const fitCanvasToWorkspace = () => {
@@ -792,7 +846,9 @@ export function DesignerEasyModePage() {
       processingRequestId.current += 1;
       uploadedAssetIdsRef.current.forEach(releaseUploadedDesign);
       uploadedAssetIdsRef.current.clear();
-      ownedProcessedImageUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      ownedProcessedImageUrlsRef.current.forEach((url) =>
+        URL.revokeObjectURL(url),
+      );
       ownedProcessedImageUrlsRef.current.clear();
     },
     [],
@@ -828,7 +884,9 @@ export function DesignerEasyModePage() {
 
   const loadFile = (file: File) => {
     const identityKey = getFileIdentityKey(file);
-    const existingAsset = uploadedAssets.find((asset) => asset.identityKey === identityKey);
+    const existingAsset = uploadedAssets.find(
+      (asset) => asset.identityKey === identityKey,
+    );
     if (existingAsset) {
       activateUploadedAsset(existingAsset.id);
       setProcessingError(null);
@@ -838,74 +896,89 @@ export function DesignerEasyModePage() {
     try {
       const asset = registerUploadedDesign(file);
       uploadedAssetIdsRef.current.add(asset.id);
-      setUploadedAssets((current) => [...current, { ...asset, file, identityKey }]);
+      setUploadedAssets((current) => [
+        ...current,
+        { ...asset, file, identityKey },
+      ]);
       activateUploadedAsset(asset.id);
     } catch (error) {
-      setProcessingError(error instanceof Error ? error.message : 'No se pudo cargar la imagen.');
+      setProcessingError(
+        error instanceof Error ? error.message : "No se pudo cargar la imagen.",
+      );
     }
   };
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) loadFile(file);
-    event.currentTarget.value = '';
+    event.currentTarget.value = "";
   };
 
   const openFolderPicker = () => {
     const input = folderInputRef.current;
     if (!input || isImportingFolder) return;
-    input.setAttribute('webkitdirectory', '');
+    input.setAttribute("webkitdirectory", "");
     input.click();
   };
 
   const handleFolderChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.currentTarget.files ?? []);
-    event.currentTarget.value = '';
+    event.currentTarget.value = "";
     if (files.length === 0) return;
 
-    const pngFiles = files.filter((file) => file.name.toLocaleLowerCase().endsWith('.png'));
+    const pngFiles = files.filter((file) =>
+      file.name.toLocaleLowerCase().endsWith(".png"),
+    );
     const ignoredCount = files.length - pngFiles.length;
     if (pngFiles.length === 0) {
-      setFolderUploadHasError(true);
-      setFolderUploadStatus(
-        `La carpeta seleccionada no contiene archivos PNG. Se ignoraron ${ignoredCount} archivos de otros formatos.`,
-      );
+      showToast({
+        type: "info",
+        title: "Carpeta procesada",
+        message: "No se encontraron archivos PNG compatibles.",
+      });
       return;
     }
 
-    const rootRelativePath = pngFiles.find((file) => file.webkitRelativePath)?.webkitRelativePath;
+    const rootRelativePath = pngFiles.find(
+      (file) => file.webkitRelativePath,
+    )?.webkitRelativePath;
     if (!rootRelativePath) {
-      setFolderUploadHasError(true);
-      setFolderUploadStatus('No se pudo identificar la carpeta seleccionada.');
+      showToast({
+        type: "error",
+        title: "Error de importación",
+        message: "No se pudo identificar la carpeta seleccionada.",
+      });
       return;
     }
 
-    const folderName = rootRelativePath.split('/')[0];
+    const folderName = rootRelativePath.split("/")[0];
     const existingFolder = uploadedFolders.find(
-      (folder) => normalizeFolderName(folder.name) === normalizeFolderName(folderName),
+      (folder) =>
+        normalizeFolderName(folder.name) === normalizeFolderName(folderName),
     );
     const folderId = existingFolder?.id ?? crypto.randomUUID();
     const folderAssets = [...(existingFolder?.assets ?? [])];
-    const assetsById = new Map(uploadedAssets.map((asset) => [asset.id, asset]));
+    const assetsById = new Map(
+      uploadedAssets.map((asset) => [asset.id, asset]),
+    );
     let addedCount = 0;
     let linkedCount = 0;
     let duplicateCount = 0;
     let failedCount = 0;
-    let registrationError = '';
+    let registrationError = "";
 
     setIsImportingFolder(true);
-    setFolderUploadStatus(null);
-    setFolderUploadHasError(false);
 
     try {
       for (const file of pngFiles) {
         const identityKey = getFileIdentityKey(file);
         const relativePath =
-          file.webkitRelativePath.split('/').slice(1).join('/') || file.name;
+          file.webkitRelativePath.split("/").slice(1).join("/") || file.name;
         const existingPathIndex = folderAssets.findIndex(
           (entry) => entry.relativePath === relativePath,
         );
-        const existingPath = existingPathIndex >= 0 ? folderAssets[existingPathIndex] : null;
+        const existingPath =
+          existingPathIndex >= 0 ? folderAssets[existingPathIndex] : null;
 
         if (existingPath?.identityKey === identityKey) {
           duplicateCount += 1;
@@ -926,7 +999,9 @@ export function DesignerEasyModePage() {
             failedCount += 1;
             if (!registrationError) {
               registrationError =
-                error instanceof Error ? error.message : 'Error desconocido al registrar PNG.';
+                error instanceof Error
+                  ? error.message
+                  : "Error desconocido al registrar PNG.";
             }
             continue;
           }
@@ -937,7 +1012,8 @@ export function DesignerEasyModePage() {
           relativePath,
           identityKey,
         };
-        if (existingPathIndex >= 0) folderAssets[existingPathIndex] = folderAsset;
+        if (existingPathIndex >= 0)
+          folderAssets[existingPathIndex] = folderAsset;
         else folderAssets.push(folderAsset);
         linkedCount += 1;
       }
@@ -948,6 +1024,7 @@ export function DesignerEasyModePage() {
           id: folderId,
           name: folderName,
           assets: folderAssets,
+          ignoredCount: (existingFolder?.ignoredCount ?? 0) + ignoredCount,
         };
         setUploadedFolders((current) => {
           const index = current.findIndex((folder) => folder.id === folderId);
@@ -958,22 +1035,45 @@ export function DesignerEasyModePage() {
         });
       }
 
-      const ignoredStatus =
-        ignoredCount > 0
-          ? ` Se ignoró${ignoredCount === 1 ? '' : 'aron'} ${ignoredCount} archivo${
-              ignoredCount === 1 ? '' : 's'
-            } de otros formatos.`
-          : '';
-      setFolderUploadHasError(failedCount > 0);
-      setFolderUploadStatus(
-        failedCount > 0
-          ? `Se importaron ${linkedCount} PNG; no se pudieron registrar ${failedCount}. ${registrationError}${ignoredStatus}`
-          : `${folderName}: ${linkedCount} PNG enlazado${
-              linkedCount === 1 ? '' : 's'
-            } (${addedCount} nuevo${addedCount === 1 ? '' : 's'}); ${duplicateCount} duplicado${
-              duplicateCount === 1 ? '' : 's'
-            } omitido${duplicateCount === 1 ? '' : 's'}.${ignoredStatus}`,
-      );
+      setUploadedLibraryTab("folders");
+      setActiveUploadedFolderId(folderId);
+      setActiveUploadedFolderPath("");
+
+      if (failedCount > 0 && linkedCount === 0) {
+        showToast({
+          type: "error",
+          title: "Error de importación",
+          message:
+            registrationError ||
+            "No se pudieron registrar los diseños PNG de la carpeta.",
+        });
+      } else {
+        const parts: string[] = [
+          folderName,
+          `${linkedCount} PNG añadido${linkedCount === 1 ? "" : "s"}`,
+        ];
+        if (duplicateCount > 0) {
+          parts.push(
+            `${duplicateCount} duplicado${duplicateCount === 1 ? "" : "s"} omitido${duplicateCount === 1 ? "" : "s"}`,
+          );
+        }
+        if (ignoredCount > 0) {
+          parts.push(
+            `${ignoredCount} archivo${ignoredCount === 1 ? "" : "s"} omitido${ignoredCount === 1 ? "" : "s"}`,
+          );
+        }
+        showToast({
+          type: "success",
+          title: "Carpeta importada",
+          message: parts.join(" · "),
+        });
+      }
+    } catch {
+      showToast({
+        type: "error",
+        title: "Error de importación",
+        message: "No se pudo importar la carpeta.",
+      });
     } finally {
       setIsImportingFolder(false);
     }
@@ -997,7 +1097,9 @@ export function DesignerEasyModePage() {
     } catch (error) {
       if (requestId === processingRequestId.current) {
         setProcessingError(
-          error instanceof Error ? error.message : 'No se pudo eliminar el fondo de la imagen.',
+          error instanceof Error
+            ? error.message
+            : "No se pudo eliminar el fondo de la imagen.",
         );
       }
     } finally {
@@ -1054,7 +1156,9 @@ export function DesignerEasyModePage() {
     } catch (error) {
       if (requestId === processingRequestId.current) {
         setProcessingError(
-          error instanceof Error ? error.message : 'No se pudo procesar la imagen.',
+          error instanceof Error
+            ? error.message
+            : "No se pudo procesar la imagen.",
         );
       }
     } finally {
@@ -1062,28 +1166,34 @@ export function DesignerEasyModePage() {
     }
   };
 
-  const handleDimensionChange = (axis: 'widthCm' | 'heightCm', value: string) => {
+  const handleDimensionChange = (
+    axis: "widthCm" | "heightCm",
+    value: string,
+  ) => {
     setCanvasSettings((current) => {
       const next = { ...current, [axis]: value };
       const parsedValue = Number(value);
 
-      if (!keepRatio || !Number.isFinite(parsedValue) || parsedValue <= 0) return next;
+      if (!keepRatio || !Number.isFinite(parsedValue) || parsedValue <= 0)
+        return next;
 
-      if (axis === 'widthCm') next.heightCm = (parsedValue / canvasRatio).toFixed(1);
+      if (axis === "widthCm")
+        next.heightCm = (parsedValue / canvasRatio).toFixed(1);
       else next.widthCm = (parsedValue * canvasRatio).toFixed(1);
 
       return next;
     });
   };
 
-  const stepDimension = (axis: 'widthCm' | 'heightCm', direction: 1 | -1) => {
+  const stepDimension = (axis: "widthCm" | "heightCm", direction: 1 | -1) => {
     const current = Number(canvasSettings[axis]) || 0;
     const next = Math.max(0.1, Number((current + direction).toFixed(1)));
     handleDimensionChange(axis, next.toString());
   };
 
   const handleRatioToggle = () => {
-    if (!keepRatio && widthCm > 0 && heightCm > 0) setCanvasRatio(widthCm / heightCm);
+    if (!keepRatio && widthCm > 0 && heightCm > 0)
+      setCanvasRatio(widthCm / heightCm);
     setKeepRatio((current) => !current);
   };
 
@@ -1094,7 +1204,8 @@ export function DesignerEasyModePage() {
     }
   };
 
-  const stepDpi = (direction: 1 | -1) => handleDpiChange(String(canvasSettings.dpi + direction * 10));
+  const stepDpi = (direction: 1 | -1) =>
+    handleDpiChange(String(canvasSettings.dpi + direction * 10));
 
   const handleBackgroundSelect = (option: BackgroundOption) => {
     setCanvasSettings((current) => ({
@@ -1114,13 +1225,14 @@ export function DesignerEasyModePage() {
   const canvasStyle = {
     backgroundColor: getCanvasColor(canvasSettings),
     backgroundImage:
-      canvasSettings.background === 'transparent'
-        ? 'linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)'
+      canvasSettings.background === "transparent"
+        ? "linear-gradient(45deg, #e2e8f0 25%, transparent 25%), linear-gradient(-45deg, #e2e8f0 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e2e8f0 75%), linear-gradient(-45deg, transparent 75%, #e2e8f0 75%)"
         : undefined,
-    backgroundSize: canvasSettings.background === 'transparent' ? '16px 16px' : undefined,
+    backgroundSize:
+      canvasSettings.background === "transparent" ? "16px 16px" : undefined,
     backgroundPosition:
-      canvasSettings.background === 'transparent'
-        ? '0 0, 0 8px, 8px -8px, -8px 0px'
+      canvasSettings.background === "transparent"
+        ? "0 0, 0 8px, 8px -8px, -8px 0px"
         : undefined,
   };
 
@@ -1151,13 +1263,22 @@ export function DesignerEasyModePage() {
             aria-label="Menú del editor"
             className="hidden items-center gap-[clamp(18px,1.9vw,32px)] text-[clamp(13px,0.9vw,15px)] font-medium text-[#475569] lg:flex"
           >
-            <button type="button" className="transition-colors hover:text-[#0f172a]">
+            <button
+              type="button"
+              className="transition-colors hover:text-[#0f172a]"
+            >
               Archivo
             </button>
-            <button type="button" className="transition-colors hover:text-[#0f172a]">
+            <button
+              type="button"
+              className="transition-colors hover:text-[#0f172a]"
+            >
               Editar
             </button>
-            <button type="button" className="transition-colors hover:text-[#0f172a]">
+            <button
+              type="button"
+              className="transition-colors hover:text-[#0f172a]"
+            >
               Ver
             </button>
           </nav>
@@ -1237,19 +1358,24 @@ export function DesignerEasyModePage() {
                 <button
                   type="button"
                   role="menuitemradio"
-                  aria-checked={technique === 'dtf'}
+                  aria-checked={technique === "dtf"}
                   tabIndex={-1}
                   onClick={() => {
-                    setTechnique('dtf');
+                    setTechnique("dtf");
                     setIsHeaderMenuOpen(false);
                     headerMenuButtonRef.current?.focus();
                   }}
                   className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-[#0f172a] hover:bg-[#f8fafc] focus:bg-[#f8fafc] focus:outline-none"
                 >
                   <span>DTF</span>
-                  {technique === 'dtf' && <Check className="h-4 w-4 text-[#4f46e5]" />}
+                  {technique === "dtf" && (
+                    <Check className="h-4 w-4 text-[#4f46e5]" />
+                  )}
                 </button>
-                <div role="separator" className="my-1 border-t border-[#eef0f4]" />
+                <div
+                  role="separator"
+                  className="my-1 border-t border-[#eef0f4]"
+                />
                 <button
                   type="button"
                   role="menuitem"
@@ -1272,7 +1398,8 @@ export function DesignerEasyModePage() {
       <div
         className="grid min-h-0 flex-1 overflow-hidden"
         style={{
-          gridTemplateColumns: 'clamp(68px, 6.46vw, 108px) clamp(304px, 22.85vw, 382px) minmax(0, 1fr)',
+          gridTemplateColumns:
+            "clamp(68px, 6.46vw, 108px) clamp(304px, 22.85vw, 382px) minmax(0, 1fr)",
         }}
       >
         {/* ─── SIDEBAR TOOLBAR ─── 76px de ancho como en la referencia */}
@@ -1292,15 +1419,17 @@ export function DesignerEasyModePage() {
                 onClick={() => {
                   setActiveSidebarTool(tool.id);
                 }}
-                style={isActive ? { backgroundColor: '#eff2fe' } : undefined}
+                style={isActive ? { backgroundColor: "#eff2fe" } : undefined}
                 className={`mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 transition-colors ${
                   isActive
-                    ? 'rounded-xl text-[#4f46e5]'
-                    : 'rounded-lg text-[#64748b] hover:text-[#0f172a]'
+                    ? "rounded-xl text-[#4f46e5]"
+                    : "rounded-lg text-[#64748b] hover:text-[#0f172a]"
                 }`}
               >
                 <Icon className="h-5 w-5" strokeWidth={isActive ? 1.8 : 1.6} />
-                <span className={`text-[11px] ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                <span
+                  className={`text-[11px] ${isActive ? "font-semibold" : "font-medium"}`}
+                >
                   {tool.label}
                 </span>
               </button>
@@ -1328,7 +1457,7 @@ export function DesignerEasyModePage() {
           {/* ══════════════════════════════════════════════════════════
               1. ARCHIVO — Importar imagen, Lienzo, Fondo y Acciones
           ══════════════════════════════════════════════════════════ */}
-          {activeSidebarTool === 'archivo' && (
+          {activeSidebarTool === "archivo" && (
             <div className="space-y-4">
               {/* 1. AGREGAR IMAGEN */}
               <section>
@@ -1345,11 +1474,14 @@ export function DesignerEasyModePage() {
                   onDrop={handleDrop}
                   className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${
                     isDraggingFile
-                      ? 'border-[#4f46e5] bg-[#eeedff]/40'
-                      : 'border-[#cbd5e1] bg-white'
+                      ? "border-[#4f46e5] bg-[#eeedff]/40"
+                      : "border-[#cbd5e1] bg-white"
                   }`}
                 >
-                  <CloudUpload className="h-9 w-9 text-[#0f172a]" strokeWidth={1.5} />
+                  <CloudUpload
+                    className="h-9 w-9 text-[#0f172a]"
+                    strokeWidth={1.5}
+                  />
                   <p className="mt-2.5 text-[14px] font-bold text-[#0f172a]">
                     Sube una imagen
                   </p>
@@ -1388,18 +1520,28 @@ export function DesignerEasyModePage() {
                       min="0.1"
                       step="0.1"
                       value={canvasSettings.widthCm}
-                      onChange={(value) => handleDimensionChange('widthCm', value)}
-                      onStep={(direction) => stepDimension('widthCm', direction)}
+                      onChange={(value) =>
+                        handleDimensionChange("widthCm", value)
+                      }
+                      onStep={(direction) =>
+                        stepDimension("widthCm", direction)
+                      }
                     />
                   </label>
 
                   <button
                     type="button"
-                    aria-label={keepRatio ? 'Desbloquear proporción' : 'Mantener proporción'}
+                    aria-label={
+                      keepRatio
+                        ? "Desbloquear proporción"
+                        : "Mantener proporción"
+                    }
                     aria-pressed={keepRatio}
                     onClick={handleRatioToggle}
                     className={`mb-2.5 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
-                      keepRatio ? 'text-[#4f46e5] bg-[#eeedff]' : 'text-[#94a3b8] hover:text-[#0f172a]'
+                      keepRatio
+                        ? "text-[#4f46e5] bg-[#eeedff]"
+                        : "text-[#94a3b8] hover:text-[#0f172a]"
                     }`}
                   >
                     <Link2 className="h-4 w-4" />
@@ -1412,15 +1554,21 @@ export function DesignerEasyModePage() {
                       min="0.1"
                       step="0.1"
                       value={canvasSettings.heightCm}
-                      onChange={(value) => handleDimensionChange('heightCm', value)}
-                      onStep={(direction) => stepDimension('heightCm', direction)}
+                      onChange={(value) =>
+                        handleDimensionChange("heightCm", value)
+                      }
+                      onStep={(direction) =>
+                        stepDimension("heightCm", direction)
+                      }
                     />
                   </label>
                 </div>
 
                 {/* Resolución */}
                 <div className="mt-3">
-                  <span className="mb-1.5 block text-[12px] text-[#64748b]">Resolución (DPI)</span>
+                  <span className="mb-1.5 block text-[12px] text-[#64748b]">
+                    Resolución (DPI)
+                  </span>
                   <SteppedInput
                     label="Resolución (DPI)"
                     min="72"
@@ -1441,7 +1589,10 @@ export function DesignerEasyModePage() {
 
                 <div className="flex items-center gap-3">
                   {backgroundOptions.map((option) => {
-                    const selected = isBackgroundSelected(canvasSettings, option);
+                    const selected = isBackgroundSelected(
+                      canvasSettings,
+                      option,
+                    );
 
                     return (
                       <button
@@ -1453,26 +1604,59 @@ export function DesignerEasyModePage() {
                         onClick={() => handleBackgroundSelect(option)}
                         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform ${
                           selected
-                            ? 'ring-2 ring-[#4f46e5] ring-offset-2'
-                            : 'hover:scale-105'
+                            ? "ring-2 ring-[#4f46e5] ring-offset-2"
+                            : "hover:scale-105"
                         }`}
                       >
-                        {option.id === 'transparent' ? (
-                          <svg className="h-8 w-8 rounded-full" viewBox="0 0 32 32">
+                        {option.id === "transparent" ? (
+                          <svg
+                            className="h-8 w-8 rounded-full"
+                            viewBox="0 0 32 32"
+                          >
                             <defs>
-                              <pattern id={`checkers-${option.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                              <pattern
+                                id={`checkers-${option.id}`}
+                                width="8"
+                                height="8"
+                                patternUnits="userSpaceOnUse"
+                              >
                                 <rect width="4" height="4" fill="#ffffff" />
-                                <rect x="4" width="4" height="4" fill="#cbd5e1" />
-                                <rect y="4" width="4" height="4" fill="#cbd5e1" />
-                                <rect x="4" y="4" width="4" height="4" fill="#ffffff" />
+                                <rect
+                                  x="4"
+                                  width="4"
+                                  height="4"
+                                  fill="#cbd5e1"
+                                />
+                                <rect
+                                  y="4"
+                                  width="4"
+                                  height="4"
+                                  fill="#cbd5e1"
+                                />
+                                <rect
+                                  x="4"
+                                  y="4"
+                                  width="4"
+                                  height="4"
+                                  fill="#ffffff"
+                                />
                               </pattern>
                             </defs>
-                            <circle cx="16" cy="16" r="15" fill={`url(#checkers-${option.id})`} stroke="#cbd5e1" strokeWidth="1" />
+                            <circle
+                              cx="16"
+                              cy="16"
+                              r="15"
+                              fill={`url(#checkers-${option.id})`}
+                              stroke="#cbd5e1"
+                              strokeWidth="1"
+                            />
                           </svg>
                         ) : (
                           <span
                             className="h-8 w-8 rounded-full border border-[#cbd5e1]"
-                            style={{ backgroundColor: option.color ?? '#ffffff' }}
+                            style={{
+                              backgroundColor: option.color ?? "#ffffff",
+                            }}
                           />
                         )}
                       </button>
@@ -1493,7 +1677,7 @@ export function DesignerEasyModePage() {
                   disabled={!selectedImage || isRemovingBg}
                   className="flex h-11 w-full items-center justify-center gap-2 rounded-[5px] bg-[#18181b] px-4 text-[12px] font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  {isRemovingBg ? 'ELIMINANDO FONDO…' : 'ELIMINAR FONDO'}
+                  {isRemovingBg ? "ELIMINANDO FONDO…" : "ELIMINAR FONDO"}
                 </button>
 
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
@@ -1545,12 +1729,18 @@ export function DesignerEasyModePage() {
                       }
                     }}
                     className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none"
-                    style={{ backgroundColor: removeSemitransparencies ? '#ea580c' : '#cbd5e1' }}
+                    style={{
+                      backgroundColor: removeSemitransparencies
+                        ? "#ea580c"
+                        : "#cbd5e1",
+                    }}
                   >
                     <span
                       className="inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out"
                       style={{
-                        transform: removeSemitransparencies ? 'translateX(20px)' : 'translateX(0px)',
+                        transform: removeSemitransparencies
+                          ? "translateX(20px)"
+                          : "translateX(0px)",
                       }}
                     />
                   </button>
@@ -1562,9 +1752,11 @@ export function DesignerEasyModePage() {
           {/* ══════════════════════════════════════════════════════════
               2. SUBIDOS — Biblioteca exclusiva de contenido subido
           ══════════════════════════════════════════════════════════ */}
-          {activeSidebarTool === 'subidos' && (
+          {activeSidebarTool === "subidos" && (
             <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Subidos</h1>
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                Subidos
+              </h1>
 
               <div className="flex items-center justify-between gap-2">
                 <div
@@ -1575,16 +1767,16 @@ export function DesignerEasyModePage() {
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={uploadedLibraryTab === 'images'}
+                    aria-selected={uploadedLibraryTab === "images"}
                     onClick={() => {
-                      setUploadedLibraryTab('images');
+                      setUploadedLibraryTab("images");
                       setActiveUploadedFolderId(null);
-                      setActiveUploadedFolderPath('');
+                      setActiveUploadedFolderPath("");
                     }}
                     className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                      uploadedLibraryTab === 'images'
-                        ? 'bg-white text-[#0f172a] shadow-xs'
-                        : 'text-[#64748b] hover:text-[#0f172a]'
+                      uploadedLibraryTab === "images"
+                        ? "bg-white text-[#0f172a] shadow-xs"
+                        : "text-[#64748b] hover:text-[#0f172a]"
                     }`}
                   >
                     Imágenes
@@ -1592,16 +1784,16 @@ export function DesignerEasyModePage() {
                   <button
                     type="button"
                     role="tab"
-                    aria-selected={uploadedLibraryTab === 'folders'}
+                    aria-selected={uploadedLibraryTab === "folders"}
                     onClick={() => {
-                      setUploadedLibraryTab('folders');
+                      setUploadedLibraryTab("folders");
                       setActiveUploadedFolderId(null);
-                      setActiveUploadedFolderPath('');
+                      setActiveUploadedFolderPath("");
                     }}
                     className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
-                      uploadedLibraryTab === 'folders'
-                        ? 'bg-white text-[#0f172a] shadow-xs'
-                        : 'text-[#64748b] hover:text-[#0f172a]'
+                      uploadedLibraryTab === "folders"
+                        ? "bg-white text-[#0f172a] shadow-xs"
+                        : "text-[#64748b] hover:text-[#0f172a]"
                     }`}
                   >
                     Carpetas
@@ -1639,7 +1831,9 @@ export function DesignerEasyModePage() {
                         className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[12px] font-medium text-[#334155] outline-none hover:bg-[#f8fafc] focus:bg-[#f1f5f9] disabled:cursor-wait disabled:opacity-60"
                       >
                         <FolderUp className="h-4 w-4 text-[#64748b]" />
-                        {isImportingFolder ? 'Importando carpeta…' : 'Subir una carpeta'}
+                        {isImportingFolder
+                          ? "Importando carpeta…"
+                          : "Subir una carpeta"}
                       </button>
                       <button
                         type="button"
@@ -1673,17 +1867,6 @@ export function DesignerEasyModePage() {
                 />
               </label>
 
-              {folderUploadStatus && (
-                <p
-                  role={folderUploadHasError ? 'alert' : 'status'}
-                  className={`mt-2 text-[11px] ${
-                    folderUploadHasError ? 'text-red-600' : 'text-[#64748b]'
-                  }`}
-                >
-                  {folderUploadStatus}
-                </p>
-              )}
-
               <div className="mt-3">
                 {uploadSearchTerm ? (
                   <div className="space-y-3">
@@ -1698,15 +1881,17 @@ export function DesignerEasyModePage() {
                               key={folder.id}
                               type="button"
                               onClick={() => {
-                                setUploadedLibraryTab('folders');
+                                setUploadedLibraryTab("folders");
                                 setActiveUploadedFolderId(folder.id);
-                                setActiveUploadedFolderPath('');
-                                setUploadSearch('');
+                                setActiveUploadedFolderPath("");
+                                setUploadSearch("");
                               }}
                               className="flex w-full items-center gap-2.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-left transition-colors hover:bg-[#f8fafc] hover:border-[#cbd5e1]"
                             >
                               <Folder className="h-4 w-4 shrink-0 text-[#64748b]" />
-                              <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0f172a]">{folder.name}</span>
+                              <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0f172a]">
+                                {folder.name}
+                              </span>
                               <span className="shrink-0 text-[11px] text-[#64748b]">
                                 {folder.assets.length} PNG
                               </span>
@@ -1733,8 +1918,8 @@ export function DesignerEasyModePage() {
                                 onClick={() => activateUploadedAsset(asset.id)}
                                 className={`flex aspect-square min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
                                   isActive
-                                    ? 'border-[#4f46e5] ring-2 ring-[#4f46e5]/20'
-                                    : 'border-[#e2e8f0] hover:border-[#94a3b8]'
+                                    ? "border-[#4f46e5] ring-2 ring-[#4f46e5]/20"
+                                    : "border-[#e2e8f0] hover:border-[#94a3b8]"
                                 }`}
                               >
                                 <img
@@ -1755,7 +1940,7 @@ export function DesignerEasyModePage() {
                         </p>
                       )}
                   </div>
-                ) : uploadedLibraryTab === 'images' ? (
+                ) : uploadedLibraryTab === "images" ? (
                   uploadedAssets.length > 0 ? (
                     <div className="grid grid-cols-3 gap-2">
                       {uploadedAssets.map((asset) => {
@@ -1770,8 +1955,8 @@ export function DesignerEasyModePage() {
                             onClick={() => activateUploadedAsset(asset.id)}
                             className={`flex aspect-square min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
                               isActive
-                                ? 'border-[#4f46e5] ring-2 ring-[#4f46e5]/20'
-                                : 'border-[#e2e8f0] hover:border-[#94a3b8]'
+                                ? "border-[#4f46e5] ring-2 ring-[#4f46e5]/20"
+                                : "border-[#e2e8f0] hover:border-[#94a3b8]"
                             }`}
                           >
                             <img
@@ -1785,7 +1970,10 @@ export function DesignerEasyModePage() {
                     </div>
                   ) : (
                     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#cbd5e1] p-6 text-center">
-                      <Images className="h-8 w-8 text-[#94a3b8]" strokeWidth={1.5} />
+                      <Images
+                        className="h-8 w-8 text-[#94a3b8]"
+                        strokeWidth={1.5}
+                      />
                       <p className="mt-2 text-[13px] font-semibold text-[#0f172a]">
                         Aún no hay imágenes subidas
                       </p>
@@ -1809,7 +1997,10 @@ export function DesignerEasyModePage() {
                         onClick={() => {
                           if (activeUploadedFolderPath) {
                             setActiveUploadedFolderPath(
-                              activeUploadedFolderPath.split('/').slice(0, -1).join('/'),
+                              activeUploadedFolderPath
+                                .split("/")
+                                .slice(0, -1)
+                                .join("/"),
                             );
                           } else {
                             setActiveUploadedFolderId(null);
@@ -1822,10 +2013,14 @@ export function DesignerEasyModePage() {
                       </button>
                       <div className="min-w-0 flex-1 truncate text-[12px] font-semibold text-[#0f172a]">
                         {activeUploadedFolder.name}
-                        {activeUploadedFolderPath && ` / ${activeUploadedFolderPath}`}
+                        {activeUploadedFolderPath &&
+                          ` / ${activeUploadedFolderPath}`}
                       </div>
                       <span className="shrink-0 text-[11px] text-[#64748b]">
                         {activeFolderContents.images.length} PNG
+                        {activeUploadedFolder.ignoredCount
+                          ? ` · ${activeUploadedFolder.ignoredCount} archivo${activeUploadedFolder.ignoredCount === 1 ? "" : "s"} omitido${activeUploadedFolder.ignoredCount === 1 ? "" : "s"}`
+                          : ""}
                       </span>
                     </div>
 
@@ -1835,12 +2030,18 @@ export function DesignerEasyModePage() {
                           <button
                             key={folder.path}
                             type="button"
-                            onClick={() => setActiveUploadedFolderPath(folder.path)}
+                            onClick={() =>
+                              setActiveUploadedFolderPath(folder.path)
+                            }
                             className="flex w-full items-center gap-2.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-left transition-colors hover:bg-[#f8fafc] hover:border-[#cbd5e1]"
                           >
                             <Folder className="h-4 w-4 shrink-0 text-[#64748b]" />
-                            <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0f172a]">{folder.name}</span>
-                            <span className="shrink-0 text-[11px] text-[#64748b]">{folder.assetCount} PNG</span>
+                            <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0f172a]">
+                              {folder.name}
+                            </span>
+                            <span className="shrink-0 text-[11px] text-[#64748b]">
+                              {folder.assetCount} PNG
+                            </span>
                           </button>
                         ))}
                       </div>
@@ -1860,19 +2061,28 @@ export function DesignerEasyModePage() {
                               onClick={() => activateUploadedAsset(asset.id)}
                               className={`flex aspect-square min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
                                 isActive
-                                  ? 'border-[#4f46e5] ring-2 ring-[#4f46e5]/20'
-                                  : 'border-[#e2e8f0] hover:border-[#94a3b8]'
+                                  ? "border-[#4f46e5] ring-2 ring-[#4f46e5]/20"
+                                  : "border-[#e2e8f0] hover:border-[#94a3b8]"
                               }`}
                             >
-                              <img src={asset.image} alt="" className="h-full w-full object-contain" />
+                              <img
+                                src={asset.image}
+                                alt=""
+                                className="h-full w-full object-contain"
+                              />
                             </button>
                           );
                         })}
                       </div>
                     ) : activeFolderContents.subfolders.length === 0 ? (
-                      <p className="text-[12px] text-[#64748b]">
-                        Esta carpeta no contiene PNG.
-                      </p>
+                      <div className="rounded-lg border border-dashed border-[#cbd5e1] p-4 text-center">
+                        <p className="text-[12px] font-medium text-[#475569]">
+                          Esta carpeta no contiene diseños PNG compatibles.
+                        </p>
+                        <p className="mt-0.5 text-[11px] text-[#94a3b8]">
+                          Los archivos de otros formatos fueron omitidos al importarla.
+                        </p>
+                      </div>
                     ) : null}
                   </div>
                 ) : uploadedFolders.length > 0 ? (
@@ -1883,21 +2093,28 @@ export function DesignerEasyModePage() {
                         type="button"
                         onClick={() => {
                           setActiveUploadedFolderId(folder.id);
-                          setActiveUploadedFolderPath('');
+                          setActiveUploadedFolderPath("");
                         }}
                         className="flex w-full items-center gap-2.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-left transition-colors hover:bg-[#f8fafc] hover:border-[#cbd5e1]"
                       >
                         <Folder className="h-5 w-5 shrink-0 text-[#64748b]" />
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[12px] font-semibold text-[#0f172a]">{folder.name}</p>
-                          <p className="text-[11px] text-[#64748b]">{folder.assets.length} PNG</p>
+                          <p className="truncate text-[12px] font-semibold text-[#0f172a]">
+                            {folder.name}
+                          </p>
+                          <p className="text-[11px] text-[#64748b]">
+                            {folder.assets.length} PNG
+                          </p>
                         </div>
                       </button>
                     ))}
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#cbd5e1] p-6 text-center">
-                    <Folder className="h-8 w-8 text-[#94a3b8]" strokeWidth={1.5} />
+                    <Folder
+                      className="h-8 w-8 text-[#94a3b8]"
+                      strokeWidth={1.5}
+                    />
                     <p className="mt-2 text-[13px] font-semibold text-[#0f172a]">
                       Aún no hay carpetas subidas
                     </p>
@@ -1921,52 +2138,63 @@ export function DesignerEasyModePage() {
           {/* ══════════════════════════════════════════════════════════
               3. OTRAS HERRAMIENTAS — Paneles correspondientes
           ══════════════════════════════════════════════════════════ */}
-          {activeSidebarTool === 'plantillas' && (
+          {activeSidebarTool === "plantillas" && (
             <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Plantillas</h1>
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                Plantillas
+              </h1>
               <p className="text-[12px] text-[#64748b]">
                 Explora y aplica plantillas prediseñadas para tus productos.
               </p>
             </section>
           )}
 
-          {activeSidebarTool === 'elementos' && (
+          {activeSidebarTool === "elementos" && (
             <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Elementos</h1>
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                Elementos
+              </h1>
               <p className="text-[12px] text-[#64748b]">
                 Gráficos, stickers e ilustraciones para añadir a tu diseño.
               </p>
             </section>
           )}
 
-          {activeSidebarTool === 'texto' && (
+          {activeSidebarTool === "texto" && (
             <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Texto</h1>
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                Texto
+              </h1>
               <p className="text-[12px] text-[#64748b]">
-                Agrega títulos, subtítulos y textos con tipografías personalizadas.
+                Agrega títulos, subtítulos y textos con tipografías
+                personalizadas.
               </p>
             </section>
           )}
 
-          {activeSidebarTool === 'formas' && (
+          {activeSidebarTool === "formas" && (
             <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Formas</h1>
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                Formas
+              </h1>
               <p className="text-[12px] text-[#64748b]">
                 Inserta rectángulos, círculos, líneas y vectores geométricos.
               </p>
             </section>
           )}
 
-          {activeSidebarTool === 'capas' && (
+          {activeSidebarTool === "capas" && (
             <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Capas</h1>
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                Capas
+              </h1>
               <div className="space-y-2">
                 <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-[12px]">
                   <span className="font-medium text-[#0f172a]">
-                    {selectedImage ? 'Diseño activo' : 'Sin diseño en lienzo'}
+                    {selectedImage ? "Diseño activo" : "Sin diseño en lienzo"}
                   </span>
                   <span className="text-[11px] text-[#64748b]">
-                    {selectedImage ? 'Capa 1' : 'Vacío'}
+                    {selectedImage ? "Capa 1" : "Vacío"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-[12px]">
@@ -1988,7 +2216,10 @@ export function DesignerEasyModePage() {
           {canvasViewport && (
             <div
               className="absolute flex flex-col items-start"
-              style={{ left: `${canvasViewport.leftPx}px`, top: `${canvasViewport.topPx}px` }}
+              style={{
+                left: `${canvasViewport.leftPx}px`,
+                top: `${canvasViewport.topPx}px`,
+              }}
             >
               {/* Fila superior: esquina (cm) + regla horizontal */}
               <div className="flex items-end">
@@ -2028,8 +2259,8 @@ export function DesignerEasyModePage() {
                       src={selectedImage}
                       alt={
                         processedImageUrl && showProcessedImage
-                          ? 'Imagen con contraste procesado'
-                          : 'Imagen subida al lienzo'
+                          ? "Imagen con contraste procesado"
+                          : "Imagen subida al lienzo"
                       }
                       className="h-full w-full select-none object-contain"
                       draggable={false}
