@@ -50,6 +50,8 @@ export interface ViewerState {
   selectedPrintMethod: string;
   /** Whether the shared garment-color dialog is open */
   isGarmentColorPickerOpen: boolean;
+  /** Target context for the reusable color dialog */
+  colorPickerContext: 'garment' | 'design';
 
   // Actions ---------------------------------------------------------------
   setActiveProduct: (product: ProductDefinition) => void;
@@ -72,6 +74,7 @@ export interface ViewerState {
   setSelectedSize: (size: string) => void;
   setSelectedPrintMethod: (method: string) => void;
   setGarmentColorPickerOpen: (value: boolean) => void;
+  setColorPickerContext: (context: 'garment' | 'design') => void;
 }
 
 /** Rotation angles (in degrees) for each printable zone. Used by ProductPivot. */
@@ -100,10 +103,12 @@ export const useViewerStore = create<ViewerState>((set) => ({
   selectedSize: 'M',
   selectedPrintMethod: 'DTF',
   isGarmentColorPickerOpen: false,
+  colorPickerContext: 'garment',
 
   setSelectedSize: (size: string) => set({ selectedSize: size }),
   setSelectedPrintMethod: (method: string) => set({ selectedPrintMethod: method }),
   setGarmentColorPickerOpen: (value: boolean) => set({ isGarmentColorPickerOpen: value }),
+  setColorPickerContext: (context) => set({ colorPickerContext: context }),
 
   setActiveProduct: (product) =>
     set((state) => {

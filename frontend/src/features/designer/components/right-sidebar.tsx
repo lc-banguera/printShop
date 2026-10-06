@@ -21,7 +21,6 @@ export function RightSidebar() {
   const setSelectedSize = useViewerStore((state) => state.setSelectedSize ?? (() => {}));
   const selectedPrintMethod = useViewerStore((state) => state.selectedPrintMethod ?? '');
   const setSelectedPrintMethod = useViewerStore((state) => state.setSelectedPrintMethod ?? (() => {}));
-  const setGarmentColorPickerOpen = useViewerStore((state) => state.setGarmentColorPickerOpen);
 
   const [aspectLocked, setAspectLocked] = useState(true);
 
@@ -42,18 +41,6 @@ export function RightSidebar() {
   const widthCm = selectedElement ? pxToCm(selectedElement.width) : '0';
   const heightCm = selectedElement ? pxToCm(selectedElement.height) : '0';
   const opacityVal = selectedElement ? Math.round((selectedElement.opacity ?? 1) * 100) : 100;
-
-  // Dynamic colors — extracted from the selected element or sensible defaults
-  const elementColors: string[] = selectedElement
-    ? [
-        selectedElement.fill || '#1a1936',
-        '#f97316',
-        '#06b6d4',
-        '#ec4899',
-        '#eab308',
-        '#ffffff',
-      ]
-    : [];
 
   const handleWidthChange = (valStr: string) => {
     const val = parseFloat(valStr);
@@ -176,37 +163,13 @@ export function RightSidebar() {
             </div>
           )}
 
-          {/* ── SECTION: COLORES DEL DISEÑO + EYEDROPPER ── */}
+          {/* Image assets do not expose an editable palette; do not imply recoloring. */}
           {selectedElement && (
             <div className="space-y-2 border-t border-[#eeeef5] pt-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Colores del diseño</h4>
-                <span className="text-[10px] text-[#8E96A6]">Paleta activa</span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 flex-1 flex-wrap">
-                  {elementColors.map((col, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => updateElement(selectedElement.id, { fill: col })}
-                      className="h-5 w-5 rounded-full ring-1 ring-black/10 hover:scale-110 transition-transform cursor-pointer"
-                      style={{ backgroundColor: col }}
-                      title={`Color ${col}`}
-                    />
-                  ))}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setGarmentColorPickerOpen(true)}
-                  className="flex h-7 w-7 items-center justify-center rounded-[5px] border border-[#e4e4ee] bg-[#fafafc] text-[#5046e5] hover:bg-[#eeebff] transition-all cursor-pointer"
-                  title="Abrir selector de color de prenda"
-                  aria-label="Abrir selector de color de prenda"
-                >
-                  <Pipette className="h-3.5 w-3.5" />
-                </button>
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Colores del diseño</h4>
+              <div className="flex items-center gap-2 rounded-[5px] border border-dashed border-[#e4e4ee] bg-[#fafafc] px-2.5 py-2 text-[11px] text-[#908fa3]">
+                <Pipette className="h-3.5 w-3.5 shrink-0" />
+                <span>Color no editable</span>
               </div>
             </div>
           )}
