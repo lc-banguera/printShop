@@ -118,7 +118,7 @@ export function DesignerBuilderPage() {
 
         <main className="min-w-0 flex-1 bg-[#F4F5FB] px-4 pb-4 pt-4 sm:px-6 lg:px-7 xl:px-8">
           <section aria-label="Seleccionar producto">
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,96px),96px))] justify-center gap-2">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,134px),134px))] justify-center gap-2">
               {filteredCategories.map((category) => {
                 const selected = category.id === selectedCategoryId;
 
@@ -134,7 +134,7 @@ export function DesignerBuilderPage() {
                         : "border-borderMuted hover:border-borderStrong"
                     }`}
                   >
-                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-1">
+                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-1.5">
                       <img
                         src={category.image}
                         alt=""
@@ -142,7 +142,7 @@ export function DesignerBuilderPage() {
                       />
                     </div>
 
-                    <div className="flex min-w-0 flex-1 flex-col bg-white p-1.5">
+                    <div className="flex min-w-0 flex-1 flex-col bg-white px-2 py-4">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="line-clamp-2 text-[11px] font-bold leading-[13px] text-foreground transition-colors group-hover:text-primary">
                           {category.name}
