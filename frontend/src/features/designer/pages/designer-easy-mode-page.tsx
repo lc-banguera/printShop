@@ -1419,14 +1419,21 @@ export function DesignerEasyModePage() {
                 onClick={() => {
                   setActiveSidebarTool(tool.id);
                 }}
-                style={isActive ? { backgroundColor: "#eff2fe" } : undefined}
-                className={`mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 transition-colors ${
+                className={`group mx-[clamp(6px,0.95vw,16px)] flex shrink-0 self-stretch flex-col items-center justify-center gap-[clamp(3px,0.3vw,5px)] py-1 transition-colors ${
                   isActive
-                    ? "rounded-xl text-[#4f46e5]"
-                    : "rounded-lg text-[#64748b] hover:text-[#0f172a]"
+                    ? "text-[#4f46e5]"
+                    : "text-[#64748b] hover:text-[#0f172a]"
                 }`}
               >
-                <Icon className="h-5 w-5" strokeWidth={isActive ? 1.8 : 1.6} />
+                <span
+                  className={`flex h-[clamp(32px,2.86vw,44px)] w-[clamp(32px,2.86vw,44px)] items-center justify-center rounded-xl transition-colors ${
+                    isActive
+                      ? "bg-[#eff2fe]"
+                      : "group-hover:bg-[#f5f7ff]"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" strokeWidth={isActive ? 1.8 : 1.6} />
+                </span>
                 <span
                   className={`text-[11px] ${isActive ? "font-semibold" : "font-medium"}`}
                 >

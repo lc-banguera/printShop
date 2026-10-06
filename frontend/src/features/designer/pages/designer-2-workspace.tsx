@@ -597,9 +597,15 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                 type="button"
                 onClick={() => setActiveTool(id)}
                 aria-pressed={activeTool === id}
-                className={`flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-1 rounded-control px-2 text-[11px] font-medium transition-colors lg:min-w-0 lg:w-full ${activeTool === id ? 'bg-[var(--accent-muted)] text-primary' : 'text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground'}`}
+                className={`group flex min-h-12 min-w-[64px] flex-col items-center justify-center gap-1 px-2 text-[11px] font-medium transition-colors lg:min-w-0 lg:w-full ${activeTool === id ? 'text-primary' : 'text-foregroundMuted hover:text-foreground'}`}
               >
-                <Icon className="h-[18px] w-[18px]" />
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-control transition-colors ${
+                    activeTool === id ? 'bg-[var(--accent-muted)]' : 'group-hover:bg-surfaceMuted'
+                  }`}
+                >
+                  <Icon className="h-[18px] w-[18px]" />
+                </span>
                 <span>{label}</span>
               </button>
             ))}

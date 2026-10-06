@@ -81,13 +81,21 @@ export function DesignerBuilderPage() {
               <button
                 key={label}
                 type="button"
-                className={`flex w-full items-center gap-4 rounded-control px-4 py-3.5 text-left text-sm font-medium transition-colors ${
+                className={`group flex w-full items-center gap-4 px-4 py-3.5 text-left text-sm font-medium transition-colors ${
                   active
-                    ? "bg-[var(--accent-muted)] text-primary"
-                    : "text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground"
+                    ? "text-primary"
+                    : "text-foregroundMuted hover:text-foreground"
                 }`}
               >
-                <Icon className="h-5 w-5" />
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-control transition-colors ${
+                    active
+                      ? "bg-[var(--accent-muted)]"
+                      : "group-hover:bg-surfaceMuted"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
                 {label}
               </button>
             ))}
