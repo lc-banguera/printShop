@@ -206,16 +206,16 @@ export function CanvasArea() {
       onDrop={handleDrop}
     >
       {/* ── Top Product View Selector ── */}
-      <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 rounded-full bg-white/90 backdrop-blur-md border border-white/80 p-1 shadow-sm text-[11px] font-semibold">
+      <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] p-1 shadow-xs text-[11px] font-semibold">
         {viewOptions.map((v) => (
           <button
             key={v.id}
             type="button"
             onClick={() => setActiveZone(v.id)}
-            className={`rounded-full px-3.5 py-1 transition-all whitespace-nowrap cursor-pointer ${
+            className={`rounded-[5px] px-3.5 py-1 transition-all whitespace-nowrap cursor-pointer ${
               activeZoneId === v.id
                 ? 'bg-[#5046e5] text-white shadow-2xs'
-                : 'text-[#5e5d72] hover:text-[#171421]'
+                : 'text-[#5e5d72] hover:bg-[#f5f4fb] hover:text-[#171421]'
             }`}
           >
             {v.label}
@@ -224,37 +224,37 @@ export function CanvasArea() {
       </div>
 
       {/* ── Floating Left Action Toolbar ── */}
-      <div className="absolute left-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2.5 rounded-2xl bg-white/90 backdrop-blur-md border border-white/80 p-1.5 shadow-md text-[10px] font-medium text-[#5e5d72]">
-        <button type="button" onClick={undo} disabled={!elements.length} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+      <div className="absolute left-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] p-1.5 shadow-sm text-[10px] font-medium text-[#5e5d72]">
+        <button type="button" onClick={undo} disabled={!elements.length} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Undo2 className="h-3.5 w-3.5" />
           <span className="text-[9px]">Deshacer</span>
         </button>
-        <button type="button" onClick={redo} disabled={!elements.length} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={redo} disabled={!elements.length} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Redo2 className="h-3.5 w-3.5" />
           <span className="text-[9px]">Rehacer</span>
         </button>
         <div className="h-px w-5 bg-[#e4e4ee]" />
-        <button type="button" onClick={() => duplicateElements(selectedElementIds)} disabled={selectedElementIds.length === 0} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={() => duplicateElements(selectedElementIds)} disabled={selectedElementIds.length === 0} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Copy className="h-3.5 w-3.5" />
           <span className="text-[9px]">Duplicar</span>
         </button>
-        <button type="button" onClick={() => removeElements(selectedElementIds)} disabled={selectedElementIds.length === 0} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={() => removeElements(selectedElementIds)} disabled={selectedElementIds.length === 0} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Trash2 className="h-3.5 w-3.5" />
           <span className="text-[9px]">Eliminar</span>
         </button>
         <div className="h-px w-5 bg-[#e4e4ee]" />
-        <button type="button" onClick={() => setShowAlignmentMenu((prev) => !prev)} disabled={!selectedElementId} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={() => setShowAlignmentMenu((prev) => !prev)} disabled={!selectedElementId} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <AlignCenter className="h-3.5 w-3.5" />
           <span className="text-[9px]">Alinear</span>
         </button>
-        <button type="button" onClick={() => selectedElementId ? groupSelectedElements() : ungroupSelectedElements()} disabled={!selectedElementId} className="flex flex-col items-center gap-0.5 p-1 hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
+        <button type="button" onClick={() => selectedElementId ? groupSelectedElements() : ungroupSelectedElements()} disabled={!selectedElementId} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
           <Layers className="h-3.5 w-3.5" />
           <span className="text-[9px]">Agrupar</span>
         </button>
         {showAlignmentMenu && selectedElementId ? (
-          <div className="absolute left-full ml-2 flex flex-col gap-1 rounded-xl border border-[#e4e4ee] bg-white p-2 shadow-lg">
+          <div className="absolute left-full ml-2 flex flex-col gap-1 rounded-[5px] border border-[#e4e4ee] bg-white p-1.5 shadow-md">
             {(['left','center','right','top','middle','bottom'] as const).map((alignment) => (
-              <button key={alignment} type="button" onClick={() => { alignSelectedElement(alignment, activeZone); setShowAlignmentMenu(false); }} className="rounded-lg px-2 py-1 text-left text-[10px] hover:bg-[#f5f4fb]">
+              <button key={alignment} type="button" onClick={() => { alignSelectedElement(alignment, activeZone); setShowAlignmentMenu(false); }} className="rounded-[3px] px-2 py-1 text-left text-[10px] hover:bg-[#f5f4fb] text-[#171421]">
                 {alignment === 'left' ? 'Izquierda' : alignment === 'center' ? 'Centro' : alignment === 'right' ? 'Derecha' : alignment === 'top' ? 'Arriba' : alignment === 'middle' ? 'Medio' : 'Abajo'}
               </button>
             ))}
@@ -263,7 +263,7 @@ export function CanvasArea() {
       </div>
 
       {/* ── Floating Right Color Swatches (Product Materials) ── */}
-      <div className="absolute right-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 rounded-full bg-white/90 backdrop-blur-md border border-white/80 p-2 shadow-md">
+      <div className="absolute right-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] p-2 shadow-sm">
         {colorPalette.map((colorOption) => {
           const isActive = selectedColorIndex === colorOption.index;
           return (
@@ -296,11 +296,11 @@ export function CanvasArea() {
           <Plus className="h-2.5 w-2.5" />
         </button>
         {showColorPicker ? (
-          <div className="absolute right-full mr-2 rounded-xl border border-[#e4e4ee] bg-white p-2 shadow-lg">
+          <div className="absolute right-full mr-2 rounded-[5px] border border-[#e4e4ee] bg-white p-2 shadow-md">
             <input
               ref={colorInputRef}
               type="color"
-              className="h-8 w-8 cursor-pointer rounded-lg border-0 bg-transparent p-0"
+              className="h-8 w-8 cursor-pointer rounded-[3px] border-0 bg-transparent p-0"
               value={garmentColors[selectedColorIndex] ?? '#ffffff'}
               onChange={(event) => handleColorAdd(event.target.value)}
             />
@@ -308,18 +308,16 @@ export function CanvasArea() {
         ) : null}
       </div>
 
-
-
       {/* ── Floating Bottom Zoom & 3D Bar ── */}
       <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2.5">
-        <div className="flex items-center gap-2 rounded-xl bg-white/90 backdrop-blur-md border border-white/80 px-2.5 py-1 shadow-md text-[11px] font-semibold text-[#5e5d72]">
-          <button type="button" className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Hand className="h-3.5 w-3.5" /></button>
+        <div className="flex items-center gap-2 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] px-2.5 py-1 shadow-sm text-[11px] font-semibold text-[#5e5d72]">
+          <button type="button" className="hover:text-[#171421] cursor-pointer transition-colors"><Hand className="h-3.5 w-3.5" /></button>
           <div className="h-3 w-px bg-[#e4e4ee]" />
-          <button type="button" onClick={() => handleZoom('out')} className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Minus className="h-3 w-3" /></button>
+          <button type="button" onClick={() => handleZoom('out')} className="hover:text-[#171421] cursor-pointer transition-colors"><Minus className="h-3 w-3" /></button>
           <span className="min-w-7 text-center text-[#171421]">{Math.round(zoom * 100)}%</span>
-          <button type="button" onClick={() => handleZoom('in')} className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Plus className="h-3 w-3" /></button>
+          <button type="button" onClick={() => handleZoom('in')} className="hover:text-[#171421] cursor-pointer transition-colors"><Plus className="h-3 w-3" /></button>
           <div className="h-3 w-px bg-[#e4e4ee]" />
-          <button type="button" onClick={() => { try { (window as any).__ps_debug = (window as any).__ps_debug || {}; (window as any).__ps_debug.fitButtonClicked = Date.now(); console.log('[PS_DEBUG] Fit button clicked'); } catch(e) {} ; requestFit(); }} className="hover:text-[#171421] cursor-pointer transition-transform hover:scale-105"><Maximize2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => { try { (window as any).__ps_debug = (window as any).__ps_debug || {}; (window as any).__ps_debug.fitButtonClicked = Date.now(); console.log('[PS_DEBUG] Fit button clicked'); } catch(e) {} ; requestFit(); }} className="hover:text-[#171421] cursor-pointer transition-colors"><Maximize2 className="h-3 w-3" /></button>
         </div>
       </div>
 

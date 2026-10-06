@@ -17,11 +17,11 @@ export function BottomPanel() {
     <div className="flex h-[80px] w-full items-center justify-between border-t border-[#e8e8f0] bg-white px-5 shadow-xs select-none shrink-0">
       {/* ── 1. Product Info (Left) ── */}
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#e5e5ee] bg-[#f8f8fb] p-1 shadow-2xs">
+        <div className="flex h-12 w-12 items-center justify-center rounded-[5px] border border-[#e5e5ee] bg-[#f8f8fb] p-1 shadow-2xs">
           <img
             src="https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/www/public/og.png"
             alt="Camiseta Oversize"
-            className="h-full w-full object-contain rounded-lg"
+            className="h-full w-full object-contain rounded-[3px]"
             onError={(e) => {
               (e.currentTarget as HTMLElement).style.display = 'none';
             }}
@@ -84,7 +84,7 @@ export function BottomPanel() {
                 key={s}
                 type="button"
                 onClick={() => setSelectedSize(s)}
-                className={`flex h-6 min-w-6 items-center justify-center rounded-lg border px-1.5 text-[11px] font-semibold transition-all ${
+                className={`flex h-6 min-w-6 items-center justify-center rounded-[5px] border px-1.5 text-[11px] font-semibold transition-all ${
                   isSelected
                     ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
                     : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:border-[#b0b0cc] hover:text-[#171421]'
@@ -110,7 +110,7 @@ export function BottomPanel() {
                 key={m}
                 type="button"
                 onClick={() => setSelectedMethod(m)}
-                className={`flex h-6 items-center justify-center rounded-lg border px-2.5 text-[11px] font-semibold transition-all ${
+                className={`flex h-6 items-center justify-center rounded-[5px] border px-2.5 text-[11px] font-semibold transition-all ${
                   isSelected
                     ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
                     : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:border-[#b0b0cc] hover:text-[#171421]'
