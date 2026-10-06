@@ -329,7 +329,7 @@ El índice en memoria no cachea los bytes del asset. Los uploads usan object URL
 
 | Ruta | Componente | Designer | Estado |
 |---|---|---|---|
-| `/designer` | `DesignerHubPage` | Hub | IMPLEMENTED |
+| `/designer` | Redirect to `/designer/new` | Alias to D2 | LEGACY REDIRECT |
 | `/designer/new` | `DesignerBuilderPage` | D2 (selección) | IMPLEMENTED |
 | `/designer/new?product=camisetas` | `Designer2Workspace` | D2 (workspace) | IMPLEMENTED |
 | `/designer/personalize` | `DesignerLayout` | D1 | UI presente; flujo/capacidades específicas UNKNOWN |
@@ -344,7 +344,7 @@ El índice en memoria no cachea los bytes del asset. Los uploads usan object URL
 
 **Propósito**: Abrir un producto existente y personalizarlo.
 
-**Estado real**: UNKNOWN. La ruta `/designer/personalize` aparece en el Hub pero no se encontró componente dedicado. Requiere verificación.
+**Estado real**: UNKNOWN. La ruta `/designer/personalize` está conectada directamente en el router, pero no se encontró un componente dedicado. Requiere verificación.
 
 ### 8.2 Designer 2 (Builder)
 

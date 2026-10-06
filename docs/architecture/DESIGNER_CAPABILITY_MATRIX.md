@@ -114,7 +114,6 @@ BLOCK 11 añade un procesador compartido de filtros en Web Worker. D3 Easy consu
 
 El router en `App.tsx` conecta `/designer/personalize` con `DesignerLayout`, también usado por `/designer/advanced`. Esto confirma un destino de UI, pero no demuestra que las capacidades implementen el propósito de Personalizer. Los componentes dedicados en `designer/pages/` son:
 
-- `designer-hub-page.tsx` — Hub selector
 - `designer-builder-page.tsx` + `designer-2-workspace.tsx` — Designer 2
 - `designer-easy-mode-page.tsx` — Designer 3 Easy
 - No se encontró una página dedicada de Personalizer.

@@ -194,13 +194,13 @@ El router (`App.tsx`) conecta `/designer/personalize` con el mismo `DesignerLayo
 
 ---
 
-## 5. DESIGNER HUB — Estado: IMPLEMENTED
+## 5. DESIGNER HUB — Eliminado
 
 | Ruta | Componente | Estado |
 |---|---|---|
-| `/designer` | `DesignerHubPage` | ✅ IMPLEMENTED |
+| `/designer` | Redirect to `/designer/new` | ✅ LEGACY ALIAS |
 
-Muestra tarjetas de los tres diseñadores con links a sus rutas. Los links están presentes aunque algunas rutas destino pueden no tener componentes.
+La antigua pantalla selectora ya no existe. La ruta legacy `/designer` redirige directamente a `/designer/new`; los diseñadores mantienen sus rutas de entrada independientes.
 
 ---
 

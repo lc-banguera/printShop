@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UIProvider } from "@/providers/ui-provider";
 import { LandingPage } from "@/features/landing/LandingPage";
 import { DesignerLayout } from "@/features/designer/layouts";
-import { DesignerHubPage } from "@/features/designer/pages/designer-hub-page";
 import { DesignerBuilderPage } from "@/features/designer/pages/designer-builder-page";
 import { DesignerEasyModePage } from "@/features/designer/pages/designer-easy-mode-page";
 import { AdminLayout } from "@/features/admin/AdminLayout";
@@ -93,7 +92,7 @@ export default function App() {
           <Route path="/payments/:status" element={<PaymentStatusPage />} />
 
           {/* Designer / Personalización */}
-          <Route path="/designer" element={<DesignerHubPage />} />
+          <Route path="/designer" element={<Navigate to="/designer/new" replace />} />
           <Route path="/designer/advanced" element={<DesignerLayout />} />
           <Route path="/designer/easy" element={<DesignerEasyModePage />} />
           <Route path="/designer/new" element={<DesignerBuilderPage />} />
