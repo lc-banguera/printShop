@@ -1,14 +1,11 @@
 import { useMemo, useState } from "react";
 
 import {
-  ArrowRight,
   Check,
   CircleHelp,
   FolderKanban,
   Images,
-  LayoutTemplate,
   PackagePlus,
-  Sparkles,
 } from "lucide-react";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -32,8 +29,6 @@ const sidebarItems = [
   { label: "Crear producto", icon: PackagePlus, active: true },
   { label: "Mis proyectos", icon: FolderKanban },
   { label: "Mis diseños", icon: Images },
-  { label: "Plantillas", icon: LayoutTemplate },
-  { label: "Inspiración", icon: Sparkles },
 ];
 
 export function DesignerBuilderPage() {
@@ -123,7 +118,7 @@ export function DesignerBuilderPage() {
 
         <main className="min-w-0 flex-1 bg-[#F4F5FB] px-4 pb-4 pt-4 sm:px-6 lg:px-7 xl:px-8">
           <section aria-label="Seleccionar producto">
-            <div className="grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,96px),96px))] justify-center gap-2">
               {filteredCategories.map((category) => {
                 const selected = category.id === selectedCategoryId;
 
@@ -139,7 +134,7 @@ export function DesignerBuilderPage() {
                         : "border-borderMuted hover:border-borderStrong"
                     }`}
                   >
-                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-2">
+                    <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-1">
                       <img
                         src={category.image}
                         alt=""
@@ -147,9 +142,9 @@ export function DesignerBuilderPage() {
                       />
                     </div>
 
-                    <div className="flex min-w-0 flex-1 flex-col bg-white p-2.5">
+                    <div className="flex min-w-0 flex-1 flex-col bg-white p-1.5">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="line-clamp-1 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
+                        <h3 className="line-clamp-2 text-[11px] font-bold leading-[13px] text-foreground transition-colors group-hover:text-primary">
                           {category.name}
                         </h3>
 
@@ -163,7 +158,7 @@ export function DesignerBuilderPage() {
                         )}
                       </div>
 
-                      <p className="mt-1 line-clamp-2 text-xs leading-4 text-foregroundMuted">
+                      <p className="mt-0.5 line-clamp-2 text-[10px] leading-3 text-foregroundMuted">
                           {categoryDescriptions[category.id]}
                       </p>
                     </div>
@@ -187,7 +182,6 @@ export function DesignerBuilderPage() {
                   }
                 >
                   Continuar con {selectedCategory.name}
-                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
             )}
