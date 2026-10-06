@@ -2,28 +2,12 @@ import { create } from 'zustand';
 import type { PrintableZoneId, ProductDefinition, ProductMaterial } from '@/types/product';
 import { DEFAULT_PRODUCT } from '@/features/catalog/data/products';
 
-const GARMENT_COLOR_PRESETS = [
-  '#ffffff',
-  '#111111',
-  '#8b8b8b',
-  '#d94a3d',
-  '#f08a2b',
-  '#f2d04b',
-  '#4f9e47',
-  '#1f9bd6',
-  '#3f5bd2',
-  '#7e3fc3',
-  '#d96aa5',
-  '#8c5a2b',
-];
-const GARMENT_SLOT_COUNT = GARMENT_COLOR_PRESETS.length;
-
-function buildInitialGarmentColors() {
-  return [...GARMENT_COLOR_PRESETS];
+function buildGarmentColors(product: ProductDefinition) {
+  return product.materials.map((material) => material.color);
 }
 
-function normalizeColorIndex(index: number) {
-  return Math.max(0, Math.min(GARMENT_SLOT_COUNT - 1, index));
+function normalizeColorIndex(index: number, colors: string[]) {
+  return Math.max(0, Math.min(Math.max(colors.length - 1, 0), index));
 }
 
 function findMaterialForColor(product: ProductDefinition, color: string) {
@@ -105,7 +89,7 @@ export const useViewerStore = create<ViewerState>((set) => ({
   productColor: '#ffffff',
   fitRequested: false,
   selectedColorIndex: 0,
-  garmentColors: buildInitialGarmentColors(),
+  garmentColors: buildGarmentColors(DEFAULT_PRODUCT),
   currentGarmentColor: '#ffffff',
   materialBrightness: 1,
   showGuides: false,
@@ -118,9 +102,12 @@ export const useViewerStore = create<ViewerState>((set) => ({
 
   setActiveProduct: (product) =>
     set((state) => {
-      const currentColor = state.garmentColors.includes(state.currentGarmentColor)
-        ? state.currentGarmentColor
-        : state.garmentColors[0] ?? '#ffffff';
+      const garmentColors = buildGarmentColors(product);
+      const preservedColorIndex = garmentColors.findIndex(
+        (color) => color.toLowerCase() === state.currentGarmentColor.toLowerCase(),
+      );
+      const selectedColorIndex = preservedColorIndex >= 0 ? preservedColorIndex : 0;
+      const currentColor = garmentColors[selectedColorIndex] ?? state.currentGarmentColor;
       const material = findMaterialForColor(product, currentColor) ?? product.materials[0] ?? state.selectedMaterial;
 
       return {
@@ -128,8 +115,8 @@ export const useViewerStore = create<ViewerState>((set) => ({
         selectedMaterial: material,
         productColor: currentColor,
         currentGarmentColor: currentColor,
-        garmentColors: state.garmentColors,
-        selectedColorIndex: state.selectedColorIndex,
+        garmentColors,
+        selectedColorIndex,
       };
     }),
 
@@ -173,14 +160,14 @@ export const useViewerStore = create<ViewerState>((set) => ({
 
   setSelectedColorIndex: (index) =>
     set((state) => {
-      const safeIndex = normalizeColorIndex(index);
+      const safeIndex = normalizeColorIndex(index, state.garmentColors);
       const color = state.garmentColors[safeIndex] ?? state.currentGarmentColor;
       return { selectedColorIndex: safeIndex, currentGarmentColor: color, productColor: color };
     }),
 
   selectGarmentColor: (index) =>
     set((state) => {
-      const safeIndex = normalizeColorIndex(index);
+      const safeIndex = normalizeColorIndex(index, state.garmentColors);
       const color = state.garmentColors[safeIndex] ?? state.currentGarmentColor;
       const material = findMaterialForColor(state.activeProduct, color) ?? state.selectedMaterial;
       return {
@@ -193,7 +180,7 @@ export const useViewerStore = create<ViewerState>((set) => ({
 
   updateGarmentColor: (index, color) =>
     set((state) => {
-      const safeIndex = normalizeColorIndex(index);
+      const safeIndex = normalizeColorIndex(index, state.garmentColors);
       const nextColors = [...state.garmentColors];
       nextColors[safeIndex] = color;
       return {
