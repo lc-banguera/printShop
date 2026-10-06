@@ -205,24 +205,6 @@ export function CanvasArea() {
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* ── Top Product View Selector ── */}
-      <div className="absolute top-3.5 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] p-1 shadow-xs text-[11px] font-semibold">
-        {viewOptions.map((v) => (
-          <button
-            key={v.id}
-            type="button"
-            onClick={() => setActiveZone(v.id)}
-            className={`rounded-[5px] px-3.5 py-1 transition-all whitespace-nowrap cursor-pointer ${
-              activeZoneId === v.id
-                ? 'bg-[#5046e5] text-white shadow-2xs'
-                : 'text-[#5e5d72] hover:bg-[#f5f4fb] hover:text-[#171421]'
-            }`}
-          >
-            {v.label}
-          </button>
-        ))}
-      </div>
-
       {/* ── Floating Left Action Toolbar ── */}
       <div className="absolute left-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] p-1.5 shadow-sm text-[10px] font-medium text-[#5e5d72]">
         <button type="button" onClick={undo} disabled={!elements.length} className="flex flex-col items-center gap-0.5 rounded-[5px] p-1 hover:bg-[#f5f4fb] hover:text-[#5046e5] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed">
@@ -262,62 +244,16 @@ export function CanvasArea() {
         ) : null}
       </div>
 
-      {/* ── Floating Right Color Swatches (Product Materials) ── */}
-      <div className="absolute right-5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-2 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] p-2 shadow-sm">
-        {colorPalette.map((colorOption) => {
-          const isActive = selectedColorIndex === colorOption.index;
-          return (
-            <button
-              key={colorOption.id}
-              type="button"
-              onClick={() => {
-                selectGarmentColor(colorOption.index);
-              }}
-              className={`h-5 w-5 rounded-full transition-all duration-200 cursor-pointer ${
-                isActive
-                  ? 'ring-2 ring-[#5046e5] ring-offset-1 scale-110 shadow-[0_0_0_2px_rgba(80,70,229,0.2)]'
-                  : 'ring-1 ring-black/10 hover:scale-105'
-              }`}
-              style={{ backgroundColor: colorOption.color }}
-              title={colorOption.name}
-            />
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => {
-            if (selectedColorIndex < 0 || selectedColorIndex >= garmentColors.length) {
-              selectGarmentColor(0);
-            }
-            setShowColorPicker(true);
-          }}
-          className="flex h-5 w-5 items-center justify-center rounded-full bg-[#f4f4f7] text-[#5e5d72] hover:bg-[#e4e4ee] transition-all cursor-pointer"
-        >
-          <Plus className="h-2.5 w-2.5" />
-        </button>
-        {showColorPicker ? (
-          <div className="absolute right-full mr-2 rounded-[5px] border border-[#e4e4ee] bg-white p-2 shadow-md">
-            <input
-              ref={colorInputRef}
-              type="color"
-              className="h-8 w-8 cursor-pointer rounded-[3px] border-0 bg-transparent p-0"
-              value={garmentColors[selectedColorIndex] ?? '#ffffff'}
-              onChange={(event) => handleColorAdd(event.target.value)}
-            />
-          </div>
-        ) : null}
-      </div>
-
-      {/* ── Floating Bottom Zoom & 3D Bar ── */}
-      <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2.5">
+      {/* ── Floating Bottom Centered Zoom & 3D Bar ── */}
+      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
         <div className="flex items-center gap-2 rounded-[5px] bg-white/95 backdrop-blur-md border border-[#e4e4ee] px-2.5 py-1 shadow-sm text-[11px] font-semibold text-[#5e5d72]">
-          <button type="button" className="hover:text-[#171421] cursor-pointer transition-colors"><Hand className="h-3.5 w-3.5" /></button>
+          <button type="button" className="hover:text-[#171421] cursor-pointer transition-colors" title="Mano / Mover"><Hand className="h-3.5 w-3.5" /></button>
           <div className="h-3 w-px bg-[#e4e4ee]" />
-          <button type="button" onClick={() => handleZoom('out')} className="hover:text-[#171421] cursor-pointer transition-colors"><Minus className="h-3 w-3" /></button>
-          <span className="min-w-7 text-center text-[#171421]">{Math.round(zoom * 100)}%</span>
-          <button type="button" onClick={() => handleZoom('in')} className="hover:text-[#171421] cursor-pointer transition-colors"><Plus className="h-3 w-3" /></button>
+          <button type="button" onClick={() => handleZoom('out')} className="hover:text-[#171421] cursor-pointer transition-colors" title="Reducir zoom"><Minus className="h-3 w-3" /></button>
+          <span className="min-w-8 text-center text-[#171421]">{Math.round(zoom * 100)}%</span>
+          <button type="button" onClick={() => handleZoom('in')} className="hover:text-[#171421] cursor-pointer transition-colors" title="Aumentar zoom"><Plus className="h-3 w-3" /></button>
           <div className="h-3 w-px bg-[#e4e4ee]" />
-          <button type="button" onClick={() => { try { (window as any).__ps_debug = (window as any).__ps_debug || {}; (window as any).__ps_debug.fitButtonClicked = Date.now(); console.log('[PS_DEBUG] Fit button clicked'); } catch(e) {} ; requestFit(); }} className="hover:text-[#171421] cursor-pointer transition-colors"><Maximize2 className="h-3 w-3" /></button>
+          <button type="button" onClick={() => { try { (window as any).__ps_debug = (window as any).__ps_debug || {}; (window as any).__ps_debug.fitButtonClicked = Date.now(); } catch(e) {} ; requestFit(); }} className="hover:text-[#171421] cursor-pointer transition-colors" title="Ajustar a pantalla"><Maximize2 className="h-3 w-3" /></button>
         </div>
       </div>
 

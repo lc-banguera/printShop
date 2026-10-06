@@ -1,147 +1,148 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useViewerStore } from '@/store/viewer-store';
-import { Plus } from 'lucide-react';
+import { ChevronDown, Plus } from 'lucide-react';
+
+const GARMENT_COLOR_NAMES: Record<string, string> = {
+  '#ffffff': 'Blanco',
+  '#111111': 'Negro',
+  '#8b8b8b': 'Gris',
+  '#d94a3d': 'Rojo',
+  '#f08a2b': 'Naranja',
+  '#f2d04b': 'Amarillo',
+  '#4f9e47': 'Verde',
+  '#1f9bd6': 'Celeste',
+  '#3f5bd2': 'Azul',
+  '#7e3fc3': 'Morado',
+  '#d96aa5': 'Rosado',
+  '#8c5a2b': 'Marrón',
+};
 
 export function BottomPanel() {
+  const activeProduct = useViewerStore((state) => state.activeProduct);
   const selectedColorIndex = useViewerStore((state) => state.selectedColorIndex);
   const garmentColors = useViewerStore((state) => state.garmentColors);
   const selectGarmentColor = useViewerStore((state) => state.selectGarmentColor);
   const updateGarmentColor = useViewerStore((state) => state.updateGarmentColor);
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [selectedMethod, setSelectedMethod] = useState('DTF');
+  const currentGarmentColor = useViewerStore((state) => state.currentGarmentColor);
 
-  const sizes = ['S', 'M', 'L', 'XL', 'XXL'];
-  const methods = ['DTF', 'Sublimación', 'Vinilo', 'Bordado'];
+  const [colorPickerOpen, setColorPickerOpen] = useState(false);
+  const customColorInputRef = useRef<HTMLInputElement>(null);
+
+  const colorName =
+    GARMENT_COLOR_NAMES[currentGarmentColor.toLowerCase()] ||
+    GARMENT_COLOR_NAMES[garmentColors[selectedColorIndex]?.toLowerCase()] ||
+    'Personalizado';
 
   return (
-    <div className="flex h-[80px] w-full items-center justify-between border-t border-[#e8e8f0] bg-white px-5 shadow-xs select-none shrink-0">
-      {/* ── 1. Product Info (Left) ── */}
+    <div className="flex h-[72px] w-full items-center justify-between border-t border-[#e8e8f0] bg-white px-6 shadow-xs select-none shrink-0 z-30">
+      {/* ── 1. Left: Product summary & details ── */}
       <div className="flex items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-[5px] border border-[#e5e5ee] bg-[#f8f8fb] p-1 shadow-2xs">
+        <div className="flex h-11 w-11 items-center justify-center rounded-[5px] border border-[#e5e5ee] bg-[#fafafc] p-1 shadow-2xs">
           <img
-            src="https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/www/public/og.png"
-            alt="Camiseta Oversize"
+            src={activeProduct.thumbnail}
+            alt={activeProduct.name}
             className="h-full w-full object-contain rounded-[3px]"
-            onError={(e) => {
-              (e.currentTarget as HTMLElement).style.display = 'none';
-            }}
           />
-          <svg className="h-8 w-8 text-[#5e5d72]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
-          </svg>
         </div>
         <div className="flex flex-col">
           <h3 className="text-xs font-bold text-[#171421] leading-tight">
-            Camiseta Oversize Premium
+            {activeProduct.name}
           </h3>
-          <div className="flex items-center gap-1 mt-0.5">
-            <span className="text-[11px] text-amber-400">★★★★★</span>
-            <span className="text-[10px] font-medium text-[#8E96A6]">(128)</span>
-          </div>
           <span className="text-[10px] text-[#8E96A6] mt-0.5">
-            Algodón 100% · 180 GSM
+            Algodón 100% · 180 GSM · Frente personalizable
           </span>
         </div>
       </div>
 
-      {/* ── 2. Color Options ── */}
-      <div className="flex flex-col">
-        <span className="text-[10px] font-medium text-[#5e5d72] mb-1">
-          Color de prenda
-        </span>
-        <div className="flex items-center gap-1.5">
-          {garmentColors.map((color, index) => (
-            <button
-              key={`${color}-${index}`}
-              type="button"
-              onClick={() => selectGarmentColor(index)}
-              onDoubleClick={() => updateGarmentColor(index, color)}
-              className={`h-5 w-5 rounded-full transition-all cursor-pointer ${
-                selectedColorIndex === index ? 'ring-2 ring-[#5046e5] ring-offset-1 scale-105' : 'ring-1 ring-black/10 hover:scale-105'
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
+      {/* ── 2. Center: Single current garment color control with popover ── */}
+      <div className="relative">
+        <div className="flex flex-col items-center">
+          <span className="text-[10px] font-medium text-[#8E96A6] mb-1">Color de prenda</span>
           <button
             type="button"
-            className="flex h-5 w-5 items-center justify-center rounded-full bg-[#f4f4f7] text-[#5e5d72] hover:bg-[#e4e4ee] transition-all"
+            onClick={() => setColorPickerOpen(!colorPickerOpen)}
+            className="flex items-center gap-2 rounded-[5px] border border-[#e4e4ee] bg-white px-2.5 py-1 text-xs font-semibold text-[#171421] hover:border-[#5046e5]/40 hover:bg-[#fafafc] transition-all cursor-pointer shadow-2xs"
           >
-            <Plus className="h-2.5 w-2.5" />
+            <span
+              className="h-4 w-4 rounded-full border border-black/15 shadow-2xs"
+              style={{ backgroundColor: currentGarmentColor }}
+            />
+            <span className="text-[11px] font-medium">{colorName}</span>
+            <ChevronDown className="h-3 w-3 text-[#8E96A6]" />
           </button>
         </div>
-      </div>
 
-      {/* ── 3. Sizes ── */}
-      <div className="flex flex-col">
-        <span className="text-[10px] font-medium text-[#5e5d72] mb-1">
-          Talla
-        </span>
-        <div className="flex items-center gap-1">
-          {sizes.map((s) => {
-            const isSelected = selectedSize === s;
-            return (
+        {/* Dropdown / Popover of garment colors */}
+        {colorPickerOpen && (
+          <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-64 rounded-[5px] border border-[#e4e4ee] bg-white p-3 shadow-lg z-50 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">
+                Colores disponibles
+              </span>
+              <span className="text-[10px] font-semibold text-[#5046e5]">{colorName}</span>
+            </div>
+
+            <div className="grid grid-cols-6 gap-2 pt-1">
+              {garmentColors.map((color, index) => {
+                const isSelected = selectedColorIndex === index;
+                const name = GARMENT_COLOR_NAMES[color.toLowerCase()] || `Color ${index + 1}`;
+
+                return (
+                  <button
+                    key={`${color}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      selectGarmentColor(index);
+                      setColorPickerOpen(false);
+                    }}
+                    className={`h-6 w-6 rounded-full transition-transform cursor-pointer ${
+                      isSelected
+                        ? 'ring-2 ring-[#5046e5] ring-offset-2 scale-110'
+                        : 'ring-1 ring-black/10 hover:scale-110'
+                    }`}
+                    style={{ backgroundColor: color }}
+                    title={name}
+                  />
+                );
+              })}
+            </div>
+
+            {/* Custom color option */}
+            <div className="border-t border-[#eeeef5] pt-2 flex items-center justify-between">
+              <span className="text-[10px] text-[#5e5d72]">Color personalizado</span>
               <button
-                key={s}
                 type="button"
-                onClick={() => setSelectedSize(s)}
-                className={`flex h-6 min-w-6 items-center justify-center rounded-[5px] border px-1.5 text-[11px] font-semibold transition-all ${
-                  isSelected
-                    ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
-                    : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:border-[#b0b0cc] hover:text-[#171421]'
-                }`}
+                onClick={() => customColorInputRef.current?.click()}
+                className="flex items-center gap-1 rounded-[5px] border border-[#e4e4ee] px-2 py-0.5 text-[10px] font-semibold text-[#5046e5] hover:bg-[#eeebff]"
               >
-                {s}
+                <Plus className="h-2.5 w-2.5" />
+                <span>Elegir</span>
               </button>
-            );
-          })}
-        </div>
+              <input
+                ref={customColorInputRef}
+                type="color"
+                className="sr-only"
+                value={currentGarmentColor}
+                onChange={(e) => {
+                  updateGarmentColor(selectedColorIndex, e.target.value);
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ── 4. Print Method ── */}
-      <div className="flex flex-col">
-        <span className="text-[10px] font-medium text-[#5e5d72] mb-1">
-          Método de impresión
-        </span>
-        <div className="flex items-center gap-1">
-          {methods.map((m) => {
-            const isSelected = selectedMethod === m;
-            return (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setSelectedMethod(m)}
-                className={`flex h-6 items-center justify-center rounded-[5px] border px-2.5 text-[11px] font-semibold transition-all ${
-                  isSelected
-                    ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
-                    : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:border-[#b0b0cc] hover:text-[#171421]'
-                }`}
-              >
-                {m}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* ── 5. Pricing & Cart Summary (Right) ── */}
+      {/* ── 3. Right: Clean pricing summary (Base price & Total) ── */}
       <div className="flex items-center gap-5 border-l border-[#eeeef5] pl-5">
-        <div className="flex flex-col text-right space-y-0.5">
-          <div className="flex items-center justify-end gap-2 text-[11px]">
-            <span className="text-[#8E96A6]">Precio base</span>
-            <span className="font-semibold text-[#171421]">$24.990</span>
-          </div>
-          <div className="flex items-center justify-end gap-2 text-[11px]">
-            <span className="text-[#8E96A6]">Personalización</span>
-            <span className="font-semibold text-[#171421]">$8.000</span>
-          </div>
+        <div className="flex flex-col text-right">
+          <span className="text-[10px] text-[#8E96A6]">Precio base</span>
+          <span className="text-xs font-semibold text-[#5e5d72]">$ 49.900</span>
         </div>
         <div className="flex flex-col text-right">
-          <span className="text-[9px] uppercase tracking-wider font-semibold text-[#8E96A6]">Total</span>
-          <span className="text-lg font-extrabold text-[#5046e5] leading-tight">$32.990</span>
+          <span className="text-[9px] uppercase tracking-wider font-semibold text-[#8E96A6]">Total estimado</span>
+          <span className="text-lg font-black text-[#5046e5] leading-tight">$ 49.900</span>
         </div>
       </div>
     </div>
   );
 }
-
-

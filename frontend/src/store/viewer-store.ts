@@ -60,6 +60,10 @@ export interface ViewerState {
   showGuides: boolean;
   /** Whether the viewport background grid is visible */
   showGrid: boolean;
+  /** Selected product size */
+  selectedSize: string;
+  /** Selected print method */
+  selectedPrintMethod: string;
 
   // Actions ---------------------------------------------------------------
   setActiveProduct: (product: ProductDefinition) => void;
@@ -79,6 +83,8 @@ export interface ViewerState {
   toggleShowGuides: () => void;
   setShowGrid: (value: boolean) => void;
   toggleShowGrid: () => void;
+  setSelectedSize: (size: string) => void;
+  setSelectedPrintMethod: (method: string) => void;
 }
 
 /** Rotation angles (in degrees) for each printable zone. Used by ProductPivot. */
@@ -104,6 +110,11 @@ export const useViewerStore = create<ViewerState>((set) => ({
   materialBrightness: 1,
   showGuides: false,
   showGrid: false,
+  selectedSize: 'M',
+  selectedPrintMethod: 'DTF',
+
+  setSelectedSize: (size: string) => set({ selectedSize: size }),
+  setSelectedPrintMethod: (method: string) => set({ selectedPrintMethod: method }),
 
   setActiveProduct: (product) =>
     set((state) => {

@@ -1,101 +1,34 @@
-import {
-  Sparkles,
-  ShoppingBag,
-  LayoutTemplate,
-  FolderHeart,
-  Lightbulb,
-  Undo2,
-  Redo2,
-  Bookmark,
-  ShoppingCart,
-} from 'lucide-react';
+import { Bookmark, ShoppingCart, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Avatar } from '@/shared/ui/avatar';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/shared/ui/dropdown';
 
 export function DesignerHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-[#e8e8f0] bg-white px-6 select-none shrink-0">
       <div className="flex h-14 items-center justify-between">
-        {/* ── Left: Logo & Navigation ── */}
-        <div className="flex items-center gap-7">
-          {/* Logo */}
+        {/* ── Left: Logo & Context ── */}
+        <div className="flex items-center gap-4">
+          <Link
+            to="/designer"
+            className="flex h-8 w-8 items-center justify-center rounded-[5px] text-[#5e5d72] hover:bg-[#f5f4fb] hover:text-[#171421] transition-colors"
+            title="Volver al selector de diseñadores"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Link>
           <div className="flex flex-col">
             <span className="text-xl font-black italic tracking-tight text-[#5046e5]">
-              Print<span className="text-[#e50c74]">Pro</span>
+              Print<span className="text-[#171421]">Shop</span>
             </span>
             <span className="text-[9px] font-medium text-[#8E96A6] -mt-1 tracking-wider">
-              Diseña sin límites
+              Personalizador de producto
             </span>
           </div>
-
-          {/* Nav Items — flat links, no pills */}
-          <nav className="flex items-center gap-5">
-            <Link
-              to="/designer/new"
-              className="flex items-center gap-1.5 rounded-[5px] bg-[#fde8f3] px-3 py-1 text-xs font-bold text-[#e50c74] transition-all hover:bg-[#fbd3ea]"
-            >
-              <Sparkles className="h-3.5 w-3.5" />
-              <span>Diseño</span>
-            </Link>
-
-            <Link
-              to="/products"
-              className="flex items-center gap-1.5 text-xs font-medium text-[#5e5d72] hover:text-[#5046e5] transition-colors"
-            >
-              <ShoppingBag className="h-3.5 w-3.5" />
-              <span>Productos</span>
-            </Link>
-
-            <Link
-              to="/designer/easy"
-              className="flex items-center gap-1.5 text-xs font-medium text-[#5e5d72] hover:text-[#5046e5] transition-colors"
-            >
-              <LayoutTemplate className="h-3.5 w-3.5" />
-              <span>Plantillas</span>
-            </Link>
-
-            <Link
-              to="/designer/easy"
-              className="flex items-center gap-1.5 text-xs font-medium text-[#5e5d72] hover:text-[#5046e5] transition-colors"
-            >
-              <FolderHeart className="h-3.5 w-3.5" />
-              <span>Mis Diseños</span>
-            </Link>
-
-            <Link
-              to="/products"
-              className="flex items-center gap-1.5 text-xs font-medium text-[#5e5d72] hover:text-[#5046e5] transition-colors"
-            >
-              <Lightbulb className="h-3.5 w-3.5" />
-              <span>Inspiración</span>
-            </Link>
-          </nav>
         </div>
 
-        {/* ── Center: Undo / Redo ── */}
-        <div className="flex items-center gap-1">
+        {/* ── Right: Essential actions (Guardar, Agregar al carrito) ── */}
+        <div className="flex items-center gap-3">
           <button
             type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[#5e5d72] hover:bg-[#f4f4f7] hover:text-[#171421] transition-all"
-            title="Deshacer"
-          >
-            <Undo2 className="h-3.5 w-3.5" />
-          </button>
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[#5e5d72] hover:bg-[#f4f4f7] hover:text-[#171421] transition-all"
-            title="Rehacer"
-          >
-            <Redo2 className="h-3.5 w-3.5" />
-          </button>
-        </div>
-
-        {/* ── Right: Guardar, Agregar al carrito, Avatar ── */}
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            className="flex h-8 items-center gap-1.5 rounded-[5px] border border-[#5046e5] bg-white px-3.5 text-xs font-bold text-[#5046e5] transition-all hover:bg-[#eeebff]"
+            className="flex h-8 items-center gap-1.5 rounded-[5px] border border-[#5046e5] bg-white px-3.5 text-xs font-semibold text-[#5046e5] transition-all hover:bg-[#eeebff]"
           >
             <Bookmark className="h-3.5 w-3.5" />
             <span>Guardar</span>
@@ -103,31 +36,11 @@ export function DesignerHeader() {
 
           <button
             type="button"
-            className="relative flex h-8 items-center gap-1.5 rounded-[5px] bg-[#e50c74] px-4 text-xs font-bold text-white shadow-xs transition-all hover:bg-[#d00a68]"
+            className="flex h-8 items-center gap-1.5 rounded-[5px] bg-[#5046e5] px-4 text-xs font-semibold text-white shadow-xs transition-all hover:bg-[#4338ca]"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             <span>Agregar al carrito</span>
-            <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-[#e50c74] text-[9px] font-bold text-white shadow-xs">
-              3
-            </span>
           </button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button type="button" className="outline-none">
-                <Avatar
-                  className="h-8 w-8 border-2 border-white shadow-xs cursor-pointer"
-                  src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80"
-                  fallback="CB"
-                />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Perfil</DropdownMenuItem>
-              <DropdownMenuItem>Mis Pedidos</DropdownMenuItem>
-              <DropdownMenuItem>Cerrar Sesión</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
         </div>
       </div>
     </header>
