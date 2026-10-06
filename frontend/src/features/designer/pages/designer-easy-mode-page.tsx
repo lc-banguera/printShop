@@ -8,13 +8,17 @@ import {
 } from 'react';
 
 import {
+  ArrowLeft,
   ChevronDown,
   ChevronUp,
   CloudUpload,
   Check,
   Crosshair,
+  Folder,
+  FolderUp,
   Grid2X2,
   Hand,
+  Images,
   Layers,
   LayoutGrid,
   Link2,
@@ -23,6 +27,7 @@ import {
   MoreVertical,
   Redo2,
   RotateCcw,
+  Search,
   Shapes,
   Type,
   Undo2,
@@ -34,6 +39,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { processArtworkImage } from '@/core/design/processing';
 import { removeBackgroundLocal } from '@/features/store/designer/imageProcessor';
+import type { DesignResource } from '@/types/design-resource';
 import { registerUploadedDesign, releaseUploadedDesign } from '../services/design-resources';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -62,6 +68,29 @@ interface CanvasViewport {
   leftPx: number;
   topPx: number;
   zoomPercent: number;
+}
+
+interface UploadedAsset extends DesignResource {
+  file: File;
+  identityKey: string;
+}
+
+interface UploadedFolderAsset {
+  assetId: string;
+  relativePath: string;
+  identityKey: string;
+}
+
+interface UploadedFolder {
+  id: string;
+  name: string;
+  assets: UploadedFolderAsset[];
+}
+
+interface UploadedSubfolder {
+  name: string;
+  path: string;
+  assetCount: number;
 }
 
 interface BackgroundOption {
@@ -192,13 +221,30 @@ const backgroundOptions: BackgroundOption[] = [
 ];
 
 const sidebarTools = [
-  { id: 'archivo', label: 'Archivo', icon: CloudUpload, active: true },
-  { id: 'plantillas', label: 'Plantillas', icon: LayoutGrid, active: false },
-  { id: 'elementos', label: 'Elementos', icon: Shapes, active: false },
-  { id: 'texto', label: 'Texto', icon: Type, active: false },
-  { id: 'formas', label: 'Formas', icon: Grid2X2, active: false },
-  { id: 'capas', label: 'Capas', icon: Layers, active: false },
-];
+  { id: 'archivo', label: 'Archivo', icon: CloudUpload },
+  { id: 'subidos', label: 'Subidos', icon: Images },
+  { id: 'plantillas', label: 'Plantillas', icon: LayoutGrid },
+  { id: 'elementos', label: 'Elementos', icon: Shapes },
+  { id: 'texto', label: 'Texto', icon: Type },
+  { id: 'formas', label: 'Formas', icon: Grid2X2 },
+  { id: 'capas', label: 'Capas', icon: Layers },
+] as const;
+
+type SidebarToolId = (typeof sidebarTools)[number]['id'];
+type UploadedLibraryTab = 'images' | 'folders';
+
+function getFileIdentityKey(file: File): string {
+  return JSON.stringify([
+    file.name.toLocaleLowerCase(),
+    file.size,
+    file.lastModified,
+    file.type.toLocaleLowerCase(),
+  ]);
+}
+
+function normalizeFolderName(name: string): string {
+  return name.trim().toLocaleLowerCase();
+}
 
 function isBackgroundSelected(settings: EasyCanvasSettings, option: BackgroundOption): boolean {
   if (option.background !== settings.background) return false;
@@ -467,9 +513,12 @@ export function DesignerEasyModePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const folderInputRef = useRef<HTMLInputElement | null>(null);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
   const headerMenuButtonRef = useRef<HTMLButtonElement | null>(null);
   const headerMenuRef = useRef<HTMLDivElement | null>(null);
+  const uploadOptionsButtonRef = useRef<HTMLButtonElement | null>(null);
+  const uploadOptionsMenuRef = useRef<HTMLDivElement | null>(null);
 
   const [technique, setTechnique] = useState('dtf');
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
@@ -477,12 +526,23 @@ export function DesignerEasyModePage() {
     createInitialCanvasSettings(location.state),
   );
   const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(null);
+  const [activeSidebarTool, setActiveSidebarTool] = useState<SidebarToolId>('archivo');
   const [keepRatio, setKeepRatio] = useState(false);
   const [canvasRatio, setCanvasRatio] = useState(
     () => Number(canvasSettings.widthCm) / Math.max(0.1, Number(canvasSettings.heightCm)),
   );
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
-  const [sourceFile, setSourceFile] = useState<File | null>(null);
+  const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
+  const [uploadedFolders, setUploadedFolders] = useState<UploadedFolder[]>([]);
+  const [activeUploadedAssetId, setActiveUploadedAssetId] = useState<string | null>(null);
+  const [uploadedLibraryTab, setUploadedLibraryTab] =
+    useState<UploadedLibraryTab>('images');
+  const [activeUploadedFolderId, setActiveUploadedFolderId] = useState<string | null>(null);
+  const [activeUploadedFolderPath, setActiveUploadedFolderPath] = useState('');
+  const [isUploadOptionsOpen, setIsUploadOptionsOpen] = useState(false);
+  const [uploadSearch, setUploadSearch] = useState('');
+  const [folderUploadStatus, setFolderUploadStatus] = useState<string | null>(null);
+  const [folderUploadHasError, setFolderUploadHasError] = useState(false);
+  const [isImportingFolder, setIsImportingFolder] = useState(false);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(null);
   const [processedDimensions, setProcessedDimensions] = useState<{
     width: number;
@@ -490,7 +550,6 @@ export function DesignerEasyModePage() {
   } | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
-  const [uploadedAssetId, setUploadedAssetId] = useState<string | null>(null);
   const [showProcessedImage, setShowProcessedImage] = useState(true);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [removeSemitransparencies, setRemoveSemitransparencies] = useState(false);
@@ -498,7 +557,8 @@ export function DesignerEasyModePage() {
   const [isRemovingBg, setIsRemovingBg] = useState(false);
 
   const processingRequestId = useRef(0);
-  const processedImageUrlRef = useRef<string | null>(null);
+  const ownedProcessedImageUrlsRef = useRef(new Set<string>());
+  const uploadedAssetIdsRef = useRef(new Set<string>());
 
   useEffect(() => {
     if (!isHeaderMenuOpen) return;
@@ -536,12 +596,103 @@ export function DesignerEasyModePage() {
     };
   }, [isHeaderMenuOpen]);
 
+  useEffect(() => {
+    if (!isUploadOptionsOpen) return;
+
+    uploadOptionsMenuRef.current
+      ?.querySelector<HTMLButtonElement>('[role="menuitem"]')
+      ?.focus();
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (
+        target instanceof Node &&
+        !uploadOptionsMenuRef.current?.contains(target) &&
+        !uploadOptionsButtonRef.current?.contains(target)
+      ) {
+        setIsUploadOptionsOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setIsUploadOptionsOpen(false);
+        uploadOptionsButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isUploadOptionsOpen]);
+
   const widthCm = Number(canvasSettings.widthCm) || 0;
   const heightCm = Number(canvasSettings.heightCm) || 0;
   const safeWidthCm = Math.max(0.1, widthCm);
   const safeHeightCm = Math.max(0.1, heightCm);
+  const activeUploadedAsset =
+    uploadedAssets.find((asset) => asset.id === activeUploadedAssetId) ?? null;
   const selectedImage =
-    showProcessedImage && processedImageUrl ? processedImageUrl : imageSrc;
+    showProcessedImage && processedImageUrl
+      ? processedImageUrl
+      : activeUploadedAsset?.image ?? null;
+  const activeUploadedFolder =
+    uploadedFolders.find((folder) => folder.id === activeUploadedFolderId) ?? null;
+  const uploadSearchTerm = uploadSearch.trim().toLocaleLowerCase();
+  const matchingUploadedAssets = uploadedAssets.filter((asset) =>
+    asset.name.toLocaleLowerCase().includes(uploadSearchTerm),
+  );
+  const matchingUploadedFolders = uploadedFolders.filter(
+    (folder) =>
+      folder.name.toLocaleLowerCase().includes(uploadSearchTerm) ||
+      folder.assets.some((entry) =>
+        entry.relativePath.toLocaleLowerCase().includes(uploadSearchTerm),
+      ),
+  );
+  const activeFolderContents = (() => {
+    const subfolders = new Map<string, UploadedSubfolder>();
+    const images: UploadedAsset[] = [];
+    if (!activeUploadedFolder) return { subfolders: [], images };
+
+    const pathPrefix = activeUploadedFolderPath
+      ? `${activeUploadedFolderPath}/`
+      : '';
+    for (const entry of activeUploadedFolder.assets) {
+      if (pathPrefix && !entry.relativePath.startsWith(pathPrefix)) continue;
+      const relativeToCurrent = entry.relativePath.slice(pathPrefix.length);
+      const [firstSegment, ...remainingSegments] = relativeToCurrent.split('/');
+      if (!firstSegment) continue;
+
+      if (remainingSegments.length > 0) {
+        const nestedPath = pathPrefix
+          ? `${pathPrefix}${firstSegment}`
+          : firstSegment;
+        const existingSubfolder = subfolders.get(nestedPath);
+        const assetCount = existingSubfolder?.assetCount ?? 0;
+        subfolders.set(nestedPath, {
+          name: firstSegment,
+          path: nestedPath,
+          assetCount: assetCount + 1,
+        });
+        continue;
+      }
+
+      const asset = uploadedAssets.find((candidate) => candidate.id === entry.assetId);
+      if (asset) images.push(asset);
+    }
+
+    return {
+      subfolders: [...subfolders.values()],
+      images: images.filter((asset) =>
+        asset.name.toLocaleLowerCase().includes(uploadSearchTerm),
+      ),
+    };
+  })();
 
   const handleHeaderMenuKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
@@ -551,6 +702,34 @@ export function DesignerEasyModePage() {
       event.currentTarget.querySelectorAll<HTMLButtonElement>(
         '[role="menuitemradio"], [role="menuitem"]',
       ),
+    );
+    if (items.length === 0) return;
+
+    const currentIndex = items.findIndex((item) => item === document.activeElement);
+    const nextIndex =
+      event.key === 'Home'
+        ? 0
+        : event.key === 'End'
+          ? items.length - 1
+          : (currentIndex + (event.key === 'ArrowDown' ? 1 : -1) + items.length) %
+            items.length;
+    items[nextIndex]?.focus();
+  };
+
+  const handleUploadOptionsKeyDown = (
+    event: ReactKeyboardEvent<HTMLDivElement>,
+  ) => {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      setIsUploadOptionsOpen(false);
+      uploadOptionsButtonRef.current?.focus();
+      return;
+    }
+    if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+
+    const items = Array.from(
+      event.currentTarget.querySelectorAll<HTMLButtonElement>('[role="menuitem"]'),
     );
     if (items.length === 0) return;
 
@@ -608,39 +787,59 @@ export function DesignerEasyModePage() {
     return () => observer.disconnect();
   }, [safeHeightCm, safeWidthCm]);
 
-  useEffect(() => {
-    if (!uploadedAssetId) return;
-    return () => releaseUploadedDesign(uploadedAssetId);
-  }, [uploadedAssetId]);
-
   useEffect(
     () => () => {
       processingRequestId.current += 1;
-      if (processedImageUrlRef.current) URL.revokeObjectURL(processedImageUrlRef.current);
+      uploadedAssetIdsRef.current.forEach(releaseUploadedDesign);
+      uploadedAssetIdsRef.current.clear();
+      ownedProcessedImageUrlsRef.current.forEach((url) => URL.revokeObjectURL(url));
+      ownedProcessedImageUrlsRef.current.clear();
     },
     [],
   );
 
+  useEffect(() => {
+    const retainedUrls = new Set(historyStack);
+    if (processedImageUrl) retainedUrls.add(processedImageUrl);
+
+    ownedProcessedImageUrlsRef.current.forEach((url) => {
+      if (!retainedUrls.has(url)) {
+        URL.revokeObjectURL(url);
+        ownedProcessedImageUrlsRef.current.delete(url);
+      }
+    });
+  }, [historyStack, processedImageUrl]);
+
   const replaceProcessedImage = (url: string | null) => {
-    if (processedImageUrlRef.current) URL.revokeObjectURL(processedImageUrlRef.current);
-    processedImageUrlRef.current = url;
     setProcessedImageUrl(url);
   };
 
+  const activateUploadedAsset = (assetId: string) => {
+    processingRequestId.current += 1;
+    replaceProcessedImage(null);
+    setProcessedDimensions(null);
+    setIsProcessing(false);
+    setIsRemovingBg(false);
+    setProcessingError(null);
+    setActiveUploadedAssetId(assetId);
+    setShowProcessedImage(true);
+    setHistoryStack([]);
+  };
+
   const loadFile = (file: File) => {
+    const identityKey = getFileIdentityKey(file);
+    const existingAsset = uploadedAssets.find((asset) => asset.identityKey === identityKey);
+    if (existingAsset) {
+      activateUploadedAsset(existingAsset.id);
+      setProcessingError(null);
+      return;
+    }
+
     try {
       const asset = registerUploadedDesign(file);
-      processingRequestId.current += 1;
-      replaceProcessedImage(null);
-      setProcessedDimensions(null);
-      setIsProcessing(false);
-      setIsRemovingBg(false);
-      setProcessingError(null);
-      setSourceFile(file);
-      setUploadedAssetId(asset.id);
-      setImageSrc(asset.image);
-      setShowProcessedImage(true);
-      setHistoryStack([]);
+      uploadedAssetIdsRef.current.add(asset.id);
+      setUploadedAssets((current) => [...current, { ...asset, file, identityKey }]);
+      activateUploadedAsset(asset.id);
     } catch (error) {
       setProcessingError(error instanceof Error ? error.message : 'No se pudo cargar la imagen.');
     }
@@ -652,24 +851,157 @@ export function DesignerEasyModePage() {
     event.currentTarget.value = '';
   };
 
+  const openFolderPicker = () => {
+    const input = folderInputRef.current;
+    if (!input || isImportingFolder) return;
+    input.setAttribute('webkitdirectory', '');
+    input.click();
+  };
+
+  const handleFolderChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.currentTarget.files ?? []);
+    event.currentTarget.value = '';
+    if (files.length === 0) return;
+
+    const pngFiles = files.filter((file) => file.name.toLocaleLowerCase().endsWith('.png'));
+    const ignoredCount = files.length - pngFiles.length;
+    if (pngFiles.length === 0) {
+      setFolderUploadHasError(true);
+      setFolderUploadStatus(
+        `La carpeta seleccionada no contiene archivos PNG. Se ignoraron ${ignoredCount} archivos de otros formatos.`,
+      );
+      return;
+    }
+
+    const rootRelativePath = pngFiles.find((file) => file.webkitRelativePath)?.webkitRelativePath;
+    if (!rootRelativePath) {
+      setFolderUploadHasError(true);
+      setFolderUploadStatus('No se pudo identificar la carpeta seleccionada.');
+      return;
+    }
+
+    const folderName = rootRelativePath.split('/')[0];
+    const existingFolder = uploadedFolders.find(
+      (folder) => normalizeFolderName(folder.name) === normalizeFolderName(folderName),
+    );
+    const folderId = existingFolder?.id ?? crypto.randomUUID();
+    const folderAssets = [...(existingFolder?.assets ?? [])];
+    const assetsById = new Map(uploadedAssets.map((asset) => [asset.id, asset]));
+    let addedCount = 0;
+    let linkedCount = 0;
+    let duplicateCount = 0;
+    let failedCount = 0;
+    let registrationError = '';
+
+    setIsImportingFolder(true);
+    setFolderUploadStatus(null);
+    setFolderUploadHasError(false);
+
+    try {
+      for (const file of pngFiles) {
+        const identityKey = getFileIdentityKey(file);
+        const relativePath =
+          file.webkitRelativePath.split('/').slice(1).join('/') || file.name;
+        const existingPathIndex = folderAssets.findIndex(
+          (entry) => entry.relativePath === relativePath,
+        );
+        const existingPath = existingPathIndex >= 0 ? folderAssets[existingPathIndex] : null;
+
+        if (existingPath?.identityKey === identityKey) {
+          duplicateCount += 1;
+          continue;
+        }
+
+        let asset = [...assetsById.values()].find(
+          (candidate) => candidate.identityKey === identityKey,
+        );
+        if (!asset) {
+          try {
+            const resource = registerUploadedDesign(file);
+            asset = { ...resource, file, identityKey };
+            assetsById.set(asset.id, asset);
+            uploadedAssetIdsRef.current.add(asset.id);
+            addedCount += 1;
+          } catch (error) {
+            failedCount += 1;
+            if (!registrationError) {
+              registrationError =
+                error instanceof Error ? error.message : 'Error desconocido al registrar PNG.';
+            }
+            continue;
+          }
+        }
+
+        const folderAsset: UploadedFolderAsset = {
+          assetId: asset.id,
+          relativePath,
+          identityKey,
+        };
+        if (existingPathIndex >= 0) folderAssets[existingPathIndex] = folderAsset;
+        else folderAssets.push(folderAsset);
+        linkedCount += 1;
+      }
+
+      setUploadedAssets([...assetsById.values()]);
+      if (folderAssets.length > 0) {
+        const updatedFolder: UploadedFolder = {
+          id: folderId,
+          name: folderName,
+          assets: folderAssets,
+        };
+        setUploadedFolders((current) => {
+          const index = current.findIndex((folder) => folder.id === folderId);
+          if (index < 0) return [...current, updatedFolder];
+          const next = [...current];
+          next[index] = updatedFolder;
+          return next;
+        });
+      }
+
+      const ignoredStatus =
+        ignoredCount > 0
+          ? ` Se ignoró${ignoredCount === 1 ? '' : 'aron'} ${ignoredCount} archivo${
+              ignoredCount === 1 ? '' : 's'
+            } de otros formatos.`
+          : '';
+      setFolderUploadHasError(failedCount > 0);
+      setFolderUploadStatus(
+        failedCount > 0
+          ? `Se importaron ${linkedCount} PNG; no se pudieron registrar ${failedCount}. ${registrationError}${ignoredStatus}`
+          : `${folderName}: ${linkedCount} PNG enlazado${
+              linkedCount === 1 ? '' : 's'
+            } (${addedCount} nuevo${addedCount === 1 ? '' : 's'}); ${duplicateCount} duplicado${
+              duplicateCount === 1 ? '' : 's'
+            } omitido${duplicateCount === 1 ? '' : 's'}.${ignoredStatus}`,
+      );
+    } finally {
+      setIsImportingFolder(false);
+    }
+  };
+
   const handleRemoveBackground = async () => {
     if (!selectedImage || isRemovingBg) return;
+    const requestId = ++processingRequestId.current;
     setIsRemovingBg(true);
     setProcessingError(null);
     try {
-      setHistoryStack((prev) => [...prev, selectedImage]);
       const resultDataUrl = await removeBackgroundLocal(selectedImage, {
         tolerance: 32,
         feather: 1,
       });
+      if (requestId !== processingRequestId.current) return;
+
+      setHistoryStack((prev) => [...prev, selectedImage]);
       replaceProcessedImage(resultDataUrl);
       setShowProcessedImage(true);
     } catch (error) {
-      setProcessingError(
-        error instanceof Error ? error.message : 'No se pudo eliminar el fondo de la imagen.',
-      );
+      if (requestId === processingRequestId.current) {
+        setProcessingError(
+          error instanceof Error ? error.message : 'No se pudo eliminar el fondo de la imagen.',
+        );
+      }
     } finally {
-      setIsRemovingBg(false);
+      if (requestId === processingRequestId.current) setIsRemovingBg(false);
     }
   };
 
@@ -690,13 +1022,16 @@ export function DesignerEasyModePage() {
     if (selectedImage) {
       setHistoryStack((prev) => [...prev, selectedImage]);
     }
-    setImageSrc(null);
-    setSourceFile(null);
+    processingRequestId.current += 1;
+    setActiveUploadedAssetId(null);
     replaceProcessedImage(null);
     setProcessedDimensions(null);
+    setIsProcessing(false);
+    setIsRemovingBg(false);
   };
 
   const handleImproveContrast = async () => {
+    const sourceFile = activeUploadedAsset?.file;
     if (!sourceFile || isProcessing) return;
 
     const requestId = ++processingRequestId.current;
@@ -712,6 +1047,7 @@ export function DesignerEasyModePage() {
         return;
       }
 
+      ownedProcessedImageUrlsRef.current.add(resultUrl);
       replaceProcessedImage(resultUrl);
       setProcessedDimensions({ width: result.width, height: result.height });
       setShowProcessedImage(true);
@@ -850,7 +1186,7 @@ export function DesignerEasyModePage() {
           </div>
 
           {/* Zoom pill */}
-          <div className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-xl border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs">
+          <div className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-[5px] border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs">
             <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
             <span>{canvasViewport?.zoomPercent ?? 0}%</span>
             <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
@@ -859,7 +1195,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PNG */}
           <button
             type="button"
-            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-xl border border-[#e2e8f0] bg-[#f1f3f6] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
+            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-[#f1f3f6] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
           >
             Descargar PNG
           </button>
@@ -867,7 +1203,7 @@ export function DesignerEasyModePage() {
           {/* Descargar PDF */}
           <button
             type="button"
-            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-xl bg-[#4f46e5] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
+            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-[5px] bg-[#4f46e5] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
           >
             Descargar PDF
           </button>
@@ -946,29 +1282,27 @@ export function DesignerEasyModePage() {
         >
           {sidebarTools.map((tool) => {
             const Icon = tool.icon;
-            if (tool.active) {
-              return (
-                <button
-                  key={tool.id}
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  style={{ backgroundColor: '#eff2fe' }}
-                  className="mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 rounded-xl text-[#4f46e5] transition-colors"
-                >
-                  <Icon className="h-5 w-5" strokeWidth={1.8} />
-                  <span className="text-[11px] font-semibold">{tool.label}</span>
-                </button>
-              );
-            }
+            const isActive = activeSidebarTool === tool.id;
 
             return (
               <button
                 key={tool.id}
                 type="button"
-                className="mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 rounded-lg text-[#64748b] hover:text-[#0f172a] transition-colors"
+                aria-pressed={isActive}
+                onClick={() => {
+                  setActiveSidebarTool(tool.id);
+                }}
+                style={isActive ? { backgroundColor: '#eff2fe' } : undefined}
+                className={`mx-[clamp(6px,0.95vw,16px)] flex h-[clamp(58px,5.08vw,85px)] shrink-0 self-stretch flex-col items-center justify-center gap-1 transition-colors ${
+                  isActive
+                    ? 'rounded-xl text-[#4f46e5]'
+                    : 'rounded-lg text-[#64748b] hover:text-[#0f172a]'
+                }`}
               >
-                <Icon className="h-5 w-5" strokeWidth={1.6} />
-                <span className="text-[11px] font-medium">{tool.label}</span>
+                <Icon className="h-5 w-5" strokeWidth={isActive ? 1.8 : 1.6} />
+                <span className={`text-[11px] ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                  {tool.label}
+                </span>
               </button>
             );
           })}
@@ -976,245 +1310,672 @@ export function DesignerEasyModePage() {
 
         {/* ─── PANEL LATERAL DE CONFIGURACIÓN ─── */}
         <aside className="flex min-w-0 flex-col overflow-y-auto border-r border-[#e2e8f0] bg-white px-[clamp(18px,1.43vw,24px)] py-3">
-          {/* 1. AGREGAR IMAGEN */}
-          <section>
-            <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
-              Agregar imagen
-            </h1>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <input
+            ref={folderInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFolderChange}
+          />
 
-            <div
-              onDragOver={(event) => {
-                event.preventDefault();
-                setIsDraggingFile(true);
-              }}
-              onDragLeave={() => setIsDraggingFile(false)}
-              onDrop={handleDrop}
-              className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${
-                isDraggingFile
-                  ? 'border-[#4f46e5] bg-[#eeedff]/40'
-                  : 'border-[#cbd5e1] bg-white'
-              }`}
-            >
-              <CloudUpload className="h-9 w-9 text-[#0f172a]" strokeWidth={1.5} />
-              <p className="mt-2.5 text-[14px] font-bold text-[#0f172a]">
-                {sourceFile ? sourceFile.name : 'Sube una imagen'}
-              </p>
-              <p className="mt-0.5 text-[11px] text-[#94a3b8]">
-                JPG, PNG o SVG (máx. 50MB)
-              </p>
+          {/* ══════════════════════════════════════════════════════════
+              1. ARCHIVO — Importar imagen, Lienzo, Fondo y Acciones
+          ══════════════════════════════════════════════════════════ */}
+          {activeSidebarTool === 'archivo' && (
+            <div className="space-y-4">
+              {/* 1. AGREGAR IMAGEN */}
+              <section>
+                <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                  Agregar imagen
+                </h1>
 
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="mt-3.5 rounded-full border border-[#e2e8f0] bg-[#f8fafc] px-6 py-2 text-[12px] font-semibold text-[#1e293b] shadow-xs hover:bg-[#f1f5f9] transition-colors"
-              >
-                Seleccionar archivo
-              </button>
-            </div>
+                <div
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setIsDraggingFile(true);
+                  }}
+                  onDragLeave={() => setIsDraggingFile(false)}
+                  onDrop={handleDrop}
+                  className={`flex flex-col items-center justify-center rounded-2xl border-2 border-dashed p-6 text-center transition-colors ${
+                    isDraggingFile
+                      ? 'border-[#4f46e5] bg-[#eeedff]/40'
+                      : 'border-[#cbd5e1] bg-white'
+                  }`}
+                >
+                  <CloudUpload className="h-9 w-9 text-[#0f172a]" strokeWidth={1.5} />
+                  <p className="mt-2.5 text-[14px] font-bold text-[#0f172a]">
+                    Sube una imagen
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-[#94a3b8]">
+                    JPG, PNG o SVG (máx. 50MB)
+                  </p>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {processingError && (
-              <p role="alert" className="mt-2 text-[11px] text-red-600">
-                {processingError}
-              </p>
-            )}
-
-          </section>
-
-          {/* 2. LIENZO */}
-          <section className="mt-3 border-t border-[#eef0f4] pt-3">
-            <h2 className="mb-2.5 text-[15px] font-bold text-[#0f172a]">
-              Lienzo
-            </h2>
-
-            {/* Ancho / Alto */}
-            <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-              <label className="min-w-0 text-[12px] text-[#64748b]">
-                <span className="mb-1.5 block">Ancho (cm)</span>
-                <SteppedInput
-                  label="Ancho"
-                  min="0.1"
-                  step="0.1"
-                  value={canvasSettings.widthCm}
-                  onChange={(value) => handleDimensionChange('widthCm', value)}
-                  onStep={(direction) => stepDimension('widthCm', direction)}
-                />
-              </label>
-
-              <button
-                type="button"
-                aria-label={keepRatio ? 'Desbloquear proporción' : 'Mantener proporción'}
-                aria-pressed={keepRatio}
-                onClick={handleRatioToggle}
-                className={`mb-2.5 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
-                  keepRatio ? 'text-[#4f46e5] bg-[#eeedff]' : 'text-[#94a3b8] hover:text-[#0f172a]'
-                }`}
-              >
-                <Link2 className="h-4 w-4" />
-              </button>
-
-              <label className="min-w-0 text-[12px] text-[#64748b]">
-                <span className="mb-1.5 block">Alto (cm)</span>
-                <SteppedInput
-                  label="Alto"
-                  min="0.1"
-                  step="0.1"
-                  value={canvasSettings.heightCm}
-                  onChange={(value) => handleDimensionChange('heightCm', value)}
-                  onStep={(direction) => stepDimension('heightCm', direction)}
-                />
-              </label>
-            </div>
-
-            {/* Resolución */}
-            <div className="mt-3">
-              <span className="mb-1.5 block text-[12px] text-[#64748b]">Resolución</span>
-              <SteppedInput
-                label="Resolución"
-                min="72"
-                max="2400"
-                step="1"
-                value={canvasSettings.dpi}
-                onChange={handleDpiChange}
-                onStep={stepDpi}
-                suffix="DPI"
-              />
-            </div>
-          </section>
-
-          {/* 3. FONDO DEL LIENZO */}
-          <section className="mt-3 border-t border-[#eef0f4] pt-3">
-            <h2 className="mb-3 text-[15px] font-bold text-[#0f172a]">
-              Fondo del lienzo
-            </h2>
-
-            <div className="flex items-center gap-3">
-              {backgroundOptions.map((option) => {
-                const selected = isBackgroundSelected(canvasSettings, option);
-
-                return (
                   <button
-                    key={option.id}
                     type="button"
-                    aria-label={option.label}
-                    aria-pressed={selected}
-                    title={option.label}
-                    onClick={() => handleBackgroundSelect(option)}
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform ${
-                      selected
-                        ? 'ring-2 ring-[#4f46e5] ring-offset-2'
-                        : 'hover:scale-105'
+                    onClick={() => fileInputRef.current?.click()}
+                    className="mt-3.5 rounded-[5px] border border-[#e2e8f0] bg-[#f8fafc] px-6 py-2 text-[12px] font-semibold text-[#1e293b] shadow-xs hover:bg-[#f1f5f9] transition-colors"
+                  >
+                    Seleccionar archivo
+                  </button>
+                </div>
+              </section>
+
+              {processingError && (
+                <p role="alert" className="text-[11px] text-red-600">
+                  {processingError}
+                </p>
+              )}
+
+              {/* 2. LIENZO */}
+              <section className="border-t border-[#eef0f4] pt-3">
+                <h2 className="mb-2.5 text-[15px] font-bold text-[#0f172a]">
+                  Lienzo
+                </h2>
+
+                {/* Ancho / Alto */}
+                <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
+                  <label className="min-w-0 text-[12px] text-[#64748b]">
+                    <span className="mb-1.5 block">Ancho (cm)</span>
+                    <SteppedInput
+                      label="Ancho"
+                      min="0.1"
+                      step="0.1"
+                      value={canvasSettings.widthCm}
+                      onChange={(value) => handleDimensionChange('widthCm', value)}
+                      onStep={(direction) => stepDimension('widthCm', direction)}
+                    />
+                  </label>
+
+                  <button
+                    type="button"
+                    aria-label={keepRatio ? 'Desbloquear proporción' : 'Mantener proporción'}
+                    aria-pressed={keepRatio}
+                    onClick={handleRatioToggle}
+                    className={`mb-2.5 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
+                      keepRatio ? 'text-[#4f46e5] bg-[#eeedff]' : 'text-[#94a3b8] hover:text-[#0f172a]'
                     }`}
                   >
-                    {option.id === 'transparent' ? (
-                      <svg className="h-8 w-8 rounded-full" viewBox="0 0 32 32">
-                        <defs>
-                          <pattern id={`checkers-${option.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
-                            <rect width="4" height="4" fill="#ffffff" />
-                            <rect x="4" width="4" height="4" fill="#cbd5e1" />
-                            <rect y="4" width="4" height="4" fill="#cbd5e1" />
-                            <rect x="4" y="4" width="4" height="4" fill="#ffffff" />
-                          </pattern>
-                        </defs>
-                        <circle cx="16" cy="16" r="15" fill={`url(#checkers-${option.id})`} stroke="#cbd5e1" strokeWidth="1" />
-                      </svg>
-                    ) : (
-                      <span
-                        className="h-8 w-8 rounded-full border border-[#cbd5e1]"
-                        style={{ backgroundColor: option.color ?? '#ffffff' }}
-                      />
-                    )}
+                    <Link2 className="h-4 w-4" />
                   </button>
-                );
-              })}
+
+                  <label className="min-w-0 text-[12px] text-[#64748b]">
+                    <span className="mb-1.5 block">Alto (cm)</span>
+                    <SteppedInput
+                      label="Alto"
+                      min="0.1"
+                      step="0.1"
+                      value={canvasSettings.heightCm}
+                      onChange={(value) => handleDimensionChange('heightCm', value)}
+                      onStep={(direction) => stepDimension('heightCm', direction)}
+                    />
+                  </label>
+                </div>
+
+                {/* Resolución */}
+                <div className="mt-3">
+                  <span className="mb-1.5 block text-[12px] text-[#64748b]">Resolución (DPI)</span>
+                  <SteppedInput
+                    label="Resolución (DPI)"
+                    min="72"
+                    max="300"
+                    step="1"
+                    value={canvasSettings.dpi}
+                    onChange={handleDpiChange}
+                    onStep={stepDpi}
+                  />
+                </div>
+              </section>
+
+              {/* 3. FONDO DEL LIENZO */}
+              <section className="border-t border-[#eef0f4] pt-3">
+                <h2 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                  Fondo del lienzo
+                </h2>
+
+                <div className="flex items-center gap-3">
+                  {backgroundOptions.map((option) => {
+                    const selected = isBackgroundSelected(canvasSettings, option);
+
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        aria-label={option.label}
+                        aria-pressed={selected}
+                        title={option.label}
+                        onClick={() => handleBackgroundSelect(option)}
+                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-transform ${
+                          selected
+                            ? 'ring-2 ring-[#4f46e5] ring-offset-2'
+                            : 'hover:scale-105'
+                        }`}
+                      >
+                        {option.id === 'transparent' ? (
+                          <svg className="h-8 w-8 rounded-full" viewBox="0 0 32 32">
+                            <defs>
+                              <pattern id={`checkers-${option.id}`} width="8" height="8" patternUnits="userSpaceOnUse">
+                                <rect width="4" height="4" fill="#ffffff" />
+                                <rect x="4" width="4" height="4" fill="#cbd5e1" />
+                                <rect y="4" width="4" height="4" fill="#cbd5e1" />
+                                <rect x="4" y="4" width="4" height="4" fill="#ffffff" />
+                              </pattern>
+                            </defs>
+                            <circle cx="16" cy="16" r="15" fill={`url(#checkers-${option.id})`} stroke="#cbd5e1" strokeWidth="1" />
+                          </svg>
+                        ) : (
+                          <span
+                            className="h-8 w-8 rounded-full border border-[#cbd5e1]"
+                            style={{ backgroundColor: option.color ?? '#ffffff' }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* 4. ACCIONES DEL DISEÑO */}
+              <section className="border-t border-[#eef0f4] pt-3">
+                <h2 className="mb-3 text-[15px] font-bold text-[#0f172a]">
+                  Acciones del diseño
+                </h2>
+
+                <button
+                  type="button"
+                  onClick={handleRemoveBackground}
+                  disabled={!selectedImage || isRemovingBg}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-[5px] bg-[#18181b] px-4 text-[12px] font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  {isRemovingBg ? 'ELIMINANDO FONDO…' : 'ELIMINAR FONDO'}
+                </button>
+
+                <div className="mt-2.5 grid grid-cols-3 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleUndo}
+                    disabled={historyStack.length === 0}
+                    className="flex h-9 items-center justify-center gap-1 rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <RotateCcw className="h-3 w-3" />
+                    <span>ATRÁS</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDuplicate}
+                    disabled={!selectedImage}
+                    className="flex h-9 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    DUPLICAR
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearImage}
+                    disabled={!selectedImage}
+                    className="flex h-9 items-center justify-center rounded-[5px] border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    BORRAR
+                  </button>
+                </div>
+
+                <div className="mt-3.5 flex items-center justify-between rounded-[5px] border border-[#fed7aa] bg-[#fff7ed] p-3.5">
+                  <div>
+                    <p className="text-[13px] font-bold text-[#ea580c]">
+                      Eliminar semitransparencias
+                    </p>
+                    <p className="text-[11px] text-[#c2410c] mt-0.5">
+                      Evita bordes blancos
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={removeSemitransparencies}
+                    onClick={() => {
+                      const next = !removeSemitransparencies;
+                      setRemoveSemitransparencies(next);
+                      if (next && activeUploadedAsset?.file && !isProcessing) {
+                        handleImproveContrast();
+                      }
+                    }}
+                    className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none"
+                    style={{ backgroundColor: removeSemitransparencies ? '#ea580c' : '#cbd5e1' }}
+                  >
+                    <span
+                      className="inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out"
+                      style={{
+                        transform: removeSemitransparencies ? 'translateX(20px)' : 'translateX(0px)',
+                      }}
+                    />
+                  </button>
+                </div>
+              </section>
             </div>
-          </section>
+          )}
 
-          {/* 4. ACCIONES DEL DISEÑO */}
-          <section className="mt-3 border-t border-[#eef0f4] pt-3">
-            <h2 className="mb-3 text-[15px] font-bold text-[#0f172a]">
-              Acciones del diseño
-            </h2>
+          {/* ══════════════════════════════════════════════════════════
+              2. SUBIDOS — Biblioteca exclusiva de contenido subido
+          ══════════════════════════════════════════════════════════ */}
+          {activeSidebarTool === 'subidos' && (
+            <section className="min-w-0">
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Subidos</h1>
 
-            {/* Acción sobre la imagen ya cargada; nunca abre un segundo cargador. */}
-            <button
-              type="button"
-              onClick={handleRemoveBackground}
-              disabled={!selectedImage || isRemovingBg}
-              className="flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#18181b] px-4 text-[12px] font-bold uppercase tracking-wider text-white shadow-xs transition-colors hover:bg-black disabled:cursor-not-allowed disabled:opacity-45"
-            >
-              {isRemovingBg ? 'ELIMINANDO FONDO…' : 'ELIMINAR FONDO'}
-            </button>
+              <div className="flex items-center justify-between gap-2">
+                <div
+                  role="tablist"
+                  aria-label="Biblioteca de subidos"
+                  className="flex min-w-0 rounded-lg bg-[#f1f5f9] p-0.5"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={uploadedLibraryTab === 'images'}
+                    onClick={() => {
+                      setUploadedLibraryTab('images');
+                      setActiveUploadedFolderId(null);
+                      setActiveUploadedFolderPath('');
+                    }}
+                    className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                      uploadedLibraryTab === 'images'
+                        ? 'bg-white text-[#0f172a] shadow-xs'
+                        : 'text-[#64748b] hover:text-[#0f172a]'
+                    }`}
+                  >
+                    Imágenes
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={uploadedLibraryTab === 'folders'}
+                    onClick={() => {
+                      setUploadedLibraryTab('folders');
+                      setActiveUploadedFolderId(null);
+                      setActiveUploadedFolderPath('');
+                    }}
+                    className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                      uploadedLibraryTab === 'folders'
+                        ? 'bg-white text-[#0f172a] shadow-xs'
+                        : 'text-[#64748b] hover:text-[#0f172a]'
+                    }`}
+                  >
+                    Carpetas
+                  </button>
+                </div>
 
-            {/* Fila de 3 botones: ATRÁS, DUPLICAR, BORRAR */}
-            <div className="mt-2.5 grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={handleUndo}
-                disabled={historyStack.length === 0}
-                className="flex h-9 items-center justify-center gap-1 rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                <RotateCcw className="h-3 w-3" />
-                <span>ATRÁS</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleDuplicate}
-                disabled={!selectedImage}
-                className="flex h-9 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                DUPLICAR
-              </button>
-              <button
-                type="button"
-                onClick={handleClearImage}
-                disabled={!selectedImage}
-                className="flex h-9 items-center justify-center rounded-[5px] border border-[#fecaca] bg-white text-[11px] font-bold uppercase text-[#ef4444] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-45"
-              >
-                BORRAR
-              </button>
-            </div>
-
-            {/* Banner naranja: Eliminar semitransparencias */}
-            <div className="mt-3.5 flex items-center justify-between rounded-[5px] border border-[#fed7aa] bg-[#fff7ed] p-3.5">
-              <div>
-                <p className="text-[13px] font-bold text-[#ea580c]">
-                  Eliminar semitransparencias
-                </p>
-                <p className="text-[11px] text-[#c2410c] mt-0.5">
-                  Evita bordes blancos
-                </p>
+                <div className="relative shrink-0">
+                  <button
+                    ref={uploadOptionsButtonRef}
+                    type="button"
+                    aria-label="Opciones para subir contenido"
+                    aria-haspopup="menu"
+                    aria-expanded={isUploadOptionsOpen}
+                    onClick={() => setIsUploadOptionsOpen((open) => !open)}
+                    className="flex h-8 w-8 items-center justify-center rounded-lg text-[#64748b] transition-colors hover:bg-[#f1f5f9] hover:text-[#0f172a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5]"
+                  >
+                    <MoreVertical className="h-4 w-4" />
+                  </button>
+                  {isUploadOptionsOpen && (
+                    <div
+                      ref={uploadOptionsMenuRef}
+                      role="menu"
+                      aria-label="Opciones para subir contenido"
+                      onKeyDown={handleUploadOptionsKeyDown}
+                      className="absolute right-0 top-full z-30 mt-1 w-48 rounded-lg border border-[#e2e8f0] bg-white p-1 shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
+                    >
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled={isImportingFolder}
+                        onClick={() => {
+                          setIsUploadOptionsOpen(false);
+                          openFolderPicker();
+                        }}
+                        className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[12px] font-medium text-[#334155] outline-none hover:bg-[#f8fafc] focus:bg-[#f1f5f9] disabled:cursor-wait disabled:opacity-60"
+                      >
+                        <FolderUp className="h-4 w-4 text-[#64748b]" />
+                        {isImportingFolder ? 'Importando carpeta…' : 'Subir una carpeta'}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={() => {
+                          setIsUploadOptionsOpen(false);
+                          fileInputRef.current?.click();
+                        }}
+                        className="flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-left text-[12px] text-[#334155] outline-none hover:bg-[#f8fafc] focus:bg-[#f1f5f9]"
+                      >
+                        <CloudUpload className="h-4 w-4 text-[#64748b]" />
+                        Subir imágenes
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={removeSemitransparencies}
-                onClick={() => {
-                  const next = !removeSemitransparencies;
-                  setRemoveSemitransparencies(next);
-                  if (next && sourceFile && !isProcessing) {
-                    handleImproveContrast();
-                  }
-                }}
-                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none"
-                style={{ backgroundColor: removeSemitransparencies ? '#ea580c' : '#cbd5e1' }}
-              >
-                <span
-                  className="inline-block h-5 w-5 transform rounded-full bg-white shadow-xs transition duration-200 ease-in-out"
-                  style={{
-                    transform: removeSemitransparencies ? 'translateX(20px)' : 'translateX(0px)',
-                  }}
+
+              <label className="relative mt-3 block">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-[#94a3b8]"
                 />
-              </button>
-            </div>
-          </section>
+                <input
+                  type="search"
+                  value={uploadSearch}
+                  onChange={(event) => setUploadSearch(event.target.value)}
+                  placeholder="Buscar imágenes o carpetas"
+                  aria-label="Buscar imágenes o carpetas"
+                  className="h-9 w-full rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-2.5 text-[11px] text-[#0f172a] outline-none placeholder:text-[#94a3b8] focus:border-[#a5b4fc] focus:ring-2 focus:ring-[#4f46e5]/10"
+                />
+              </label>
+
+              {folderUploadStatus && (
+                <p
+                  role={folderUploadHasError ? 'alert' : 'status'}
+                  className={`mt-2 text-[11px] ${
+                    folderUploadHasError ? 'text-red-600' : 'text-[#64748b]'
+                  }`}
+                >
+                  {folderUploadStatus}
+                </p>
+              )}
+
+              <div className="mt-3">
+                {uploadSearchTerm ? (
+                  <div className="space-y-3">
+                    {matchingUploadedFolders.length > 0 && (
+                      <div>
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+                          Carpetas
+                        </p>
+                        <div className="space-y-1.5">
+                          {matchingUploadedFolders.map((folder) => (
+                            <button
+                              key={folder.id}
+                              type="button"
+                              onClick={() => {
+                                setUploadedLibraryTab('folders');
+                                setActiveUploadedFolderId(folder.id);
+                                setActiveUploadedFolderPath('');
+                                setUploadSearch('');
+                              }}
+                              className="flex w-full items-center gap-2.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-left transition-colors hover:bg-[#f8fafc] hover:border-[#cbd5e1]"
+                            >
+                              <Folder className="h-4 w-4 shrink-0 text-[#64748b]" />
+                              <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0f172a]">{folder.name}</span>
+                              <span className="shrink-0 text-[11px] text-[#64748b]">
+                                {folder.assets.length} PNG
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {matchingUploadedAssets.length > 0 && (
+                      <div>
+                        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-[#94a3b8]">
+                          Imágenes
+                        </p>
+                        <div className="grid grid-cols-3 gap-2">
+                          {matchingUploadedAssets.map((asset) => {
+                            const isActive = asset.id === activeUploadedAssetId;
+                            return (
+                              <button
+                                key={asset.id}
+                                type="button"
+                                aria-label={`Seleccionar ${asset.name}`}
+                                aria-pressed={isActive}
+                                title={asset.name}
+                                onClick={() => activateUploadedAsset(asset.id)}
+                                className={`flex aspect-square min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
+                                  isActive
+                                    ? 'border-[#4f46e5] ring-2 ring-[#4f46e5]/20'
+                                    : 'border-[#e2e8f0] hover:border-[#94a3b8]'
+                                }`}
+                              >
+                                <img
+                                  src={asset.image}
+                                  alt=""
+                                  className="h-full w-full object-contain"
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                    {matchingUploadedFolders.length === 0 &&
+                      matchingUploadedAssets.length === 0 && (
+                        <p className="text-[12px] text-[#64748b]">
+                          No hay resultados que coincidan con la búsqueda.
+                        </p>
+                      )}
+                  </div>
+                ) : uploadedLibraryTab === 'images' ? (
+                  uploadedAssets.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {uploadedAssets.map((asset) => {
+                        const isActive = asset.id === activeUploadedAssetId;
+                        return (
+                          <button
+                            key={asset.id}
+                            type="button"
+                            aria-label={`Seleccionar ${asset.name}`}
+                            aria-pressed={isActive}
+                            title={asset.name}
+                            onClick={() => activateUploadedAsset(asset.id)}
+                            className={`flex aspect-square min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
+                              isActive
+                                ? 'border-[#4f46e5] ring-2 ring-[#4f46e5]/20'
+                                : 'border-[#e2e8f0] hover:border-[#94a3b8]'
+                            }`}
+                          >
+                            <img
+                              src={asset.image}
+                              alt=""
+                              className="h-full w-full object-contain"
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#cbd5e1] p-6 text-center">
+                      <Images className="h-8 w-8 text-[#94a3b8]" strokeWidth={1.5} />
+                      <p className="mt-2 text-[13px] font-semibold text-[#0f172a]">
+                        Aún no hay imágenes subidas
+                      </p>
+                      <p className="mt-1 text-[11px] text-[#64748b]">
+                        Sube archivos desde Archivo o usando el menú ⋮
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="mt-3 rounded-[5px] border border-[#e2e8f0] bg-[#f8fafc] px-3.5 py-1.5 text-[11px] font-semibold text-[#1e293b] hover:bg-[#f1f5f9] transition-colors"
+                      >
+                        Subir imágenes
+                      </button>
+                    </div>
+                  )
+                ) : activeUploadedFolder ? (
+                  <div>
+                    <div className="mb-2.5 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (activeUploadedFolderPath) {
+                            setActiveUploadedFolderPath(
+                              activeUploadedFolderPath.split('/').slice(0, -1).join('/'),
+                            );
+                          } else {
+                            setActiveUploadedFolderId(null);
+                          }
+                        }}
+                        aria-label="Volver a carpetas"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-[#64748b] hover:bg-[#f1f5f9] hover:text-[#0f172a]"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                      </button>
+                      <div className="min-w-0 flex-1 truncate text-[12px] font-semibold text-[#0f172a]">
+                        {activeUploadedFolder.name}
+                        {activeUploadedFolderPath && ` / ${activeUploadedFolderPath}`}
+                      </div>
+                      <span className="shrink-0 text-[11px] text-[#64748b]">
+                        {activeFolderContents.images.length} PNG
+                      </span>
+                    </div>
+
+                    {activeFolderContents.subfolders.length > 0 && (
+                      <div className="mb-2 space-y-1.5">
+                        {activeFolderContents.subfolders.map((folder) => (
+                          <button
+                            key={folder.path}
+                            type="button"
+                            onClick={() => setActiveUploadedFolderPath(folder.path)}
+                            className="flex w-full items-center gap-2.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-left transition-colors hover:bg-[#f8fafc] hover:border-[#cbd5e1]"
+                          >
+                            <Folder className="h-4 w-4 shrink-0 text-[#64748b]" />
+                            <span className="min-w-0 flex-1 truncate text-[12px] font-medium text-[#0f172a]">{folder.name}</span>
+                            <span className="shrink-0 text-[11px] text-[#64748b]">{folder.assetCount} PNG</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    {activeFolderContents.images.length > 0 ? (
+                      <div className="grid grid-cols-3 gap-2">
+                        {activeFolderContents.images.map((asset) => {
+                          const isActive = asset.id === activeUploadedAssetId;
+                          return (
+                            <button
+                              key={asset.id}
+                              type="button"
+                              aria-label={`Seleccionar ${asset.name}`}
+                              aria-pressed={isActive}
+                              title={asset.name}
+                              onClick={() => activateUploadedAsset(asset.id)}
+                              className={`flex aspect-square min-w-0 items-center justify-center overflow-hidden rounded-lg border bg-white p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
+                                isActive
+                                  ? 'border-[#4f46e5] ring-2 ring-[#4f46e5]/20'
+                                  : 'border-[#e2e8f0] hover:border-[#94a3b8]'
+                              }`}
+                            >
+                              <img src={asset.image} alt="" className="h-full w-full object-contain" />
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : activeFolderContents.subfolders.length === 0 ? (
+                      <p className="text-[12px] text-[#64748b]">
+                        Esta carpeta no contiene PNG.
+                      </p>
+                    ) : null}
+                  </div>
+                ) : uploadedFolders.length > 0 ? (
+                  <div className="space-y-1.5">
+                    {uploadedFolders.map((folder) => (
+                      <button
+                        key={folder.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveUploadedFolderId(folder.id);
+                          setActiveUploadedFolderPath('');
+                        }}
+                        className="flex w-full items-center gap-2.5 rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-left transition-colors hover:bg-[#f8fafc] hover:border-[#cbd5e1]"
+                      >
+                        <Folder className="h-5 w-5 shrink-0 text-[#64748b]" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[12px] font-semibold text-[#0f172a]">{folder.name}</p>
+                          <p className="text-[11px] text-[#64748b]">{folder.assets.length} PNG</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-[#cbd5e1] p-6 text-center">
+                    <Folder className="h-8 w-8 text-[#94a3b8]" strokeWidth={1.5} />
+                    <p className="mt-2 text-[13px] font-semibold text-[#0f172a]">
+                      Aún no hay carpetas subidas
+                    </p>
+                    <p className="mt-1 text-[11px] text-[#64748b]">
+                      Organiza tus archivos subiendo una carpeta con diseños PNG
+                    </p>
+                    <button
+                      type="button"
+                      onClick={openFolderPicker}
+                      className="mt-3 flex items-center gap-1.5 rounded-[5px] border border-[#e2e8f0] bg-[#f8fafc] px-3.5 py-1.5 text-[11px] font-semibold text-[#1e293b] hover:bg-[#f1f5f9] transition-colors"
+                    >
+                      <FolderUp className="h-3.5 w-3.5 text-[#64748b]" />
+                      Subir una carpeta
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+          )}
+
+          {/* ══════════════════════════════════════════════════════════
+              3. OTRAS HERRAMIENTAS — Paneles correspondientes
+          ══════════════════════════════════════════════════════════ */}
+          {activeSidebarTool === 'plantillas' && (
+            <section className="min-w-0">
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Plantillas</h1>
+              <p className="text-[12px] text-[#64748b]">
+                Explora y aplica plantillas prediseñadas para tus productos.
+              </p>
+            </section>
+          )}
+
+          {activeSidebarTool === 'elementos' && (
+            <section className="min-w-0">
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Elementos</h1>
+              <p className="text-[12px] text-[#64748b]">
+                Gráficos, stickers e ilustraciones para añadir a tu diseño.
+              </p>
+            </section>
+          )}
+
+          {activeSidebarTool === 'texto' && (
+            <section className="min-w-0">
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Texto</h1>
+              <p className="text-[12px] text-[#64748b]">
+                Agrega títulos, subtítulos y textos con tipografías personalizadas.
+              </p>
+            </section>
+          )}
+
+          {activeSidebarTool === 'formas' && (
+            <section className="min-w-0">
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Formas</h1>
+              <p className="text-[12px] text-[#64748b]">
+                Inserta rectángulos, círculos, líneas y vectores geométricos.
+              </p>
+            </section>
+          )}
+
+          {activeSidebarTool === 'capas' && (
+            <section className="min-w-0">
+              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">Capas</h1>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-[12px]">
+                  <span className="font-medium text-[#0f172a]">
+                    {selectedImage ? 'Diseño activo' : 'Sin diseño en lienzo'}
+                  </span>
+                  <span className="text-[11px] text-[#64748b]">
+                    {selectedImage ? 'Capa 1' : 'Vacío'}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-[12px]">
+                  <span className="text-[#64748b]">Lienzo base</span>
+                  <span className="text-[11px] text-[#94a3b8]">Fondo</span>
+                </div>
+              </div>
+            </section>
+          )}
         </aside>
 
         {/* ─── WORKSPACE (Área central de lienzo dominante) ─── */}
@@ -1280,7 +2041,7 @@ export function DesignerEasyModePage() {
           )}
 
           {/* ── Controles flotantes inferiores del workspace ── */}
-          <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-xl border border-[#e2e8f0] bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
+          <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-[5px] border border-[#e2e8f0] bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <button
               type="button"
               aria-label="Herramienta mano"
