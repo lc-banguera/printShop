@@ -78,6 +78,10 @@ export const DEFAULT_PRODUCT: ProductDefinition = {
     { id: 'black', name: 'Negro', color: '#171421' },
   ],
   modelUrl: tshirtGlb,
+  // availableSizes and availablePrintMethods come from the product/store configuration.
+  // In the future these will be fetched from the API per product/offer/store.
+  availableSizes: ['S', 'M', 'L', 'XL', 'XXL'],
+  availablePrintMethods: ['DTF', 'Sublimación', 'Vinilo', 'Bordado'],
 };
 
 export const PRODUCTS: ProductDefinition[] = [DEFAULT_PRODUCT];

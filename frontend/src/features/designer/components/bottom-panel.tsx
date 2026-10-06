@@ -49,7 +49,7 @@ export function BottomPanel() {
             {activeProduct.name}
           </h3>
           <span className="text-[10px] text-[#8E96A6] mt-0.5">
-            Algodón 100% · 180 GSM · Frente personalizable
+            Algodón 100% · 180 GSM
           </span>
         </div>
       </div>

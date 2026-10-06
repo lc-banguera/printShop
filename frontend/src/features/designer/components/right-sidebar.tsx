@@ -5,43 +5,62 @@ import { useCanvasStore } from '@/store/canvas-store';
 import { useViewerStore } from '@/store/viewer-store';
 import type { CanvasState, CanvasElement } from '@/types/canvas';
 
+// Fallback values for when product doesn't define its own sizes or print methods.
+// These will never be used once the API populates availableSizes / availablePrintMethods
+// per product/store (see ProductDefinition type documentation).
+const FALLBACK_SIZES: string[] = ['S', 'M', 'L', 'XL', 'XXL'];
+const FALLBACK_PRINT_METHODS: string[] = ['DTF', 'Sublimación', 'Vinilo', 'Bordado'];
+
 export function RightSidebar() {
   const selectedElementId = useCanvasStore((state: CanvasState) => state.selectedElementId);
   const elements = useCanvasStore((state: CanvasState) => state.elements);
   const updateElement = useCanvasStore((state) => state.updateElement);
 
+  const activeProduct = useViewerStore((state) => state.activeProduct);
   const selectedSize = useViewerStore((state) => state.selectedSize ?? 'M');
   const setSelectedSize = useViewerStore((state) => state.setSelectedSize ?? (() => {}));
-  const selectedPrintMethod = useViewerStore((state) => state.selectedPrintMethod ?? 'DTF');
+  const selectedPrintMethod = useViewerStore((state) => state.selectedPrintMethod ?? '');
   const setSelectedPrintMethod = useViewerStore((state) => state.setSelectedPrintMethod ?? (() => {}));
 
   const colorInputRef = useRef<HTMLInputElement>(null);
   const [aspectLocked, setAspectLocked] = useState(true);
 
+  // Read sizes and print methods from the active product definition.
+  // This is the architecture-ready pattern: when the API is connected, these will
+  // come from the product/offer/store response (availableSizes, availablePrintMethods).
+  const availableSizes = activeProduct.availableSizes ?? FALLBACK_SIZES;
+  const availablePrintMethods = activeProduct.availablePrintMethods ?? FALLBACK_PRINT_METHODS;
+
   const selectedElement: CanvasElement | undefined = selectedElementId
     ? elements.find((el) => el.id === selectedElementId)
     : undefined;
 
-  // Conversion: convert pixels to real-world centimeters (approx 10px = 1cm for garment scale)
+  // Conversion: 10px = 1cm for garment scale
   const pxToCm = (px: number) => (px / 10).toFixed(1);
   const cmToPx = (cm: number) => cm * 10;
 
-  const widthCm = selectedElement ? pxToCm(selectedElement.width) : '18.0';
-  const heightCm = selectedElement ? pxToCm(selectedElement.height) : '18.0';
-  const rotationDeg = selectedElement ? Math.round(selectedElement.rotation ?? 0) : 0;
+  const widthCm = selectedElement ? pxToCm(selectedElement.width) : '0';
+  const heightCm = selectedElement ? pxToCm(selectedElement.height) : '0';
   const opacityVal = selectedElement ? Math.round((selectedElement.opacity ?? 1) * 100) : 100;
 
-  // Dynamic colors extracted or active for selected artwork
-  const elementColors = [
-    selectedElement?.fill || '#1a1936',
-    '#f97316',
-    '#06b6d4',
-    '#ec4899',
-    '#eab308',
-    '#ffffff',
-  ];
+  // Dynamic colors — extracted from the selected element or sensible defaults
+  const elementColors: string[] = selectedElement
+    ? [
+        selectedElement.fill || '#1a1936',
+        '#f97316',
+        '#06b6d4',
+        '#ec4899',
+        '#eab308',
+        '#ffffff',
+      ]
+    : [];
 
-  // EyeDropper API or fallback native color picker
+  // EyeDropper API (Chromium 95+) with native color input as fallback.
+  // NOTE: The EyeDropper API allows sampling any pixel from the screen including
+  // outside the browser window. A custom magnifier loop is intentionally omitted
+  // because reliably capturing arbitrary screen regions via canvas/MediaCapture
+  // requires screen-share permission, which degrades the UX significantly.
+  // The native EyeDropper provides the best real-world sampling experience.
   const handlePickColor = async () => {
     if ('EyeDropper' in window) {
       try {
@@ -51,9 +70,10 @@ export function RightSidebar() {
           updateElement(selectedElement.id, { fill: result.sRGBHex });
         }
       } catch {
-        // User cancelled picker
+        // User cancelled picker – no action needed
       }
     } else {
+      // Fallback: open native <input type="color"> for browsers without EyeDropper API
       colorInputRef.current?.click();
     }
   };
@@ -101,7 +121,8 @@ export function RightSidebar() {
 
       <ScrollArea className="flex-1">
         <div className="p-3.5 space-y-4">
-          {/* SECTION: TAMAÑO (CM) */}
+
+          {/* ── SECTION: TAMAÑO (CM) ── */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Tamaño</h4>
@@ -155,34 +176,16 @@ export function RightSidebar() {
               </div>
             ) : (
               <div className="rounded-[5px] border border-dashed border-[#e4e4ee] bg-[#fafafc] p-2.5 text-center text-[11px] text-[#908fa3]">
-                Sin diseños seleccionados
+                Sin diseños
               </div>
             )}
           </div>
 
-          {/* SECTION: ROTACIÓN DEL DISEÑO */}
+          {/* ── SECTION: OPACIDAD DEL DISEÑO ── */}
           {selectedElement && (
             <div className="space-y-1.5 border-t border-[#eeeef5] pt-3">
               <div className="flex justify-between items-center">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Rotación del diseño</h4>
-                <span className="text-[11px] font-semibold text-[#171421]">{rotationDeg}°</span>
-              </div>
-              <input
-                type="range"
-                min="0"
-                max="360"
-                value={rotationDeg}
-                onChange={(e) => updateElement(selectedElement.id, { rotation: Number(e.target.value) })}
-                className="w-full h-1.5 bg-[#eeeef5] rounded-full accent-[#5046e5] cursor-pointer"
-              />
-            </div>
-          )}
-
-          {/* SECTION: OPACIDAD DEL DISEÑO */}
-          {selectedElement && (
-            <div className="space-y-1.5 border-t border-[#eeeef5] pt-3">
-              <div className="flex justify-between items-center">
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Opacidad del diseño</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Opacidad</h4>
                 <span className="text-[11px] font-semibold text-[#171421]">{opacityVal}%</span>
               </div>
               <input
@@ -196,7 +199,7 @@ export function RightSidebar() {
             </div>
           )}
 
-          {/* SECTION: COLORES DEL DISEÑO + EYEDROPPER / COLOR PICKER */}
+          {/* ── SECTION: COLORES DEL DISEÑO + EYEDROPPER ── */}
           {selectedElement && (
             <div className="space-y-2 border-t border-[#eeeef5] pt-3">
               <div className="flex items-center justify-between">
@@ -218,12 +221,16 @@ export function RightSidebar() {
                   ))}
                 </div>
 
-                {/* Eyedropper / Color Picker Tool */}
+                {/* Eyedropper / Color Picker Tool
+                    Uses native EyeDropper API (Chromium 95+) when available.
+                    Falls back to <input type="color"> for other browsers.
+                    A custom magnifier pixel-grid requires screen-capture permissions
+                    and is intentionally not implemented to preserve UX simplicity. */}
                 <button
                   type="button"
                   onClick={handlePickColor}
                   className="flex h-7 w-7 items-center justify-center rounded-[5px] border border-[#e4e4ee] bg-[#fafafc] text-[#5046e5] hover:bg-[#eeebff] transition-all cursor-pointer"
-                  title="Cuentagotas / Seleccionar color exacto"
+                  title="Cuentagotas — seleccionar color exacto de la pantalla"
                 >
                   <Pipette className="h-3.5 w-3.5" />
                 </button>
@@ -237,22 +244,27 @@ export function RightSidebar() {
             </div>
           )}
 
-          {/* SECTION: CONFIGURACIÓN DEL PRODUCTO (Técnica & Talla) */}
+          {/* ── SECTION: CONFIGURACIÓN DE PRENDA ──
+              Tallas disponibles y Técnicas disponibles se leen del producto activo.
+              ARCHITECTURE NOTE: cuando el modelo de negocio esté conectado con la API,
+              estas listas vendrán de activeProduct.availableSizes y
+              activeProduct.availablePrintMethods, que serán populadas por el servidor
+              según el producto y la oferta de la tienda. Ver ProductDefinition en types/product.ts. */}
           <div className="space-y-3 border-t border-[#eeeef5] pt-3">
             <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Configuración de prenda</h4>
 
-            {/* Talla */}
+            {/* Tallas disponibles */}
             <div className="space-y-1.5">
-              <span className="text-[11px] font-medium text-[#5e5d72]">Talla de la prenda</span>
-              <div className="flex items-center gap-1">
-                {['S', 'M', 'L', 'XL', 'XXL'].map((sz) => {
+              <span className="text-[11px] font-medium text-[#5e5d72]">Tallas disponibles</span>
+              <div className="flex flex-wrap items-center gap-1">
+                {availableSizes.map((sz) => {
                   const isSelected = selectedSize === sz;
                   return (
                     <button
                       key={sz}
                       type="button"
                       onClick={() => setSelectedSize(sz)}
-                      className={`flex-1 h-7 rounded-[5px] border text-[11px] font-semibold transition-all ${
+                      className={`h-7 min-w-[32px] px-2 rounded-[5px] border text-[11px] font-semibold transition-all ${
                         isSelected
                           ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
                           : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:bg-[#fafafc]'
@@ -265,11 +277,11 @@ export function RightSidebar() {
               </div>
             </div>
 
-            {/* Técnica de impresión */}
+            {/* Técnicas disponibles */}
             <div className="space-y-1.5">
-              <span className="text-[11px] font-medium text-[#5e5d72]">Técnica de impresión</span>
+              <span className="text-[11px] font-medium text-[#5e5d72]">Técnicas disponibles</span>
               <div className="grid grid-cols-2 gap-1.5">
-                {['DTF', 'Sublimación', 'Vinilo', 'Bordado'].map((m) => {
+                {availablePrintMethods.map((m) => {
                   const isSelected = selectedPrintMethod === m;
                   return (
                     <button

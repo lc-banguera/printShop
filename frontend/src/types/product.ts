@@ -51,4 +51,28 @@ export interface ProductDefinition {
   /** Optional view configurations per printable zone. Viewer reads this to position camera/model. */
   viewConfigs?: Partial<Record<PrintableZoneId, ProductViewConfig>>;
   materials: ProductMaterial[];
+  /**
+   * Available sizes for this product/store offering.
+   *
+   * ARCHITECTURE NOTE (future):
+   * Availability of sizes depends on the product catalogue and store configuration.
+   * When the SaaS multi-store model is fully connected, this field should be populated
+   * from the server (e.g., `availableSizes` from the product/offer API endpoint).
+   * Different stores may offer different size ranges:
+   *   - Adults: XS, S, M, L, XL, XXL
+   *   - Youth: 2, 4, 6, 8, 10, 12, 14
+   *   - Special: Talla Única
+   * Do NOT hardcode sizes across all products; always read from this field.
+   */
+  availableSizes?: string[];
+  /**
+   * Available print methods/techniques for this product/store offering.
+   *
+   * ARCHITECTURE NOTE (future):
+   * Print method availability depends on the store's capabilities and the product type.
+   * When the SaaS model is fully connected, this should come from the product/offer API.
+   * Not every store will offer all techniques (DTF, Sublimación, Vinilo, Bordado, etc.).
+   * Do NOT hardcode print methods across all products; always read from this field.
+   */
+  availablePrintMethods?: string[];
 }

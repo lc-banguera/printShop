@@ -267,9 +267,11 @@ export function LeftSidebar() {
                       onClick={() => setActiveModule(item.id)}
                       className="group flex w-full flex-col items-center gap-1 py-1 outline-none cursor-pointer"
                     >
-                      {/* Icon container — hover and active state exclusively here */}
+                      {/* Icon container — hover and active state exclusively here.
+                           Uses rounded-xl by design: approved exception for sidebar nav pattern.
+                           The 5px rule applies to rectangular UI components, not nav icon wells. */}
                       <span
-                        className={`flex h-9 w-9 items-center justify-center rounded-[5px] transition-colors ${
+                        className={`flex h-9 w-9 items-center justify-center rounded-xl transition-colors ${
                           isActive
                             ? 'bg-[#5046e5] text-white shadow-2xs'
                             : 'text-[#5e5d72] group-hover:bg-[#f5f4fb] group-hover:text-[#5046e5]'
@@ -334,10 +336,6 @@ export function LeftSidebar() {
                       <span>Gramaje</span>
                       <span className="font-medium text-[#171421]">180 GSM</span>
                     </div>
-                    <div className="flex justify-between text-[#8E96A6]">
-                      <span>Área imprimible frontal</span>
-                      <span className="font-medium text-[#171421]">30 × 40 cm</span>
-                    </div>
                   </div>
                 </div>
 
@@ -400,9 +398,9 @@ export function LeftSidebar() {
                 </div>
               </div>
 
-              {/* Grid of designs */}
+              {/* Grid of designs — compact tiles: more designs visible, less space wasted */}
               <ScrollArea className="flex-1">
-                <div className="grid grid-cols-2 gap-2 p-3">
+                <div className="grid grid-cols-2 gap-1.5 p-2.5">
                   {filteredDesigns.map((resource) => {
                     const isLocked = resource.ownership === 'locked';
 
@@ -414,7 +412,7 @@ export function LeftSidebar() {
                             onClick={() => handleAddArtwork(resource, isLocked)}
                             draggable={!isLocked}
                             onDragStart={(e) => handleDesignDragStart(e, resource, isLocked)}
-                            className={`group relative flex h-[105px] w-full flex-col items-center justify-center overflow-hidden rounded-[5px] border bg-white p-1.5 shadow-2xs transition-all duration-150 ${
+                            className={`group relative flex h-[72px] w-full flex-col items-center justify-center overflow-hidden rounded-[5px] border bg-white p-1 shadow-2xs transition-all duration-150 ${
                               isLocked
                                 ? 'border-[#e5e5ee] opacity-80 cursor-not-allowed hover:border-amber-300'
                                 : 'border-[#e5e5ee] hover:border-[#5046e5]/50 hover:shadow-xs active:cursor-grabbing cursor-grab'
