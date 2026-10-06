@@ -8,6 +8,7 @@ const GARMENT_SWATCHES = [
 const NAMES: Record<string, string> = { '#ffffff': 'Blanco', '#111111': 'Negro', '#171421': 'Negro' };
 type Mode = 'garment' | 'design';
 interface Hsv { h: number; s: number; v: number }
+type EyeDropperWindow = Window & { EyeDropper?: new () => { open: () => Promise<{ sRGBHex: string }> } };
 
 const nameFor = (color: string) => NAMES[color.toLowerCase()] ?? 'Personalizado';
 export const garmentColorName = nameFor;
@@ -39,30 +40,60 @@ export function ColorPickerModal() {
   const areaRef = useRef<HTMLDivElement>(null);
   const initialRef = useRef({ color: productColor, index: selectedColorIndex });
   const [draft, setDraft] = useState(productColor);
+  const [customColors, setCustomColors] = useState<string[]>([]);
+  const [isPixelPicking, setIsPixelPicking] = useState(false);
+  const [pickerMessage, setPickerMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
     initialRef.current = { color: productColor, index: selectedColorIndex };
     setDraft(productColor);
+    setPickerMessage(null);
     dialogRef.current?.focus();
   }, [open, productColor, selectedColorIndex]);
   const preview = (color: string) => { setDraft(color); if (mode === 'garment') setProductColor(color); };
   const cancel = () => { if (mode === 'garment') selectGarmentColor(initialRef.current.index); setOpen(false); };
   const apply = () => { if (mode === 'garment') { const index = GARMENT_SWATCHES.findIndex((color) => color === draft.toLowerCase()); index >= 0 ? setProductColor(draft) : setProductColor(draft); } setOpen(false); };
+  const startSpecificPick = async () => {
+    const NativeEyeDropper = (window as EyeDropperWindow).EyeDropper;
+    if (!NativeEyeDropper) {
+      setPickerMessage('La selección por píxel no está disponible en este navegador.');
+      return;
+    }
+    setOpen(false);
+    setIsPixelPicking(true);
+    try {
+      const result = await new NativeEyeDropper().open();
+      const color = result.sRGBHex.toLowerCase();
+      setCustomColors((colors) => colors.includes(color) || GARMENT_SWATCHES.includes(color) ? colors : [...colors, color]);
+      preview(color);
+    } catch {
+      // Dismissing the native pixel selector preserves the current candidate.
+    } finally {
+      setIsPixelPicking(false);
+      setOpen(true);
+    }
+  };
   useEffect(() => { const close = (event: KeyboardEvent) => { if (event.key === 'Escape') cancel(); }; if (open) window.addEventListener('keydown', close); return () => window.removeEventListener('keydown', close); });
-  if (!open) return null;
+  if (!open && !isPixelPicking) return null;
+
+  if (isPixelPicking) {
+    return <div className="fixed inset-0 z-[70] cursor-crosshair" aria-live="polite">
+      <span className="sr-only">Selección específica activa. El selector nativo muestra una lupa de píxel; pulsa Escape para cancelar.</span>
+    </div>;
+  }
 
   const hsv = toHsv(draft); const hue = toHex({ h: hsv.h, s: 1, v: 1 });
   const selectArea = (x: number, y: number) => { const bounds = areaRef.current?.getBoundingClientRect(); if (!bounds) return; preview(toHex({ h: hsv.h, s: Math.max(0, Math.min(1, (x - bounds.left) / bounds.width)), v: Math.max(0, Math.min(1, 1 - (y - bounds.top) / bounds.height)) })); };
   const title = mode === 'garment' ? 'Color de prenda' : 'Colores del diseño';
-  const palette = mode === 'garment' ? GARMENT_SWATCHES : [];
+  const palette = mode === 'garment' ? [...new Set([...GARMENT_SWATCHES, ...customColors, draft.toLowerCase()])] : [];
 
   return <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/25 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) cancel(); }}>
     <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="color-picker-title" tabIndex={-1} className="w-full max-w-[640px] rounded-[5px] border border-border bg-surface shadow-modal outline-none">
       <header className="flex items-center justify-between border-b border-border px-5 py-3"><div><h2 id="color-picker-title" className="text-sm font-semibold text-foreground">{title}</h2><p className="mt-0.5 text-[11px] text-foregroundMuted">Previsualiza el color antes de aplicarlo.</p></div><button type="button" onClick={cancel} className="rounded-[5px] p-1.5 text-foregroundMuted hover:bg-surfaceMuted" aria-label="Cerrar selector de color"><X className="h-4 w-4" /></button></header>
       <div className="grid gap-5 px-5 py-4 sm:grid-cols-[0.9fr_1.1fr]">
         <section className="border-b border-border pb-4 sm:border-b-0 sm:border-r sm:pb-0 sm:pr-5"><p className="mb-2 text-[11px] font-semibold text-foregroundMuted">Color actual</p><div className="flex items-center gap-3 rounded-[5px] border border-border bg-surfaceMuted p-3"><span className="h-8 w-8 rounded-full border border-black/15" style={{ backgroundColor: draft }} /><div><p className="text-xs font-semibold text-foreground">{nameFor(draft)}</p><p className="font-mono text-[11px] text-foregroundMuted">{draft.toUpperCase()}</p></div></div><p className="mb-2 mt-5 text-[11px] font-semibold text-foregroundMuted">Todos los colores</p><div className="grid grid-cols-5 gap-2">{palette.map((color) => <button key={color} type="button" onClick={() => preview(color)} aria-label={`Previsualizar ${color}`} aria-pressed={draft.toLowerCase() === color} className={`flex h-7 w-7 items-center justify-center rounded-full border ${draft.toLowerCase() === color ? 'border-primary ring-2 ring-primary/25' : 'border-black/15'}`} style={{ backgroundColor: color }}>{draft.toLowerCase() === color && <Check className={`h-3.5 w-3.5 ${color === '#ffffff' || color === '#e5e7eb' || color === '#facc15' ? 'text-foreground' : 'text-white'}`} />}</button>)}</div></section>
-        <section><div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-semibold text-foregroundMuted">Elegir color</p><button type="button" onClick={() => document.getElementById('color-picker-hex')?.focus()} className="flex items-center gap-1 rounded-[5px] px-1.5 py-1 text-[11px] font-semibold text-primary hover:bg-surfaceMuted"><Pipette className="h-3.5 w-3.5" />Selección específica</button></div><div ref={areaRef} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); selectArea(event.clientX, event.clientY); }} onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) selectArea(event.clientX, event.clientY); }} className="relative h-32 cursor-crosshair rounded-[5px]" style={{ backgroundColor: hue, backgroundImage: 'linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent)' }}><span className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }} /></div><input aria-label="Tono" type="range" min="0" max="359" value={Math.round(hsv.h)} onChange={(event) => preview(toHex({ ...hsv, h: Number(event.target.value) }))} className="mt-3 h-2 w-full cursor-pointer accent-primary" /><label className="mt-3 flex h-9 items-center rounded-[5px] border border-border bg-surface px-2"><span className="mr-2 text-[11px] text-foregroundMuted">HEX</span><input id="color-picker-hex" value={draft.toUpperCase()} onChange={(event) => { const value = event.target.value; if (/^#[0-9a-f]{6}$/i.test(value)) preview(value); else setDraft(value); }} onBlur={() => { if (!/^#[0-9a-f]{6}$/i.test(draft)) preview(productColor); }} maxLength={7} className="min-w-0 flex-1 bg-transparent font-mono text-xs text-foreground outline-none" /></label></section>
+        <section><div className="mb-2 flex items-center justify-between"><p className="text-[11px] font-semibold text-foregroundMuted">Elegir color</p><button type="button" onClick={startSpecificPick} className="flex items-center gap-1 rounded-[5px] px-1.5 py-1 text-[11px] font-semibold text-primary hover:bg-surfaceMuted"><Pipette className="h-3.5 w-3.5" />Selección específica</button></div>{pickerMessage && <p className="mb-2 text-[11px] text-foregroundMuted">{pickerMessage}</p>}<div ref={areaRef} onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); selectArea(event.clientX, event.clientY); }} onPointerMove={(event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) selectArea(event.clientX, event.clientY); }} className="relative h-32 cursor-crosshair rounded-[5px]" style={{ backgroundColor: hue, backgroundImage: 'linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent)' }}><span className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm" style={{ left: `${hsv.s * 100}%`, top: `${(1 - hsv.v) * 100}%` }} /></div><input aria-label="Tono" type="range" min="0" max="359" value={Math.round(hsv.h)} onChange={(event) => preview(toHex({ ...hsv, h: Number(event.target.value) }))} className="mt-3 h-2 w-full cursor-pointer accent-primary" /><label className="mt-3 flex h-9 items-center rounded-[5px] border border-border bg-surface px-2"><span className="mr-2 text-[11px] text-foregroundMuted">HEX</span><input id="color-picker-hex" value={draft.toUpperCase()} onChange={(event) => { const value = event.target.value; if (/^#[0-9a-f]{6}$/i.test(value)) preview(value); else setDraft(value); }} onBlur={() => { if (!/^#[0-9a-f]{6}$/i.test(draft)) preview(productColor); }} maxLength={7} className="min-w-0 flex-1 bg-transparent font-mono text-xs text-foreground outline-none" /></label></section>
       </div>
       <footer className="flex justify-end gap-2 border-t border-border px-5 py-3"><button type="button" onClick={cancel} className="h-8 rounded-[5px] border border-border px-3 text-xs font-semibold text-foreground hover:bg-surfaceMuted">Cancelar</button><button type="button" onClick={apply} className="h-8 rounded-[5px] bg-primary px-3 text-xs font-semibold text-primaryForeground hover:bg-primaryHover">Aplicar</button></footer>
     </div>
