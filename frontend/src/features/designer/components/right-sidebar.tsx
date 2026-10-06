@@ -1,5 +1,3 @@
-import { useState } from 'react';
-import { Pipette, Lock, Unlock } from 'lucide-react';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { useCanvasStore } from '@/store/canvas-store';
 import { useViewerStore } from '@/store/viewer-store';
@@ -22,7 +20,7 @@ export function RightSidebar() {
   const selectedPrintMethod = useViewerStore((state) => state.selectedPrintMethod ?? '');
   const setSelectedPrintMethod = useViewerStore((state) => state.setSelectedPrintMethod ?? (() => {}));
 
-  const [aspectLocked, setAspectLocked] = useState(true);
+  const aspectLocked = true;
 
   // Read sizes and print methods from the active product definition.
   // This is the architecture-ready pattern: when the API is connected, these will
@@ -41,6 +39,9 @@ export function RightSidebar() {
   const widthCm = selectedElement ? pxToCm(selectedElement.width) : '0';
   const heightCm = selectedElement ? pxToCm(selectedElement.height) : '0';
   const opacityVal = selectedElement ? Math.round((selectedElement.opacity ?? 1) * 100) : 100;
+  const designPalette = selectedElement && selectedElement.type !== 'image'
+    ? [...new Set([selectedElement.fill, selectedElement.stroke].filter((color): color is string => Boolean(color && /^#[0-9a-f]{6}$/i.test(color))))]
+    : [];
 
   const handleWidthChange = (valStr: string) => {
     const val = parseFloat(valStr);
@@ -90,19 +91,6 @@ export function RightSidebar() {
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
               <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Tamaño</h4>
-              {selectedElement && (
-                <button
-                  type="button"
-                  onClick={() => setAspectLocked(!aspectLocked)}
-                  className={`flex items-center gap-1 text-[10px] font-medium transition-colors ${
-                    aspectLocked ? 'text-[#5046e5]' : 'text-[#8E96A6]'
-                  }`}
-                  title="Bloquear proporción"
-                >
-                  {aspectLocked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                  <span>{aspectLocked ? 'Bloqueado' : 'Libre'}</span>
-                </button>
-              )}
             </div>
 
             {selectedElement ? (
@@ -163,14 +151,17 @@ export function RightSidebar() {
             </div>
           )}
 
-          {/* Image assets do not expose an editable palette; do not imply recoloring. */}
+          {/* Displays only explicit colors already present on the selected element. */}
           {selectedElement && (
             <div className="space-y-2 border-t border-[#eeeef5] pt-3">
               <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Colores del diseño</h4>
-              <div className="flex items-center gap-2 rounded-[5px] border border-dashed border-[#e4e4ee] bg-[#fafafc] px-2.5 py-2 text-[11px] text-[#908fa3]">
-                <Pipette className="h-3.5 w-3.5 shrink-0" />
-                <span>Color no editable</span>
-              </div>
+              {designPalette.length > 0 ? (
+                <div role="group" aria-label="Colores detectados del diseño" className="flex items-center gap-2">
+                  {designPalette.map((color) => <span key={color} title={color} aria-label={color} className="h-5 w-5 rounded-full border border-black/15" style={{ backgroundColor: color }} />)}
+                </div>
+              ) : (
+                <p className="text-[10px] text-[#908fa3]">La paleta se mostrará con diseños compatibles.</p>
+              )}
             </div>
           )}
 
