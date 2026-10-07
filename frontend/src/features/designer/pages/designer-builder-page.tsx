@@ -118,7 +118,7 @@ export function DesignerBuilderPage() {
 
         <main className="min-w-0 flex-1 bg-[#F4F5FB] px-4 pb-4 pt-4 sm:px-6 lg:px-7 xl:px-8">
           <section aria-label="Seleccionar producto">
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,134px),134px))] justify-center gap-2">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),300px))] justify-center gap-3">
               {filteredCategories.map((category) => {
                 const selected = category.id === selectedCategoryId;
 
