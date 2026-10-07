@@ -33,6 +33,8 @@ export {
   applyAlphaDataToImage,
   analyzeAlpha,
   cloneImageBuffer,
+  cloneImageRegion,
+  copyImageRegion,
   createImageBuffer,
   extractAlpha,
   getPixel,
@@ -43,7 +45,7 @@ export {
   sampleLuminance,
   setPixel,
 } from './image-buffer';
-export type { AlphaSummary, ImageBuffer } from './image-buffer';
+export type { AlphaSummary, ImageBuffer, ImageRegion } from './image-buffer';
 export { applyImageEffectStack, composeEffectStacks } from './image-effects';
 export type { RasterEffectKind } from './image-effects';
 export { removeBackgroundLocal } from './background-removal';

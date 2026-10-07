@@ -17,6 +17,13 @@ export interface ImageBuffer {
   data: Uint8ClampedArray | Uint8Array;
 }
 
+export interface ImageRegion {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export function isImageBuffer(value: unknown): value is ImageBuffer {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Record<string, unknown>;
@@ -71,7 +78,8 @@ export function imageBufferPixelCount(buffer: ImageBuffer): number {
 }
 
 export function getPixel(buffer: ImageBuffer, x: number, y: number): [number, number, number, number] {
-  if (x < 0 || y < 0 || x >= buffer.width || y >= buffer.height) {
+  if (!Number.isSafeInteger(x) || !Number.isSafeInteger(y) ||
+      x < 0 || y < 0 || x >= buffer.width || y >= buffer.height) {
     throw new RangeError(`Pixel (${x}, ${y}) is outside ImageBuffer bounds.`);
   }
   const idx = (y * buffer.width + x) * 4;
@@ -87,14 +95,73 @@ export function setPixel(
   b: number,
   a: number,
 ): void {
-  if (x < 0 || y < 0 || x >= buffer.width || y >= buffer.height) {
+  if (!Number.isSafeInteger(x) || !Number.isSafeInteger(y) ||
+      x < 0 || y < 0 || x >= buffer.width || y >= buffer.height) {
     throw new RangeError(`Pixel (${x}, ${y}) is outside ImageBuffer bounds.`);
   }
   const idx = (y * buffer.width + x) * 4;
-  buffer.data[idx] = r;
-  buffer.data[idx + 1] = g;
-  buffer.data[idx + 2] = b;
-  buffer.data[idx + 3] = a;
+  buffer.data[idx] = clampByte(r);
+  buffer.data[idx + 1] = clampByte(g);
+  buffer.data[idx + 2] = clampByte(b);
+  buffer.data[idx + 3] = clampByte(a);
+}
+
+function assertRegion(buffer: ImageBuffer, region: ImageRegion): void {
+  if (
+    !Number.isSafeInteger(region.x) ||
+    !Number.isSafeInteger(region.y) ||
+    !Number.isSafeInteger(region.width) ||
+    !Number.isSafeInteger(region.height) ||
+    region.x < 0 ||
+    region.y < 0 ||
+    region.width <= 0 ||
+    region.height <= 0 ||
+    region.x + region.width > buffer.width ||
+    region.y + region.height > buffer.height
+  ) {
+    throw new RangeError('Image region must be a positive integer rectangle within the buffer.');
+  }
+}
+
+export function cloneImageRegion(buffer: ImageBuffer, region: ImageRegion): ImageBuffer {
+  assertImageBuffer(buffer);
+  assertRegion(buffer, region);
+  const result = createImageBuffer(region.width, region.height);
+  for (let row = 0; row < region.height; row += 1) {
+    const sourceStart = ((region.y + row) * buffer.width + region.x) * 4;
+    const targetStart = row * region.width * 4;
+    result.data.set(buffer.data.subarray(sourceStart, sourceStart + region.width * 4), targetStart);
+  }
+  return result;
+}
+
+export function copyImageRegion(
+  source: ImageBuffer,
+  region: ImageRegion,
+  target: ImageBuffer,
+  targetX: number,
+  targetY: number,
+): void {
+  assertImageBuffer(source);
+  assertImageBuffer(target);
+  assertRegion(source, region);
+  if (
+    !Number.isSafeInteger(targetX) ||
+    !Number.isSafeInteger(targetY) ||
+    targetX < 0 ||
+    targetY < 0 ||
+    targetX + region.width > target.width ||
+    targetY + region.height > target.height
+  ) {
+    throw new RangeError('Image region destination must fit within the target buffer.');
+  }
+
+  const input = source.data.buffer === target.data.buffer ? cloneImageBuffer(source) : source;
+  for (let row = 0; row < region.height; row += 1) {
+    const sourceStart = ((region.y + row) * input.width + region.x) * 4;
+    const targetStart = ((targetY + row) * target.width + targetX) * 4;
+    target.data.set(input.data.subarray(sourceStart, sourceStart + region.width * 4), targetStart);
+  }
 }
 
 export function sampleLuminance(buffer: ImageBuffer, x: number, y: number): number {

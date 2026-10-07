@@ -354,3 +354,11 @@
 - Tests verifican determinismo, ausencia de contaminación por RGB transparente, alpha intermedio en bordes antialias, píxeles transparentes/opacity plena, efecto de angle sobre la trama e inmutabilidad del original.
 - Validación: `npm --prefix engine test` **PASS** (21/21); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
 - Compatibilidad visual: la cobertura antialias modifica los píxeles de borde de los puntos respecto al raster duro anterior; parámetros y disposición permanecen intactos.
+
+## Image Engine — operaciones seguras de regiones raster
+
+- `DONE`: `cloneImageRegion` extrae una región RGBA acotada y `copyImageRegion` copia regiones entre buffers, con validación estricta de dimensiones y coordenadas.
+- `DONE`: las copias con buffers subyacentes compartidos usan snapshot temporal para preservar semántica incluso cuando origen/destino se superponen.
+- `DONE`: lectura/escritura de píxel rechaza coordenadas fraccionarias/no finitas; `setPixel` limita canales a bytes en vez de depender del tipo interno del buffer.
+- Tests cubren dimensiones/canales de región, copias overlap, límites, independencia de la región extraída e entradas inválidas.
+- Validación: `npm --prefix engine test` **PASS** (23/23); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
