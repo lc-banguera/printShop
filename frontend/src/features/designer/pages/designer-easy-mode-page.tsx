@@ -37,8 +37,7 @@ import {
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { processArtworkImage } from "@/core/design/processing";
-import { removeBackgroundLocal } from "@/features/store/designer/imageProcessor";
+import { processRasterImageUrl } from "@/core/design/processing";
 import type { DesignResource } from "@/types/design-resource";
 import {
   registerUploadedDesign,
@@ -597,6 +596,11 @@ export function DesignerEasyModePage() {
   const processingRequestId = useRef(0);
   const ownedProcessedImageUrlsRef = useRef(new Set<string>());
   const uploadedAssetIdsRef = useRef(new Set<string>());
+  const semitransparencyResultRef = useRef<{
+    resultUrl: string;
+    previousUrl: string;
+    previousDimensions: { width: number; height: number } | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!isHeaderMenuOpen) return;
@@ -880,6 +884,8 @@ export function DesignerEasyModePage() {
     setActiveUploadedAssetId(assetId);
     setShowProcessedImage(true);
     setHistoryStack([]);
+    setRemoveSemitransparencies(false);
+    semitransparencyResultRef.current = null;
   };
 
   const loadFile = (file: File) => {
@@ -1080,19 +1086,22 @@ export function DesignerEasyModePage() {
   };
 
   const handleRemoveBackground = async () => {
-    if (!selectedImage || isRemovingBg) return;
+    if (!selectedImage || isRemovingBg || isProcessing) return;
     const requestId = ++processingRequestId.current;
     setIsRemovingBg(true);
     setProcessingError(null);
     try {
-      const resultDataUrl = await removeBackgroundLocal(selectedImage, {
-        tolerance: 32,
-        feather: 1,
+      const result = await processRasterImageUrl(selectedImage, {
+        kind: "remove-background",
+        options: { tolerance: 32, feather: 1 },
       });
       if (requestId !== processingRequestId.current) return;
 
+      const resultUrl = URL.createObjectURL(result.blob);
+      ownedProcessedImageUrlsRef.current.add(resultUrl);
       setHistoryStack((prev) => [...prev, selectedImage]);
-      replaceProcessedImage(resultDataUrl);
+      replaceProcessedImage(resultUrl);
+      setProcessedDimensions({ width: result.width, height: result.height });
       setShowProcessedImage(true);
     } catch (error) {
       if (requestId === processingRequestId.current) {
@@ -1110,6 +1119,10 @@ export function DesignerEasyModePage() {
   const handleUndo = () => {
     if (historyStack.length === 0) return;
     const previous = historyStack[historyStack.length - 1];
+    if (semitransparencyResultRef.current?.resultUrl === processedImageUrl) {
+      semitransparencyResultRef.current = null;
+      setRemoveSemitransparencies(false);
+    }
     setHistoryStack((prev) => prev.slice(0, -1));
     replaceProcessedImage(previous);
     setShowProcessedImage(true);
@@ -1130,35 +1143,64 @@ export function DesignerEasyModePage() {
     setProcessedDimensions(null);
     setIsProcessing(false);
     setIsRemovingBg(false);
+    setRemoveSemitransparencies(false);
+    semitransparencyResultRef.current = null;
   };
 
-  const handleImproveContrast = async () => {
-    const sourceFile = activeUploadedAsset?.file;
-    if (!sourceFile || isProcessing) return;
+  const handleSemitransparencyToggle = async (enabled: boolean) => {
+    if (!enabled) {
+      setRemoveSemitransparencies(false);
+      const previous = semitransparencyResultRef.current;
+      semitransparencyResultRef.current = null;
+      if (previous && processedImageUrl === previous.resultUrl) {
+        setHistoryStack((current) =>
+          current[current.length - 1] === previous.previousUrl
+            ? current.slice(0, -1)
+            : current,
+        );
+        replaceProcessedImage(
+          previous.previousUrl === activeUploadedAsset?.image
+            ? null
+            : previous.previousUrl,
+        );
+        setProcessedDimensions(previous.previousDimensions);
+        setShowProcessedImage(true);
+      }
+      return;
+    }
 
+    if (!selectedImage || isProcessing || isRemovingBg) return;
+    const sourceUrl = selectedImage;
     const requestId = ++processingRequestId.current;
     setIsProcessing(true);
     setProcessingError(null);
-
     try {
-      const result = await processArtworkImage(sourceFile, { contrast: 110 });
+      const result = await processRasterImageUrl(sourceUrl, {
+        kind: "cleanup-semitransparency",
+        options: { strategy: "remove" },
+      });
       const resultUrl = URL.createObjectURL(result.blob);
-
       if (requestId !== processingRequestId.current) {
         URL.revokeObjectURL(resultUrl);
         return;
       }
-
       ownedProcessedImageUrlsRef.current.add(resultUrl);
+      setHistoryStack((current) => [...current, sourceUrl]);
+      semitransparencyResultRef.current = {
+        resultUrl,
+        previousUrl: sourceUrl,
+        previousDimensions: processedDimensions,
+      };
       replaceProcessedImage(resultUrl);
       setProcessedDimensions({ width: result.width, height: result.height });
       setShowProcessedImage(true);
+      setRemoveSemitransparencies(true);
     } catch (error) {
       if (requestId === processingRequestId.current) {
         setProcessingError(
           error instanceof Error
             ? error.message
-            : "No se pudo procesar la imagen.",
+            : "No se pudieron eliminar las semitransparencias.",
         );
       }
     } finally {
@@ -1728,13 +1770,11 @@ export function DesignerEasyModePage() {
                     type="button"
                     role="switch"
                     aria-checked={removeSemitransparencies}
-                    onClick={() => {
-                      const next = !removeSemitransparencies;
-                      setRemoveSemitransparencies(next);
-                      if (next && activeUploadedAsset?.file && !isProcessing) {
-                        handleImproveContrast();
-                      }
-                    }}
+                    aria-busy={isProcessing}
+                    onClick={() =>
+                      handleSemitransparencyToggle(!removeSemitransparencies)
+                    }
+                    disabled={isProcessing || isRemovingBg}
                     className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full p-0.5 transition-colors duration-200 ease-in-out focus:outline-none"
                     style={{
                       backgroundColor: removeSemitransparencies
@@ -2265,8 +2305,10 @@ export function DesignerEasyModePage() {
                     <img
                       src={selectedImage}
                       alt={
-                        processedImageUrl && showProcessedImage
-                          ? "Imagen con contraste procesado"
+                        processedImageUrl &&
+                        processedImageUrl !== activeUploadedAsset?.image &&
+                        showProcessedImage
+                          ? "Imagen procesada"
                           : "Imagen subida al lienzo"
                       }
                       className="h-full w-full select-none object-contain"

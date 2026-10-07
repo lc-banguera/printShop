@@ -6,5 +6,8 @@ export {
 } from './filters';
 export {
   processArtworkImage,
+  processRasterImage,
+  processRasterImageUrl,
   type ProcessedArtworkImage,
 } from './image-processor';
+export type { RasterImageOperation } from './image-processor-contract';

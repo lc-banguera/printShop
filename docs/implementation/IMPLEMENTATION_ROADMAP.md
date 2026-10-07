@@ -375,9 +375,9 @@
 
 **Requisito externo**: Servicio Python de background removal debe estar disponible.
 
-**Subalcance independiente completado**: "Mejorar contraste" conecta el valor `contrast-110` ya presente en la preview con el Worker de BLOCK 11 para la imagen subida. Este subalcance no completa BLOCK 14. La eliminación de fondo permanece disabled mientras no exista servicio real; los presets continúan disabled hasta definir transformaciones reales; la exportación de producción depende de BLOCK 16.
+**Subalcances independientes completados**: "Eliminar fondo" usa el algoritmo local portable del Image Engine a través del Worker; el switch de semitransparencia aplica cleanup real y se puede revertir mientras siga siendo la última salida activa. Se corrigió la conexión anterior que hacía que el switch de semitransparencia aplicara contraste en vez de limpiar alpha. El algoritmo local no equivale a un modelo/servicio externo de background removal. Los presets continúan pendientes hasta definir transformaciones reales; la exportación de producción depende de BLOCK 16.
 
-**Estado actual**: `PARTIAL / BLOCKED`. Solo el ajuste de contraste está integrado. No hay servicio Python, los perfiles no tienen transformaciones reales definidas y no existe exportación de producción.
+**Estado actual**: `PARTIAL / BLOCKED`. Eliminación local de fondo y cleanup de semitransparencia están integrados en Designer 3 Easy por el Worker compartido. No hay provider externo/Python, los perfiles no tienen transformaciones reales definidas y no existe exportación de producción.
 
 **Resultado esperado**:
 - El botón "Eliminar fondo" llama a un servicio real
@@ -488,8 +488,8 @@ Este track convierte el Design Core existente en una fuente canónica portable e
 | Bloque | Estado | Resultado / siguiente acción |
 |---|---|---|
 | Engine Bootstrap + extracción de bloques 01–06 | DONE | Paquete TypeScript aislado, modelos y managers existentes migrados, fachada frontend compatible y prueba vertical de documento/capas/selección/transformación/undo/redo. |
-| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Upscale/JPEG requieren provider/encoder. Pendiente adapter canónico y Worker; no habilitar capacidades de UI sin integración verificada. |
-| Designer 3 Easy — `/designer/easy` | PENDING | Conectar operaciones canónicas verificadas mediante adapter/Worker; preservar honestidad de estados y no habilitar export JPEG/upscale sin configuración real. |
+| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Contrato y Worker del frontend ya despachan las operaciones raster sin duplicar algoritmos; upscale/JPEG requieren provider/encoder. |
+| Designer 3 Easy — `/designer/easy` | PARTIAL / BLOCKED | Eliminación local de fondo y cleanup de semitransparencia integrados por Worker. Falta provider externo, reglas verificables de presets y exportación de producción; JPEG/upscale siguen no configurados. |
 | Designer 3 Advanced | PENDING | Integrar capacidades comunes una vez verificados sus flujos y contratos. |
 | Designer 1 — `/designer/personalize` | PENDING | Integrar capacidades comunes verificadas, sin inventar funcionalidades específicas del flujo. |
 | Designer 2 — `/designer/new` | PENDING | Integrar document, commands/history, selection, transform y layers del engine en el runtime existente preservando la interfaz y su API; luego conectar export/procesamiento disponibles. |

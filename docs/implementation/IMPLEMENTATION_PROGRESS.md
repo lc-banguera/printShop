@@ -22,7 +22,7 @@
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
 | BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Las mutaciones principales de D2 ya pasan por managers/comandos del Core, pero `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles; mapearlos a tools alteraría su semántica y los descriptores registrados no tienen handlers de interacción. |
 | BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
-| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | El ajuste de contraste se integra con el Worker de BLOCK 11. El bloque completo sigue bloqueado: no hay servicio Python, transformaciones reales por preset ni export de producción. |
+| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; presets y exportación de producción siguen pendientes. El algoritmo local no sustituye un provider externo de background removal. |
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
@@ -288,3 +288,13 @@
 - Portabilidad: el nuevo código del engine no requiere React, Zustand, Konva, Three.js ni APIs DOM.
 - Commit: `feat(engine): add portable raster processing operations`.
 - Siguiente: adapter único para frontend y ejecución de operaciones raster pesadas en Worker; conectar primero D3 Easy.
+
+## Integración incremental — Raster worker y Designer 3 Easy
+
+- `DONE`: el contrato discriminado del Worker admite operaciones raster del engine para eliminación local de fondo, halftone, cleanup de semitransparencia y PNG. El Worker decodifica la imagen a RGBA, ejecuta la operación canónica y devuelve un Blob PNG; no duplica los algoritmos raster.
+- `DONE`: Designer 3 Easy ejecuta eliminación local de fondo y limpieza de semitransparencia a través del Worker. La limpieza crea una salida rastreable en el historial; al desactivar el switch se restaura la imagen anterior cuando esa operación sigue siendo la salida activa. Undo, cambio de asset y limpieza del diseñador mantienen la invalidación de solicitudes y la gestión de object URLs.
+- `DONE`: el switch ya no invoca por error el ajuste de contraste. El worker sigue soportando filtros para consumidores existentes; halftone y export PNG están disponibles en su contrato, pero no se exponen como acciones nuevas de UI.
+- `PARTIAL`: no se habilita JPEG, upscaling ni un provider ML no configurado.
+- `PARTIAL / BLOCKED`: la eliminación implementada es el algoritmo local portable del engine, no un servicio/modelo externo. Presets y exportación de producción aún no tienen reglas/contratos verificables.
+- Validación: `npm --prefix engine test` **PASS** (12/12); TypeScript de frontend **PASS** con `--ignoreDeprecations 5.0` porque el cambio preexistente en `frontend/tsconfig.json` configura `6.0`, inválido para el TypeScript 5.9.3 instalado; Vite build **PASS**; el build compuesto estándar no puede iniciar por ese mismo valor preexistente. Smoke test de navegador en `/designer/easy`: carga de imagen, cleanup ON/OFF, eliminación local de fondo y undo **PASS**. `git diff --check` **PASS**. ESLint focalizado detecta únicamente el `addedCount` sin uso preexistente en esta página; no se alteró ese código ajeno.
+- Siguiente: smoke test de Designer 3 Easy; después continuar integración solo con interacciones existentes y verificables. Designer 3 Advanced sigue bloqueado por alcance `UNKNOWN`.
