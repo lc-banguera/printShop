@@ -1439,15 +1439,18 @@ export function DesignerEasyModePage() {
               type="button"
               aria-label="Deshacer"
               title="Deshacer"
-              className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[#f1f5f9] transition-colors"
+              onClick={handleUndo}
+              disabled={historyStack.length === 0}
+              className="rounded-lg p-1.5 text-[#94a3b8] transition-colors hover:bg-[#f1f5f9] disabled:cursor-not-allowed disabled:opacity-45"
             >
               <Undo2 className="h-4 w-4" />
             </button>
             <button
               type="button"
               aria-label="Rehacer"
-              title="Rehacer"
-              className="rounded-lg p-1.5 text-[#94a3b8] hover:bg-[#f1f5f9] transition-colors"
+              title="Rehacer no disponible en Modo Básico."
+              disabled
+              className="rounded-lg p-1.5 text-[#94a3b8] transition-colors disabled:cursor-not-allowed disabled:opacity-45"
             >
               <Redo2 className="h-4 w-4" />
             </button>

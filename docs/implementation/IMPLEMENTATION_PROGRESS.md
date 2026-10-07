@@ -402,4 +402,6 @@
 - `DONE`: el export valida dimensiones y limita la rasterización a 40 MP/16.000 px por lado para evitar asignaciones descontroladas. Errores de carga/canvas/encoder se notifican explícitamente; el asset original no se modifica.
 - `NOT_CONFIGURED`: PDF permanece disabled con explicación visible porque no hay encoder PDF integrado; no se simula salida PDF.
 - `DONE`: Acercar/Alejar aplican zoom propio al workspace sin modificar escala raster ni dimensiones físicas; centrar/ajustar restablece el encuadre base.
-- `PARTIAL`: export validado por TypeScript/build y smoke de ruta. El navegador local tiene superpuesto el diálogo global del carrito, y no hay imagen de prueba accesible para validar visualmente export con artwork; no se marca paridad visual de capas porque Easy aún renderiza una sola imagen.
+- `DONE`: Deshacer del header reutiliza el historial real de procesamiento ya disponible; smoke en navegador borró y restauró un artwork y verificó sus dimensiones raster cargadas. Rehacer está claramente disabled porque Modo Básico todavía no mantiene una pila de redo.
+- `DONE`: smoke en navegador cargó un artwork local, confirmó el zoom y exportó PNG; el feedback reportó 4134 × 5906 px a 300 DPI.
+- `PARTIAL`: no se afirma paridad de preview/export de capas o transforms porque Easy aún renderiza una imagen activa sin documento multicapa.
