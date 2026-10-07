@@ -44,6 +44,12 @@ import {
   registerUploadedDesign,
   releaseUploadedDesign,
 } from "../services/design-resources";
+import {
+  clearEasyModeSession,
+  getEasyModeSession,
+  hasEasyModeSession,
+  saveEasyModeSession,
+} from "../services/designer-mode-session";
 import { useToast } from "@/shared/components/Toast/Toast";
 import {
   createArtworkTransformMatrix,
@@ -590,6 +596,8 @@ function SteppedInput({
 export function DesignerEasyModePage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const modeSessionRef = useRef(getEasyModeSession());
+  const modeSession = modeSessionRef.current;
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const folderInputRef = useRef<HTMLInputElement | null>(null);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
@@ -600,14 +608,16 @@ export function DesignerEasyModePage() {
 
   const [technique, setTechnique] = useState("dtf");
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
-  const [canvasSettings, setCanvasSettings] = useState(() =>
-    createInitialCanvasSettings(location.state),
+  const [canvasSettings, setCanvasSettings] = useState(
+    () => modeSession?.canvasSettings ?? createInitialCanvasSettings(location.state),
   );
   const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(
     null,
   );
-  const [canvasZoom, setCanvasZoom] = useState(1);
-  const [canvasPan, setCanvasPan] = useState({ x: 0, y: 0 });
+  const [canvasZoom, setCanvasZoom] = useState(modeSession?.canvasZoom ?? 1);
+  const [canvasPan, setCanvasPan] = useState(
+    () => modeSession?.canvasPan ?? { x: 0, y: 0 },
+  );
   const [isHandToolActive, setIsHandToolActive] = useState(false);
   const [isPanning, setIsPanning] = useState(false);
   const [activeSidebarTool, setActiveSidebarTool] =
@@ -618,42 +628,57 @@ export function DesignerEasyModePage() {
       Number(canvasSettings.widthCm) /
       Math.max(0.1, Number(canvasSettings.heightCm)),
   );
-  const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>([]);
-  const [uploadedFolders, setUploadedFolders] = useState<UploadedFolder[]>([]);
+  const [uploadedAssets, setUploadedAssets] = useState<UploadedAsset[]>(
+    () => modeSession?.uploadedAssets ?? [],
+  );
+  const [uploadedFolders, setUploadedFolders] = useState<UploadedFolder[]>(
+    () => modeSession?.uploadedFolders ?? [],
+  );
   const [activeUploadedAssetId, setActiveUploadedAssetId] = useState<
     string | null
-  >(null);
+  >(() => modeSession?.activeUploadedAssetId ?? null);
   const [uploadedLibraryTab, setUploadedLibraryTab] =
-    useState<UploadedLibraryTab>("images");
+    useState<UploadedLibraryTab>(() => modeSession?.uploadedLibraryTab ?? "images");
   const [activeUploadedFolderId, setActiveUploadedFolderId] = useState<
     string | null
-  >(null);
-  const [activeUploadedFolderPath, setActiveUploadedFolderPath] = useState("");
-  const [uploadSearch, setUploadSearch] = useState("");
+  >(() => modeSession?.activeUploadedFolderId ?? null);
+  const [activeUploadedFolderPath, setActiveUploadedFolderPath] = useState(
+    () => modeSession?.activeUploadedFolderPath ?? "",
+  );
+  const [uploadSearch, setUploadSearch] = useState(
+    () => modeSession?.uploadSearch ?? "",
+  );
   const [isUploadOptionsOpen, setIsUploadOptionsOpen] = useState(false);
   const { showToast } = useToast();
   const [isImportingFolder, setIsImportingFolder] = useState(false);
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(
-    null,
+    () => modeSession?.processedImageUrl ?? null,
   );
   const [processedDimensions, setProcessedDimensions] =
-    useState<ProcessedImageDimensions | null>(null);
+    useState<ProcessedImageDimensions | null>(
+      () => modeSession?.processedDimensions ?? null,
+    );
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
-  const [showProcessedImage, setShowProcessedImage] = useState(true);
+  const [showProcessedImage, setShowProcessedImage] = useState(
+    () => modeSession?.showProcessedImage ?? true,
+  );
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [removeSemitransparencies, setRemoveSemitransparencies] =
-    useState(false);
-  const [imageHistory, setImageHistory] = useState<EasyImageHistory>({
-    undo: [],
-    redo: [],
-  });
+    useState(() => modeSession?.removeSemitransparencies ?? false);
+  const [imageHistory, setImageHistory] = useState<EasyImageHistory>(
+    () => modeSession?.imageHistory ?? { undo: [], redo: [] },
+  );
   const [artworkTransform, setArtworkTransform] = useState<ArtworkTransform>(
-    DEFAULT_ARTWORK_TRANSFORM,
+    () => modeSession?.artworkTransform ?? DEFAULT_ARTWORK_TRANSFORM,
   );
   const [artworkDimensions, setArtworkDimensions] =
-    useState<ProcessedImageDimensions | null>(null);
-  const [isArtworkSelected, setIsArtworkSelected] = useState(true);
+    useState<ProcessedImageDimensions | null>(
+      () => modeSession?.artworkDimensions ?? null,
+    );
+  const [isArtworkSelected, setIsArtworkSelected] = useState(
+    () => modeSession?.isArtworkSelected ?? true,
+  );
   const [isRemovingBg, setIsRemovingBg] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -672,10 +697,14 @@ export function DesignerEasyModePage() {
     lastY: number;
     hasChanged: boolean;
   } | null>(null);
-  const ownedProcessedImageUrlsRef = useRef(new Set<string>());
-  const uploadedAssetIdsRef = useRef(new Set<string>());
+  const ownedProcessedImageUrlsRef = useRef(
+    new Set(modeSession?.ownedProcessedImageUrls ?? []),
+  );
+  const uploadedAssetIdsRef = useRef(
+    new Set(modeSession?.uploadedAssets.map((asset) => asset.id) ?? []),
+  );
   const semitransparencyResultRef = useRef<SemitransparencyResult | null>(
-    null,
+    modeSession?.semitransparencyResult ?? null,
   );
 
   useEffect(() => {
@@ -760,6 +789,37 @@ export function DesignerEasyModePage() {
     showProcessedImage && processedImageUrl
       ? processedImageUrl
       : (activeUploadedAsset?.image ?? null);
+  const handleSwitchToAdvanced = () => {
+    saveEasyModeSession({
+      canvasSettings,
+      canvasZoom,
+      canvasPan,
+      uploadedAssets,
+      uploadedFolders,
+      activeUploadedAssetId,
+      uploadedLibraryTab,
+      activeUploadedFolderId,
+      activeUploadedFolderPath,
+      uploadSearch,
+      processedImageUrl,
+      processedDimensions,
+      showProcessedImage,
+      removeSemitransparencies,
+      semitransparencyResult: semitransparencyResultRef.current,
+      imageHistory,
+      artworkTransform,
+      artworkDimensions,
+      isArtworkSelected,
+      imageUrl: selectedImage,
+      ownedProcessedImageUrls: [...ownedProcessedImageUrlsRef.current],
+      advancedElementId: modeSession?.advancedElementId ?? null,
+      advancedElementBaseSize: modeSession?.advancedElementBaseSize ?? null,
+      advancedImageUrl: modeSession?.advancedImageUrl ?? null,
+      previousAdvancedZoneId: modeSession?.previousAdvancedZoneId ?? null,
+    });
+    setIsHeaderMenuOpen(false);
+    navigate("/designer/advanced", { state: { fromEasyMode: true } });
+  };
   const activeUploadedFolder =
     uploadedFolders.find((folder) => folder.id === activeUploadedFolderId) ??
     null;
@@ -1230,6 +1290,7 @@ export function DesignerEasyModePage() {
   useEffect(
     () => () => {
       processingRequestId.current += 1;
+      if (hasEasyModeSession()) return;
       uploadedAssetIdsRef.current.forEach(releaseUploadedDesign);
       uploadedAssetIdsRef.current.clear();
       ownedProcessedImageUrlsRef.current.forEach((url) =>
@@ -1239,6 +1300,12 @@ export function DesignerEasyModePage() {
     },
     [],
   );
+
+  useEffect(() => {
+    if (!modeSession) return;
+    const timeout = window.setTimeout(clearEasyModeSession, 0);
+    return () => window.clearTimeout(timeout);
+  }, [modeSession]);
 
   useEffect(() => {
     const retainedUrls = new Set<string>();
@@ -1889,6 +1956,37 @@ export function DesignerEasyModePage() {
                 onKeyDown={handleHeaderMenuKeyDown}
                 className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-[#e2e8f0] bg-white p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.12)]"
               >
+                <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold text-[#64748b]">
+                  Modo de edición
+                </div>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="true"
+                  tabIndex={-1}
+                  onClick={() => {
+                    setIsHeaderMenuOpen(false);
+                    headerMenuButtonRef.current?.focus();
+                  }}
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-[#0f172a] hover:bg-[#f8fafc] focus:bg-[#f8fafc] focus:outline-none"
+                >
+                  <span>Modo fácil</span>
+                  <Check className="h-4 w-4 text-[#4f46e5]" />
+                </button>
+                <button
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked="false"
+                  tabIndex={-1}
+                  onClick={handleSwitchToAdvanced}
+                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-[#0f172a] hover:bg-[#f8fafc] focus:bg-[#f8fafc] focus:outline-none"
+                >
+                  <span>Modo avanzado</span>
+                </button>
+                <div
+                  role="separator"
+                  className="my-1 border-t border-[#eef0f4]"
+                />
                 <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold text-[#64748b]">
                   Técnica de estampado
                 </div>
