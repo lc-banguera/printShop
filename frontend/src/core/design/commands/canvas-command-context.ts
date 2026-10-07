@@ -1,5 +1,1 @@
-import type { CanvasElement } from '@/types/canvas';
-
-export interface CanvasCommandContext {
-  elements: CanvasElement[];
-}
+export type { CanvasCommandContext } from '../../../../../engine/src/commands/canvas-command-context';

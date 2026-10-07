@@ -2,7 +2,7 @@
 # PrintShop — Roadmap de Implementación de la Design Platform
 
 **Versión:** 0.1.0  
-**Última actualización:** 2026-10-05  
+**Última actualización:** 2026-10-06
 **Estado actual**: BLOCK 07 sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 están completados dentro de sus límites. BLOCK 12 está parcialmente integrado pero bloqueado por la falta de un contrato seguro entre el Tool Registry y las interacciones existentes de D2. El análisis de dependencias posteriores está en [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md).
 
 ---
@@ -478,3 +478,22 @@
 ---
 
 *Documento creado en FASE 0 — Design Platform Architecture Phase.*
+
+---
+
+## PORTABLE ENGINE TRACK — Extracción incremental
+
+Este track convierte el Design Core existente en una fuente canónica portable en `/engine`. Los módulos frontend que ya tenían consumidores se conservan como adapters/reexports hasta que cada integración pueda migrarse sin cambiar contratos.
+
+| Bloque | Estado | Resultado / siguiente acción |
+|---|---|---|
+| Engine Bootstrap + extracción de bloques 01–06 | DONE | Paquete TypeScript aislado, modelos y managers existentes migrados, fachada frontend compatible y prueba vertical de documento/capas/selección/transformación/undo/redo. |
+| Image Engine Foundation | PENDING | Definir contratos portables para assets originales/derivados, operaciones, efectos, alpha, máscaras, regiones, resultados y providers. Sin algoritmos simulados ni dependencia de proveedor. |
+| Designer 2 — `/designer/new` | PENDING | Integrar document, commands/history, selection, transform y layers del engine en el runtime existente preservando la interfaz y su API. |
+| Designer 3 Easy — `/designer/easy` | PENDING | Consumir contratos/operaciones reales del engine; mantener cualquier procesamiento no implementado explícitamente como pendiente. |
+| Designer 3 Advanced | PENDING | Integrar capacidades comunes una vez verificados sus flujos y contratos. |
+| Designer 1 — `/designer/personalize` | PENDING | Integrar capacidades comunes verificadas, sin inventar funcionalidades específicas del flujo. |
+| AI Provider + Command Bridge | PENDING | Definir providers/request/response/context/tool/bridge server-side; traducir intenciones a comandos del engine sin acceso a UI/Zustand. |
+| BLOCK 07 — calibración/proyección 3D | DEFERRED | No implementar sin datos de calibración verificables por superficie. |
+
+La continuidad de este track no invalida los estados históricos de los bloques del frontend registrados arriba; documenta la extracción portable en curso y su secuencia posterior.

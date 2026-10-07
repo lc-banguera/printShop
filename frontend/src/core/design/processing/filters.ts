@@ -1,12 +1,5 @@
-export interface ArtworkFilters {
-  brightness: number;
-  contrast: number;
-  saturation: number;
-  grayscale: number;
-  sepia: number;
-  invert: number;
-  blur: number;
-}
+import type { ArtworkFilters } from '../../../../../engine/src/types/element';
+export type { ArtworkFilters } from '../../../../../engine/src/types/element';
 
 export const DEFAULT_ARTWORK_FILTERS: Readonly<ArtworkFilters> = Object.freeze({
   brightness: 100,

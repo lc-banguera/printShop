@@ -2,7 +2,8 @@
  * Product domain types and interfaces
  */
 
-export type PrintableZoneId = 'front' | 'back' | 'sleeve_left' | 'sleeve_right' | 'label';
+export type { PrintableZoneId } from '../../../engine/src/types/element';
+import type { PrintableZoneId } from '../../../engine/src/types/element';
 
 export interface PrintableZoneConfig {
   id: PrintableZoneId;

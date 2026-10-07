@@ -1,1 +1,1 @@
-export const CURRENT_DOCUMENT_SCHEMA_VERSION = '1.0.0';
+export { CURRENT_DOCUMENT_SCHEMA_VERSION } from '../../../../../engine/src/document/schema-version';

@@ -1,3 +1,1 @@
-import type { CanvasElement } from '@/types/canvas';
-
-export type DesignElement = CanvasElement;
+export type { DesignElement } from '../../../../../engine/src/types/element';

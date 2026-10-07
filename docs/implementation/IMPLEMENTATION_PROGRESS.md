@@ -1,6 +1,6 @@
 # PrintShop — Progreso de la Design Platform
 
-**Última actualización:** 2026-10-05
+**Última actualización:** 2026-10-06
 **Rama de trabajo:** `feat/design-platform-implementation`
 **Fuente de secuencia:** [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)
 
@@ -265,3 +265,14 @@
 - El frontend no tiene runner de pruebas configurado ni archivos de test. No se añade infraestructura de test como sustituto de contratos/capacidades faltantes.
 - BLOCK 19 permanece `PARTIAL / BLOCKED`: su alcance requiere validar los tres diseñadores, pero D1 sigue `UNKNOWN`, BLOCK 12 no integra el Tool Registry en la interacción, y BLOCK 14–17 siguen incompletos o bloqueados. Siguiente paso: resolver esas dependencias con contratos/datos reales y luego ejecutar la estabilización integral.
 - Commit: `docs(designer): record stabilization blockers`.
+
+## ENGINE BOOTSTRAP — DONE
+
+- Fuente canónica: `engine/src`. Se migraron los contratos y la implementación existente de documentos, comandos, historial, selección, transformación, capas y Tool Registry desde `frontend/src/core/design`.
+- Compatibilidad: las rutas previas de `frontend/src/core/design` ahora reexportan desde `engine`; `CanvasElement`, `PrintableZoneId` y `ArtworkFilters` también derivan sus contratos del motor. `createDocumentFromCanvasState` permanece como adapter del frontend porque depende de `ProductDefinition` y de la configuración del canvas.
+- Runtime funcional: `DesignEngine` valida y representa `PrintShopDocument`, crea capas, agrega elementos, permite selección simple/múltiple incluso entre capas, transforma elementos y ejecuta undo/redo sobre el historial compartido.
+- Portabilidad: configuración TypeScript estricta con `ES2020`, sin librerías DOM, y búsqueda de imports/globales prohibidos sin coincidencias en `engine/src`.
+- Prueba vertical: `engine/tests/design-engine.test.mjs` verifica documento → capas → elementos → selección múltiple → transformación → undo → redo.
+- Validación: `npm test` de `engine` **PASS** (TypeScript build y 1 test). `git diff --check` **PASS**. El build frontend estándar quedó impedido por `frontend/tsconfig.json` usando `ignoreDeprecations: "6.0"` con TypeScript 5.9.3; sin alterar ese cambio externo, `tsc --ignoreDeprecations 5.0` y Vite build pasaron.
+- Estado del commit: `feat(engine): bootstrap portable design engine`.
+- Siguiente bloque: Image Engine Foundation.

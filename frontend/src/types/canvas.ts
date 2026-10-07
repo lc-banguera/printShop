@@ -1,54 +1,19 @@
-import type { PrintableZoneId } from './product';
 import type {
   CanvasAlignment,
   ElementUpdate,
   FlipAxis,
   TransformBounds,
 } from '@/core/design/transform';
-import type { ArtworkFilters } from '@/core/design/processing';
+import type { DesignElement } from '@/core/design/types';
 
 /**
  * Canvas element types and interfaces
  */
 
-export type ElementType = 'rectangle' | 'circle' | 'text' | 'image' | 'group';
-export type CanvasLayer = 'user' | 'guide';
+export type { CanvasLayer, ElementType } from '@/core/design/types';
 
 export type { ArtworkFilters } from '@/core/design/processing';
-
-export interface CanvasElement {
-  id: string;
-  type: ElementType;
-  layer: CanvasLayer;
-  /** Zone ID to associate element with specific surface (front, back, etc.) */
-  zoneId: PrintableZoneId;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  /** High-resolution image URL */
-  image?: string;
-  /** Full resolution image source for crisp rendering */
-  originalImageSrc?: string;
-  rotation?: number;
-  scaleX?: number;
-  scaleY?: number;
-  fill?: string;
-  stroke?: string;
-  strokeWidth?: number;
-  opacity?: number;
-  name?: string;
-  locked?: boolean;
-  visible?: boolean;
-  filters?: ArtworkFilters;
-  textContent?: string;
-  fontFamily?: string;
-  fontWeight?: string | number;
-  fontSize?: number;
-  textAlign?: 'left' | 'center' | 'right';
-  letterSpacing?: number;
-  lineHeight?: number;
-}
+export type CanvasElement = DesignElement;
 
 export interface HistoryEntry {
   elements: CanvasElement[];
