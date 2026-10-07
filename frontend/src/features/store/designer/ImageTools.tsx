@@ -28,7 +28,7 @@ import {
   processRasterImageUrl,
   type HalftoneOptions,
 } from "@/core/design/processing";
-import { DesignerLayer, FilterValues } from "./types";
+import { DesignerLayer } from "./types";
 import {
   applyGrayscale,
   applyInvert,
@@ -166,10 +166,10 @@ function RemoveBgTool({
   const [isPainting, setIsPainting] = React.useState(false);
   // We store mask data URL separately so we can re-apply it on top of auto result
   const maskCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
-  const previewCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
   const autoResultRef = React.useRef<string | null>(null); // auto remove-bg result
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const generationRef = React.useRef(0);
+  const isMountedRef = React.useRef(false);
   const processingAbortRef = React.useRef<AbortController | null>(null);
 
   const src = layer.processedSrc ?? layer.src ?? layer.preview;
@@ -199,7 +199,7 @@ function RemoveBgTool({
     const currentGen = ++generationRef.current;
     processingAbortRef.current?.abort();
     await new Promise((r) => setTimeout(r, 50));
-    if (currentGen !== generationRef.current) return;
+    if (!isMountedRef.current || currentGen !== generationRef.current) return;
 
     const controller = new AbortController();
     processingAbortRef.current = controller;
@@ -211,13 +211,13 @@ function RemoveBgTool({
         undefined,
         controller.signal,
       );
-      if (currentGen === generationRef.current) {
+      if (isMountedRef.current && currentGen === generationRef.current) {
         autoResultRef.current = resultUrl;
         setPreviewSrc(resultUrl);
       }
     } catch (error) {
       const cancelled = error instanceof Error && error.name === "AbortError";
-      if (!cancelled && currentGen === generationRef.current) {
+      if (!cancelled && isMountedRef.current && currentGen === generationRef.current) {
         console.error("Failed to remove the image background.", error);
         setPreviewSrc(null);
       }
@@ -225,15 +225,18 @@ function RemoveBgTool({
       if (processingAbortRef.current === controller) {
         processingAbortRef.current = null;
       }
-      if (currentGen === generationRef.current) setProcessing(false);
+      if (isMountedRef.current && currentGen === generationRef.current) {
+        setProcessing(false);
+      }
     }
   }, [src]);
 
   // Initial preview
   React.useEffect(() => {
+    isMountedRef.current = true;
     generatePreview(tolerance, feather);
     return () => {
-      generationRef.current++;
+      isMountedRef.current = false;
       processingAbortRef.current?.abort();
     };
   }, [generatePreview]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -932,27 +935,66 @@ function AdjustmentsTool({
   const [processing, setProcessing] = React.useState(false);
   const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const generationRef = React.useRef(0);
+  const isMountedRef = React.useRef(false);
+  const processingAbortRef = React.useRef<AbortController | null>(null);
 
   const src = layer.processedSrc ?? layer.src ?? layer.preview;
 
   const generatePreview = React.useCallback(
     async (b: number, c: number, s: number) => {
       if (!src) return;
+      const currentGeneration = ++generationRef.current;
+      processingAbortRef.current?.abort();
+      const controller = new AbortController();
+      processingAbortRef.current = controller;
       setProcessing(true);
       try {
         const result = await applyAdjustments(src, {
           brightness: b,
           contrast: c,
           saturation: s,
-        });
-        setPreviewSrc(result);
-      } catch {
-        /* ignore */
+        }, controller.signal);
+        if (isMountedRef.current && currentGeneration === generationRef.current) {
+          setPreviewSrc(result);
+        }
+      } catch (error) {
+        const cancelled = error instanceof Error && error.name === "AbortError";
+        if (!cancelled && isMountedRef.current && currentGeneration === generationRef.current) {
+          console.error("Failed to preview image adjustments.", error);
+          setPreviewSrc(null);
+        }
+      } finally {
+        if (processingAbortRef.current === controller) {
+          processingAbortRef.current = null;
+        }
+        if (isMountedRef.current && currentGeneration === generationRef.current) {
+          setProcessing(false);
+        }
       }
-      setProcessing(false);
     },
     [src]
   );
+
+  React.useEffect(
+    () => {
+      isMountedRef.current = true;
+      return () => {
+        isMountedRef.current = false;
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        processingAbortRef.current?.abort();
+      };
+    },
+    [],
+  );
+
+  const handleCancel = () => {
+    generationRef.current++;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    processingAbortRef.current?.abort();
+    setPreviewSrc(null);
+    onCancel();
+  };
 
   const schedulePreview = (b: number, c: number, s: number) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -1037,8 +1079,7 @@ function AdjustmentsTool({
           previewSrc && onApply(previewSrc, { brightness, contrast, saturation })
         }
         onCancel={() => {
-          setPreviewSrc(null);
-          onCancel();
+          handleCancel();
         }}
       />
     </div>
@@ -1052,9 +1093,15 @@ function AdjustmentsTool({
 export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps) {
   const [activeTool, setActiveTool] = React.useState<ActiveTool>("none");
   const [processing, setProcessing] = React.useState(false);
+  const simpleProcessingAbortRef = React.useRef<AbortController | null>(null);
 
   const src = layer.processedSrc ?? layer.src ?? layer.preview;
   const isLocked = layer.locked;
+
+  React.useEffect(
+    () => () => simpleProcessingAbortRef.current?.abort(),
+    [],
+  );
 
   /** Commit a processed image to the layer (creates processedSrc, updates preview thumbnail).
    *  This is the ONLY place a history entry is generated for image tools. */
@@ -1111,16 +1158,28 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
     }
   };
 
-  const runSimple = async (fn: () => Promise<string>, opLabel: string) => {
+  const runSimple = async (
+    fn: (signal: AbortSignal) => Promise<string>,
+    opLabel: string,
+  ) => {
     if (!src || isLocked) return;
+    simpleProcessingAbortRef.current?.abort();
+    const controller = new AbortController();
+    simpleProcessingAbortRef.current = controller;
     setProcessing(true);
     try {
-      const result = await fn();
-      commitProcessed(result, opLabel);
-    } catch (err) {
-      console.error(`${opLabel} failed:`, err);
+      const result = await fn(controller.signal);
+      if (!controller.signal.aborted) commitProcessed(result, opLabel);
+    } catch (error) {
+      if (!(error instanceof Error && error.name === "AbortError")) {
+        console.error(`${opLabel} failed:`, error);
+      }
+    } finally {
+      if (simpleProcessingAbortRef.current === controller) {
+        simpleProcessingAbortRef.current = null;
+      }
+      if (!controller.signal.aborted) setProcessing(false);
     }
-    setProcessing(false);
   };
 
   if (isLocked) {
@@ -1139,13 +1198,13 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
           icon={Contrast}
           label={processing ? "Procesando…" : "Escala de grises"}
           active={layer.lastOp === "grayscale"}
-          onClick={() => runSimple(() => applyGrayscale(src), "grayscale")}
+          onClick={() => runSimple((signal) => applyGrayscale(src, signal), "grayscale")}
         />
         <ToolBtn
           icon={RefreshCw}
           label={processing ? "Procesando…" : "Invertir colores"}
           active={layer.lastOp === "invert"}
-          onClick={() => runSimple(() => applyInvert(src), "invert")}
+          onClick={() => runSimple((signal) => applyInvert(src, signal), "invert")}
         />
         {layer.processedSrc && (
           <ToolBtn icon={RotateCcw} label="Restaurar original" onClick={restore} />

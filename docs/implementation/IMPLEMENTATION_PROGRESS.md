@@ -322,3 +322,10 @@
 - Runtime smoke en `/store/designer`: abrir un diseño, generar preview sin fondo y Aplicar produjo `Op. activa: remove-background · Original conservado`.
 - Validación: TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `npm --prefix engine test` **PASS** (12/12); `git diff --check` **PASS**. ESLint focalizado sigue reportando problemas preexistentes fuera de este cambio (`FilterValues` y `previewCanvasRef` sin uso en `ImageTools.tsx`, y `any` en la exportación legacy de `imageProcessor.ts`).
 - Alcance: esta integración no añade proveedor ML; la eliminación local permanece diferenciada de background removal externo.
+
+## Integración incremental — grayscale, invert y ajustes de ImageTools en Worker
+
+- `DONE`: grayscale, invert y los ajustes existentes de brillo, contraste y saturación delegan el procesamiento al Worker compartido, conservando los controles, preview y flujo actual de aplicar/cancelar.
+- `DONE`: las operaciones rápidas y previews cancelan el Worker anterior al reemplazarse o desmontarse; los errores del procesamiento se exponen en el estado existente de la herramienta.
+- Runtime smoke en `/store/designer`: grayscale e invert produjeron sus operaciones activas; brillo a 140% generó preview y Aplicar produjo `Op. activa: adjustments · Original conservado`.
+- Validación: TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `npm --prefix engine test` **PASS** (12/12); `git diff --check` **PASS**. ESLint focalizado **PASS sin errores**; queda un warning de hooks en el cleanup de preview de Halftone.

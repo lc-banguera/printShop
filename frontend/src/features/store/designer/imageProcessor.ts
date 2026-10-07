@@ -8,7 +8,10 @@
  *  - All operations are reversible (caller holds src)
  *  - Preserve the existing data URL contract used by processedSrc
  */
-import { processRasterImageUrl } from "@/core/design/processing";
+import {
+  processArtworkImageUrl,
+  processRasterImageUrl,
+} from "@/core/design/processing";
 import type { CropRect } from "./types";
 
 /** Progress callback (0-1) */
@@ -114,108 +117,30 @@ export async function cropImage(
   return toPngDataUrl(canvas);
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Grayscale
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Convert the image to true grayscale (luminance-weighted).
- * Result: same image with R=G=B=luminance, alpha preserved.
- */
-export async function applyGrayscale(src: string): Promise<string> {
-  const img = await loadImage(src);
-  const [canvas, ctx] = imageToCanvas(img);
-  const { width, height } = canvas;
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const d = imageData.data;
-  for (let i = 0; i < d.length; i += 4) {
-    const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-    d[i] = d[i + 1] = d[i + 2] = lum;
-  }
-  ctx.putImageData(imageData, 0, 0);
-  return toPngDataUrl(canvas);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Invert
-// ─────────────────────────────────────────────────────────────────────────────
-
-export async function applyInvert(src: string): Promise<string> {
-  const img = await loadImage(src);
-  const [canvas, ctx] = imageToCanvas(img);
-  const { width, height } = canvas;
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const d = imageData.data;
-  for (let i = 0; i < d.length; i += 4) {
-    d[i] = 255 - d[i];
-    d[i + 1] = 255 - d[i + 1];
-    d[i + 2] = 255 - d[i + 2];
-    // alpha unchanged
-  }
-  ctx.putImageData(imageData, 0, 0);
-  return toPngDataUrl(canvas);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Pixel-level adjustments (brightness, contrast, saturation)
-// ─────────────────────────────────────────────────────────────────────────────
-
 export interface AdjustmentValues {
-  brightness: number; // 0–200, 100 = no change
-  contrast: number;   // 0–200, 100 = no change
-  saturation: number; // 0–200, 100 = no change
+  brightness: number;
+  contrast: number;
+  saturation: number;
 }
 
-function clamp(v: number): number {
-  return Math.max(0, Math.min(255, v));
+export async function applyGrayscale(src: string, signal?: AbortSignal): Promise<string> {
+  const result = await processArtworkImageUrl(src, { grayscale: 100 }, undefined, signal);
+  return blobToDataUrl(result.blob);
 }
 
-/**
- * Apply brightness/contrast/saturation destructively to pixel data.
- * Uses standard photographic formulae.
- */
+export async function applyInvert(src: string, signal?: AbortSignal): Promise<string> {
+  const result = await processArtworkImageUrl(src, { invert: 100 }, undefined, signal);
+  return blobToDataUrl(result.blob);
+}
+
 export async function applyAdjustments(
   src: string,
-  adj: AdjustmentValues
+  adjustments: AdjustmentValues,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const img = await loadImage(src);
-  const [canvas, ctx] = imageToCanvas(img);
-  const { width, height } = canvas;
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const d = imageData.data;
-
-  const bFactor = adj.brightness / 100;
-  const cFactor = adj.contrast / 100;
-  const sFactor = adj.saturation / 100;
-
-  for (let i = 0; i < d.length; i += 4) {
-    let r = d[i], g = d[i + 1], b = d[i + 2];
-
-    // Brightness (linear)
-    r *= bFactor;
-    g *= bFactor;
-    b *= bFactor;
-
-    // Contrast (around 128)
-    r = (r - 128) * cFactor + 128;
-    g = (g - 128) * cFactor + 128;
-    b = (b - 128) * cFactor + 128;
-
-    // Saturation (convert to HSL-like operation via gray)
-    const gray = 0.299 * r + 0.587 * g + 0.114 * b;
-    r = gray + sFactor * (r - gray);
-    g = gray + sFactor * (g - gray);
-    b = gray + sFactor * (b - gray);
-
-    d[i] = clamp(r);
-    d[i + 1] = clamp(g);
-    d[i + 2] = clamp(b);
-  }
-
-  ctx.putImageData(imageData, 0, 0);
-  return toPngDataUrl(canvas);
+  const result = await processArtworkImageUrl(src, adjustments, undefined, signal);
+  return blobToDataUrl(result.blob);
 }
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Halftone
 // ─────────────────────────────────────────────────────────────────────────────
@@ -718,7 +643,7 @@ export async function exportComposite(
         ctx.beginPath();
         const r = Math.min((layer.borderRadius ?? 0) * (outW / BASE), lw / 2, lh / 2);
         if (r > 0 && "roundRect" in ctx) {
-          (ctx as any).roundRect(-lw / 2, -lh / 2, lw, lh, r);
+          ctx.roundRect(-lw / 2, -lh / 2, lw, lh, r);
         } else {
           ctx.rect(-lw / 2, -lh / 2, lw, lh);
         }
