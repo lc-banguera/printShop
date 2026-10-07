@@ -144,7 +144,7 @@ export function DesignerBuilderPage() {
 
                     <div className="flex min-w-0 flex-1 flex-col bg-white px-2 py-4">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="line-clamp-2 text-[11px] font-bold leading-[13px] text-foreground transition-colors group-hover:text-primary">
+                        <h3 className="line-clamp-2 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary">
                           {category.name}
                         </h3>
 
@@ -158,7 +158,7 @@ export function DesignerBuilderPage() {
                         )}
                       </div>
 
-                      <p className="mt-0.5 line-clamp-2 text-[10px] leading-3 text-foregroundMuted">
+                      <p className="mt-0.5 line-clamp-2 text-sm font-normal leading-4 text-foregroundMuted">
                           {categoryDescriptions[category.id]}
                       </p>
                     </div>
