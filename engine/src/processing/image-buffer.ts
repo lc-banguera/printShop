@@ -24,6 +24,8 @@ export interface ImageRegion {
   height: number;
 }
 
+export type ImageResamplingMethod = 'nearest' | 'bilinear';
+
 export function isImageBuffer(value: unknown): value is ImageBuffer {
   if (typeof value !== 'object' || value === null) return false;
   const candidate = value as Record<string, unknown>;
@@ -253,23 +255,59 @@ export function resizeImageBuffer(
   buffer: ImageBuffer,
   width: number,
   height: number,
+  method: ImageResamplingMethod = 'nearest',
 ): ImageBuffer {
   if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0) {
     throw new RangeError('Resize dimensions must be positive safe integers.');
   }
+  assertImageBuffer(buffer);
+  if (method !== 'nearest' && method !== 'bilinear') {
+    throw new TypeError(`Unsupported image resampling method: ${String(method)}`);
+  }
   const out = createImageBuffer(width, height);
-  const sx = buffer.width / width;
-  const sy = buffer.height / height;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const srcX = Math.min(buffer.width - 1, Math.floor(x * sx));
-      const srcY = Math.min(buffer.height - 1, Math.floor(y * sy));
-      const srcIdx = (srcY * buffer.width + srcX) * 4;
       const dstIdx = (y * width + x) * 4;
-      out.data[dstIdx] = buffer.data[srcIdx];
-      out.data[dstIdx + 1] = buffer.data[srcIdx + 1];
-      out.data[dstIdx + 2] = buffer.data[srcIdx + 2];
-      out.data[dstIdx + 3] = buffer.data[srcIdx + 3];
+      if (method === 'nearest') {
+        const srcX = Math.min(buffer.width - 1, Math.floor(x * buffer.width / width));
+        const srcY = Math.min(buffer.height - 1, Math.floor(y * buffer.height / height));
+        const srcIdx = (srcY * buffer.width + srcX) * 4;
+        out.data[dstIdx] = buffer.data[srcIdx];
+        out.data[dstIdx + 1] = buffer.data[srcIdx + 1];
+        out.data[dstIdx + 2] = buffer.data[srcIdx + 2];
+        out.data[dstIdx + 3] = buffer.data[srcIdx + 3];
+        continue;
+      }
+
+      const sourceX = Math.max(0, (x + 0.5) * buffer.width / width - 0.5);
+      const sourceY = Math.max(0, (y + 0.5) * buffer.height / height - 0.5);
+      const x0 = Math.floor(sourceX);
+      const y0 = Math.floor(sourceY);
+      const x1 = Math.min(buffer.width - 1, x0 + 1);
+      const y1 = Math.min(buffer.height - 1, y0 + 1);
+      const xWeight = sourceX - x0;
+      const yWeight = sourceY - y0;
+      const samples = [
+        [(y0 * buffer.width + x0) * 4, (1 - xWeight) * (1 - yWeight)],
+        [(y0 * buffer.width + x1) * 4, xWeight * (1 - yWeight)],
+        [(y1 * buffer.width + x0) * 4, (1 - xWeight) * yWeight],
+        [(y1 * buffer.width + x1) * 4, xWeight * yWeight],
+      ] as const;
+      let alpha = 0;
+      const premultiplied = [0, 0, 0];
+      for (const [sourceIndex, weight] of samples) {
+        const sampleAlpha = buffer.data[sourceIndex + 3] / 255;
+        alpha += sampleAlpha * weight;
+        for (let channel = 0; channel < 3; channel += 1) {
+          premultiplied[channel] += buffer.data[sourceIndex + channel] * sampleAlpha * weight;
+        }
+      }
+      if (alpha > 0) {
+        for (let channel = 0; channel < 3; channel += 1) {
+          out.data[dstIdx + channel] = clampByte(premultiplied[channel] / alpha);
+        }
+      }
+      out.data[dstIdx + 3] = clampByte(alpha * 255);
     }
   }
   return out;

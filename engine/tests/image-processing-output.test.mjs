@@ -63,3 +63,48 @@ test('DTF preflight checks documented DPI, supplied print limits, and alpha prop
   assert.ok(result.warnings.some((issue) => issue.code === 'SEMITRANSPARENCY_PRESENT'));
   assert.equal(result.metrics.semitransparentPixels, 1);
 });
+
+test('raster dimension planning preserves aspect ratio only when explicitly requested', () => {
+  assert.deepEqual(engine.calculateRasterDimensions(
+    { widthPx: 1200, heightPx: 1800 },
+    { widthPx: 600, preserveAspectRatio: true },
+  ), { widthPx: 600, heightPx: 900 });
+  assert.deepEqual(engine.calculateRasterDimensions(
+    { widthPx: 1200, heightPx: 1800 },
+    { widthPx: 1800, preserveAspectRatio: true },
+  ), { widthPx: 1800, heightPx: 2700 });
+  assert.deepEqual(engine.calculateRasterDimensions(
+    { widthPx: 1200, heightPx: 1800 },
+    { widthPx: 800, heightPx: 400, preserveAspectRatio: true },
+  ), { widthPx: 267, heightPx: 400 });
+  assert.deepEqual(engine.calculateRasterDimensions(
+    { widthPx: 1200, heightPx: 1800 },
+    { widthPx: 800, heightPx: 400 },
+  ), { widthPx: 800, heightPx: 400 });
+});
+
+test('print dimensions and effective DPI convert physical units without involving viewport zoom', () => {
+  const raster = { widthPx: 1200, heightPx: 1800 };
+  const printSize = engine.pixelsToPrintDimensions(raster, { dpiX: 300, dpiY: 300 }, 'cm');
+  assert.deepEqual(printSize, { width: 10.16, height: 15.24, unit: 'cm' });
+  assert.deepEqual(engine.calculateEffectiveResolution(raster, printSize), { dpiX: 300, dpiY: 300 });
+  assert.deepEqual(engine.pixelsToPrintDimensions(raster, { dpiX: 300, dpiY: 300 }, 'mm'), {
+    width: 101.6,
+    height: 152.4,
+    unit: 'mm',
+  });
+});
+
+test('bilinear raster resizing interpolates premultiplied alpha without color fringes', () => {
+  const source = engine.createImageBuffer(2, 1, new Uint8Array([
+    255, 0, 0, 0,
+    0, 0, 255, 255,
+  ]));
+  const resized = engine.resizeImageBuffer(source, 3, 1, 'bilinear');
+  assert.deepEqual([...resized.data], [
+    0, 0, 0, 0,
+    0, 0, 255, 128,
+    0, 0, 255, 255,
+  ]);
+  assert.deepEqual([...source.data], [255, 0, 0, 0, 0, 0, 255, 255]);
+});

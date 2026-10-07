@@ -362,3 +362,12 @@
 - `DONE`: lectura/escritura de píxel rechaza coordenadas fraccionarias/no finitas; `setPixel` limita canales a bytes en vez de depender del tipo interno del buffer.
 - Tests cubren dimensiones/canales de región, copias overlap, límites, independencia de la región extraída e entradas inválidas.
 - Validación: `npm --prefix engine test` **PASS** (23/23); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
+
+## Image Engine — resolución raster y escala física
+
+- `DONE`: `calculateRasterDimensions` calcula dimensiones px con ajuste proporcional explícito (ancho, alto o caja de ajuste); sin lock preserva las dimensiones solicitadas.
+- `DONE`: `pixelsToPrintDimensions` y `calculateEffectiveResolution` convierten entre px, DPI y mm/cm/in sin depender del zoom del viewport ni de escala visual.
+- `DONE`: `resizeImageBuffer` conserva nearest-neighbor como default compatible y agrega bilinear premultiplied-alpha opcional para evitar franjas RGB al escalar transparencias.
+- Tests cubren cálculo/aspect ratio, conversiones de impresión, DPI efectivo, resize bilinear y transparencia del original.
+- Validación: `npm --prefix engine test` **PASS** (26/26); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
+- Alcance: estas utilidades portables no se conectan todavía a controles de impresión ni cambian zoom/transform de los designers.

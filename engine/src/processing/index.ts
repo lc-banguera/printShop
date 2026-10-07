@@ -45,7 +45,24 @@ export {
   sampleLuminance,
   setPixel,
 } from './image-buffer';
-export type { AlphaSummary, ImageBuffer, ImageRegion } from './image-buffer';
+export type {
+  AlphaSummary,
+  ImageBuffer,
+  ImageRegion,
+  ImageResamplingMethod,
+} from './image-buffer';
+export {
+  calculateEffectiveResolution,
+  calculateRasterDimensions,
+  pixelsToPrintDimensions,
+} from './image-scaling';
+export type {
+  ImageDimensionsPx,
+  ImageDpi,
+  PrintDimensions,
+  PrintUnit,
+  RasterDimensionRequest,
+} from './image-scaling';
 export { applyImageEffectStack, composeEffectStacks } from './image-effects';
 export type { RasterEffectKind } from './image-effects';
 export { removeBackgroundLocal } from './background-removal';
