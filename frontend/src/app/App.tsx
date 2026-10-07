@@ -93,10 +93,11 @@ export default function App() {
 
           {/* Designer / Personalización */}
           <Route path="/designer" element={<Navigate to="/designer/new" replace />} />
-          <Route path="/designer/advanced" element={<DesignerLayout />} />
-          <Route path="/designer/easy" element={<DesignerEasyModePage />} />
+          <Route path="/designer/advanced" element={<Navigate to="/store/designer/advanced" replace />} />
+          <Route path="/designer/easy" element={<Navigate to="/store/designer/easy" replace />} />
           <Route path="/designer/new" element={<DesignerBuilderPage />} />
           <Route path="/designer/personalize" element={<DesignerLayout />} />
+          <Route path="/store/designer/easy" element={<DesignerEasyModePage />} />
 
           {/* Admin module */}
           <Route path="/admin" element={<AdminLayout />}>
@@ -141,7 +142,11 @@ export default function App() {
             <Route path="shipping" element={<StoreShipping />} />
             <Route path="online" element={<StoreOnline />} />
             <Route path="online-store" element={<Navigate to="/store/online" replace />} />
-            <Route path="designer" element={<StoreDesigner />} />
+            <Route path="designerv" element={<StoreDesigner />} />
+            <Route path="designer">
+              <Route index element={<Navigate to="/store/designerv" replace />} />
+              <Route path="advanced" element={<StoreDesigner />} />
+            </Route>
             <Route path="settings" element={<StoreSettings />} />
           </Route>
         </Routes>

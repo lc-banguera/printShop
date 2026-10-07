@@ -131,7 +131,7 @@ export default function StoreTemplates() {
 
         <button
           type="button"
-          onClick={() => navigate("/store/designer")}
+          onClick={() => navigate("/store/designerv")}
           className="flex items-center gap-2 text-xs font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-4 py-2 rounded-[6px] shadow-sm transition-all shrink-0"
         >
           <Sparkles className="w-4 h-4" />
@@ -215,7 +215,7 @@ export default function StoreTemplates() {
               <div className="pt-3 mt-3 border-t border-[#F1F5F9] flex items-center justify-between">
                 <button
                   type="button"
-                  onClick={() => navigate("/store/designer")}
+                  onClick={() => navigate("/store/designerv")}
                   className="w-full flex items-center justify-center gap-1.5 py-1.5 px-3 bg-white hover:bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#2563EB] text-[#334155] hover:text-[#2563EB] text-xs font-semibold rounded-[6px] transition-colors shadow-2xs"
                 >
                   <span>Usar en Diseñador</span>

@@ -164,7 +164,7 @@ export default function StoreDesigns() {
         <div className="flex items-center gap-2.5 shrink-0">
           <button
             type="button"
-            onClick={() => navigate("/store/designer")}
+            onClick={() => navigate("/store/designerv")}
             className="flex items-center gap-1.5 text-xs font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-4 py-2 rounded-[6px] shadow-sm transition-all"
           >
             <Plus className="w-4 h-4" />
@@ -278,7 +278,7 @@ export default function StoreDesigns() {
                 <div className="pt-2 border-t border-[#F1F5F9] flex items-center justify-between">
                   <button
                     type="button"
-                    onClick={() => navigate("/store/designer")}
+                    onClick={() => navigate("/store/designerv")}
                     className="text-[10.5px] font-bold text-[#2563EB] hover:underline flex items-center gap-1"
                   >
                     <span>Editar</span>
@@ -341,7 +341,7 @@ export default function StoreDesigns() {
                   <td className="py-3 px-4 text-right">
                     <button
                       type="button"
-                      onClick={() => navigate("/store/designer")}
+                      onClick={() => navigate("/store/designerv")}
                       className="text-xs font-bold text-[#2563EB] hover:underline"
                     >
                       Abrir en Editor

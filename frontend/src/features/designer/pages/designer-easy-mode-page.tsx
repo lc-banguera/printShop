@@ -49,7 +49,16 @@ import {
   getEasyModeSession,
   hasEasyModeSession,
   saveEasyModeSession,
+  type EasyModeSession,
 } from "../services/designer-mode-session";
+import {
+  createDesigner3Document,
+  createDesigner3DocumentId,
+  loadDesigner3Document,
+  saveDesigner3Snapshot,
+  updateDesigner3DocumentModel,
+} from "../services/designer3-document-session";
+import type { DesignElement, Layer } from "@/core/design/types";
 import { useToast } from "@/shared/components/Toast/Toast";
 import {
   createArtworkTransformMatrix,
@@ -214,6 +223,21 @@ function calculateCanvasViewport(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+function isEasyModeSession(value: unknown): value is EasyModeSession {
+  if (!isRecord(value) || !isRecord(value.canvasSettings)) return false;
+  const settings = value.canvasSettings;
+  return (
+    typeof value.documentId === "string" &&
+    typeof settings.widthCm === "string" &&
+    typeof settings.heightCm === "string" &&
+    typeof settings.dpi === "number" &&
+    Array.isArray(value.uploadedAssets) &&
+    Array.isArray(value.uploadedFolders) &&
+    isRecord(value.artworkTransform) &&
+    isRecord(value.imageHistory)
+  );
 }
 
 function readCanvasConfig(locationState: unknown): CanvasConfigState | null {
@@ -596,8 +620,13 @@ function SteppedInput({
 export function DesignerEasyModePage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const modeSessionRef = useRef(getEasyModeSession());
+  const documentId = new URLSearchParams(location.search).get("document");
+  const cachedSession = getEasyModeSession();
+  const modeSessionRef = useRef(
+    cachedSession?.documentId === documentId ? cachedSession : null,
+  );
   const modeSession = modeSessionRef.current;
+  const [isDocumentHydrated, setIsDocumentHydrated] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const folderInputRef = useRef<HTMLInputElement | null>(null);
   const workspaceRef = useRef<HTMLDivElement | null>(null);
@@ -789,8 +818,18 @@ export function DesignerEasyModePage() {
     showProcessedImage && processedImageUrl
       ? processedImageUrl
       : (activeUploadedAsset?.image ?? null);
-  const handleSwitchToAdvanced = () => {
-    saveEasyModeSession({
+  const handleSwitchToAdvanced = async () => {
+    if (!documentId || !isDocumentHydrated) {
+      showToast({
+        type: "error",
+        title: "Documento no disponible",
+        message: "Espera a que el documento termine de cargarse antes de cambiar de modo.",
+      });
+      return;
+    }
+
+    const session: EasyModeSession = {
+      documentId,
       canvasSettings,
       canvasZoom,
       canvasPan,
@@ -816,9 +855,22 @@ export function DesignerEasyModePage() {
       advancedElementBaseSize: modeSession?.advancedElementBaseSize ?? null,
       advancedImageUrl: modeSession?.advancedImageUrl ?? null,
       previousAdvancedZoneId: modeSession?.previousAdvancedZoneId ?? null,
-    });
+    };
+    saveEasyModeSession(session);
     setIsHeaderMenuOpen(false);
-    navigate("/designer/advanced", { state: { fromEasyMode: true } });
+    try {
+      await saveDesigner3Snapshot(documentId, "easy", session);
+      navigate(`/store/designer/advanced?document=${encodeURIComponent(documentId)}`);
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "No se pudo guardar el documento",
+        message:
+          error instanceof Error
+            ? error.message
+            : "No se pudo guardar el documento para continuar en modo avanzado.",
+      });
+    }
   };
   const activeUploadedFolder =
     uploadedFolders.find((folder) => folder.id === activeUploadedFolderId) ??
@@ -939,10 +991,8 @@ export function DesignerEasyModePage() {
   };
 
   const handleExitDesigner = () => {
-    const hasCanvasCreationContext =
-      isRecord(location.state) && "newCanvasConfig" in location.state;
     setIsHeaderMenuOpen(false);
-    navigate(hasCanvasCreationContext ? "/store/designer" : "/products");
+    navigate(documentId ? "/store/designerv" : "/products");
   };
 
   const fitCanvasToWorkspace = () => {
@@ -1406,6 +1456,459 @@ export function DesignerEasyModePage() {
     if (file) loadFile(file);
     event.currentTarget.value = "";
   };
+  const loadFileRef = useRef(loadFile);
+  loadFileRef.current = loadFile;
+
+  useEffect(() => {
+    if (documentId || isDocumentHydrated) return;
+
+    let cancelled = false;
+    const createDocumentAndRedirect = async () => {
+      try {
+        const widthPx = Math.max(
+          1,
+          Math.round((Number(canvasSettings.widthCm) / 2.54) * canvasSettings.dpi),
+        );
+        const heightPx = Math.max(
+          1,
+          Math.round((Number(canvasSettings.heightCm) / 2.54) * canvasSettings.dpi),
+        );
+        const id = createDesigner3DocumentId();
+        await createDesigner3Document(id, "Mi nuevo diseño", {
+          widthPx,
+          heightPx,
+          dpi: canvasSettings.dpi,
+          background: canvasSettings.background,
+          backgroundColor: canvasSettings.backgroundColor,
+        });
+        if (!cancelled) {
+          navigate(
+            {
+              pathname: "/store/designer/easy",
+              search: `?document=${encodeURIComponent(id)}`,
+            },
+            { replace: true, state: location.state },
+          );
+        }
+      } catch (error) {
+        if (cancelled) return;
+        showToast({
+          type: "error",
+          title: "No se pudo crear el documento",
+          message:
+            error instanceof Error
+              ? error.message
+              : "No se pudo preparar el documento para el modo fácil.",
+        });
+      }
+    };
+
+    void createDocumentAndRedirect();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    canvasSettings,
+    documentId,
+    isDocumentHydrated,
+    location.state,
+    navigate,
+    showToast,
+  ]);
+
+  useEffect(() => {
+    if (!documentId || isDocumentHydrated) return;
+
+    let cancelled = false;
+    const hydrateDocument = async () => {
+      try {
+        const record = await loadDesigner3Document(documentId);
+        if (!record) {
+          throw new Error(`No existe el documento Designer 3 "${documentId}".`);
+        }
+        if (cancelled) return;
+
+        const metadata = record.document.metadata;
+        const documentWidth =
+          typeof metadata.widthPx === "number" ? metadata.widthPx : 3000;
+        const documentHeight =
+          typeof metadata.heightPx === "number" ? metadata.heightPx : 3000;
+        const documentDpi =
+          typeof metadata.dpi === "number" ? metadata.dpi : 300;
+        const documentBackground =
+          metadata.background === "transparent" ||
+          metadata.background === "white" ||
+          metadata.background === "color"
+            ? metadata.background
+            : "transparent";
+        const documentBackgroundColor =
+          typeof metadata.backgroundColor === "string"
+            ? metadata.backgroundColor
+            : "#ffffff";
+        const derivedCanvasSettings: EasyCanvasSettings = {
+          widthCm: Number(((documentWidth / documentDpi) * 2.54).toFixed(1)).toString(),
+          heightCm: Number(((documentHeight / documentDpi) * 2.54).toFixed(1)).toString(),
+          dpi: documentDpi,
+          background: documentBackground,
+          backgroundColor: documentBackgroundColor,
+        };
+        setCanvasSettings(derivedCanvasSettings);
+        setCanvasRatio(
+          Number(derivedCanvasSettings.widthCm) /
+            Math.max(0.1, Number(derivedCanvasSettings.heightCm)),
+        );
+
+        const advancedSnapshot = record.advancedSnapshot;
+        const advancedIsNewer =
+          Boolean(advancedSnapshot) &&
+          (!record.easyUpdatedAt ||
+            (record.advancedUpdatedAt ?? "") > record.easyUpdatedAt);
+        if (advancedIsNewer && isRecord(advancedSnapshot)) {
+          const state = advancedSnapshot.editorState;
+          const layers =
+            isRecord(state) && Array.isArray(state.layers)
+              ? state.layers.filter(isRecord)
+              : [];
+          const imageLayer = layers.find(
+            (layer) =>
+              layer.type === "image" &&
+              (typeof layer.processedSrc === "string" ||
+                typeof layer.src === "string" ||
+                typeof layer.preview === "string"),
+          );
+          if (imageLayer) {
+            const image =
+              (typeof imageLayer.processedSrc === "string" &&
+              imageLayer.processedSrc
+                ? imageLayer.processedSrc
+                : typeof imageLayer.src === "string" && imageLayer.src
+                  ? imageLayer.src
+                  : imageLayer.preview) as string;
+            const layerId =
+              typeof imageLayer.id === "string" ? imageLayer.id : "designer3-artwork";
+            const layerName =
+              typeof imageLayer.name === "string" ? imageLayer.name : "Diseño";
+            const width =
+              typeof imageLayer.naturalWidth === "number"
+                ? imageLayer.naturalWidth
+                : typeof imageLayer.width === "number"
+                  ? imageLayer.width
+                  : 480;
+            const height =
+              typeof imageLayer.naturalHeight === "number"
+                ? imageLayer.naturalHeight
+                : typeof imageLayer.height === "number"
+                  ? imageLayer.height
+                  : 480;
+            const fitScale = Math.min(documentWidth / width, documentHeight / height);
+            const renderedWidth =
+              typeof imageLayer.width === "number" ? imageLayer.width : width * fitScale;
+            const renderedHeight =
+              typeof imageLayer.height === "number" ? imageLayer.height : height * fitScale;
+            const centerX =
+              (typeof imageLayer.x === "number" ? imageLayer.x : 0) +
+              renderedWidth / 2;
+            const centerY =
+              (typeof imageLayer.y === "number" ? imageLayer.y : 0) +
+              renderedHeight / 2;
+            const file = new File([], layerName, { type: "image/png" });
+            const resource: UploadedAsset = {
+              id: layerId,
+              name: layerName,
+              image,
+              category: "Subidos",
+              file,
+              identityKey: layerId,
+            };
+            const restoredSession: EasyModeSession = {
+              documentId,
+              canvasSettings: derivedCanvasSettings,
+              canvasZoom: 1,
+              canvasPan: { x: 0, y: 0 },
+              uploadedAssets: [resource],
+              uploadedFolders: [],
+              activeUploadedAssetId: layerId,
+              uploadedLibraryTab: "images",
+              activeUploadedFolderId: null,
+              activeUploadedFolderPath: "",
+              uploadSearch: "",
+              processedImageUrl:
+                typeof imageLayer.processedSrc === "string"
+                  ? imageLayer.processedSrc
+                  : null,
+              processedDimensions: { width, height },
+              showProcessedImage: true,
+              removeSemitransparencies: false,
+              semitransparencyResult: null,
+              imageHistory: { undo: [], redo: [] },
+              artworkTransform: {
+                scale:
+                  fitScale > 0 ? renderedWidth / (width * fitScale) : 1,
+                rotationDegrees:
+                  typeof imageLayer.rotation === "number"
+                    ? imageLayer.rotation
+                    : 0,
+                flipX: imageLayer.flipX === true,
+                flipY: imageLayer.flipY === true,
+                offsetX: (centerX - documentWidth / 2) / documentWidth,
+                offsetY: (centerY - documentHeight / 2) / documentHeight,
+              },
+              artworkDimensions: { width, height },
+              isArtworkSelected: true,
+              imageUrl: image,
+              ownedProcessedImageUrls: [],
+              advancedElementId: layerId,
+              advancedElementBaseSize: { width: renderedWidth, height: renderedHeight },
+              advancedImageUrl: image,
+              previousAdvancedZoneId: null,
+            };
+            modeSessionRef.current = restoredSession;
+            saveEasyModeSession(restoredSession);
+            setUploadedAssets(restoredSession.uploadedAssets);
+            setActiveUploadedAssetId(layerId);
+            setProcessedImageUrl(restoredSession.processedImageUrl);
+            setProcessedDimensions(restoredSession.processedDimensions);
+            setShowProcessedImage(true);
+            setArtworkTransform(restoredSession.artworkTransform);
+            setArtworkDimensions(restoredSession.artworkDimensions);
+          }
+        } else if (isEasyModeSession(record.easySnapshot)) {
+          const restoredSession = record.easySnapshot;
+          modeSessionRef.current = restoredSession;
+          saveEasyModeSession(restoredSession);
+          setCanvasSettings(restoredSession.canvasSettings);
+          setCanvasZoom(restoredSession.canvasZoom);
+          setCanvasPan(restoredSession.canvasPan);
+          setUploadedAssets(restoredSession.uploadedAssets);
+          setUploadedFolders(restoredSession.uploadedFolders);
+          setActiveUploadedAssetId(restoredSession.activeUploadedAssetId);
+          setUploadedLibraryTab(restoredSession.uploadedLibraryTab);
+          setActiveUploadedFolderId(restoredSession.activeUploadedFolderId);
+          setActiveUploadedFolderPath(restoredSession.activeUploadedFolderPath);
+          setUploadSearch(restoredSession.uploadSearch);
+          setProcessedImageUrl(restoredSession.processedImageUrl);
+          setProcessedDimensions(restoredSession.processedDimensions);
+          setShowProcessedImage(restoredSession.showProcessedImage);
+          setRemoveSemitransparencies(restoredSession.removeSemitransparencies);
+          setImageHistory(restoredSession.imageHistory);
+          setArtworkTransform(restoredSession.artworkTransform);
+          setArtworkDimensions(restoredSession.artworkDimensions);
+          setIsArtworkSelected(restoredSession.isArtworkSelected);
+          ownedProcessedImageUrlsRef.current = new Set(
+            restoredSession.ownedProcessedImageUrls,
+          );
+          uploadedAssetIdsRef.current = new Set(
+            restoredSession.uploadedAssets.map((asset) => asset.id),
+          );
+          semitransparencyResultRef.current =
+            restoredSession.semitransparencyResult;
+          setCanvasRatio(
+            Number(restoredSession.canvasSettings.widthCm) /
+              Math.max(0.1, Number(restoredSession.canvasSettings.heightCm)),
+          );
+        }
+
+        const locationState = location.state;
+        if (
+          !record.easySnapshot &&
+          !record.advancedSnapshot &&
+          isRecord(locationState) &&
+          locationState.initialFile instanceof File
+        ) {
+          loadFileRef.current(locationState.initialFile);
+        }
+        setIsDocumentHydrated(true);
+      } catch (error) {
+        if (cancelled) return;
+        showToast({
+          type: "error",
+          title: "No se pudo recuperar el documento",
+          message:
+            error instanceof Error
+              ? error.message
+              : "No se pudo abrir el documento Designer 3.",
+        });
+      }
+    };
+
+    void hydrateDocument();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    documentId,
+    isDocumentHydrated,
+    location.state,
+    showToast,
+  ]);
+
+  useEffect(() => {
+    if (!documentId || !isDocumentHydrated) return;
+    const session: EasyModeSession = {
+      documentId,
+      canvasSettings,
+      canvasZoom,
+      canvasPan,
+      uploadedAssets,
+      uploadedFolders,
+      activeUploadedAssetId,
+      uploadedLibraryTab,
+      activeUploadedFolderId,
+      activeUploadedFolderPath,
+      uploadSearch,
+      processedImageUrl,
+      processedDimensions,
+      showProcessedImage,
+      removeSemitransparencies,
+      semitransparencyResult: semitransparencyResultRef.current,
+      imageHistory,
+      artworkTransform,
+      artworkDimensions,
+      isArtworkSelected,
+      imageUrl: selectedImage,
+      ownedProcessedImageUrls: [...ownedProcessedImageUrlsRef.current],
+      advancedElementId: modeSessionRef.current?.advancedElementId ?? null,
+      advancedElementBaseSize:
+        modeSessionRef.current?.advancedElementBaseSize ?? null,
+      advancedImageUrl: modeSessionRef.current?.advancedImageUrl ?? null,
+      previousAdvancedZoneId:
+        modeSessionRef.current?.previousAdvancedZoneId ?? null,
+    };
+    const timeout = window.setTimeout(() => {
+      void (async () => {
+        const persisted = await loadDesigner3Document(documentId);
+        if (!persisted) {
+          throw new Error(`No existe el documento Designer 3 "${documentId}".`);
+        }
+        const widthPx = Math.max(
+          1,
+          Math.round((Number(canvasSettings.widthCm) / 2.54) * canvasSettings.dpi),
+        );
+        const heightPx = Math.max(
+          1,
+          Math.round((Number(canvasSettings.heightCm) / 2.54) * canvasSettings.dpi),
+        );
+        const existingSurface = persisted.document.surfaces.find(
+          (surface) => surface.id === "front",
+        );
+        const imageId =
+          modeSessionRef.current?.advancedElementId ??
+          activeUploadedAssetId ??
+          "designer3-artwork";
+        const existingLayers = existingSurface?.layers ?? [];
+        const retainedLayers = existingLayers.filter(
+          (layer) => layer.id !== imageId,
+        );
+        const naturalWidth = Math.max(
+          1,
+          artworkDimensions?.width ?? processedDimensions?.width ?? widthPx,
+        );
+        const naturalHeight = Math.max(
+          1,
+          artworkDimensions?.height ?? processedDimensions?.height ?? heightPx,
+        );
+        const fitScale = Math.min(widthPx / naturalWidth, heightPx / naturalHeight);
+        const artworkWidth = naturalWidth * fitScale * artworkTransform.scale;
+        const artworkHeight = naturalHeight * fitScale * artworkTransform.scale;
+        const element: DesignElement | null = selectedImage
+          ? {
+              id: imageId,
+              type: "image",
+              layer: "user",
+              zoneId: "front",
+              x:
+                widthPx / 2 +
+                artworkTransform.offsetX * widthPx -
+                artworkWidth / 2,
+              y:
+                heightPx / 2 +
+                artworkTransform.offsetY * heightPx -
+                artworkHeight / 2,
+              width: artworkWidth,
+              height: artworkHeight,
+              image: selectedImage,
+              originalImageSrc: activeUploadedAsset?.image ?? selectedImage,
+              rotation: artworkTransform.rotationDegrees,
+              scaleX: artworkTransform.flipX ? -1 : 1,
+              scaleY: artworkTransform.flipY ? -1 : 1,
+              name: activeUploadedAsset?.name ?? "Diseño",
+              visible: true,
+              locked: false,
+              opacity: 1,
+            }
+          : null;
+        const layers: Layer[] = element
+          ? [
+              {
+                id: imageId,
+                name: activeUploadedAsset?.name ?? "Diseño",
+                order: 0,
+                locked: false,
+                visible: true,
+                elements: [element],
+              },
+              ...retainedLayers.map((layer, index) => ({
+                ...layer,
+                order: index + 1,
+              })),
+            ]
+          : retainedLayers.map((layer, index) => ({ ...layer, order: index }));
+        const config = {
+          widthPx,
+          heightPx,
+          dpi: canvasSettings.dpi,
+          background: canvasSettings.background,
+          backgroundColor: canvasSettings.backgroundColor,
+        };
+        const document = updateDesigner3DocumentModel(
+          persisted.document,
+          config,
+          layers,
+        );
+        await saveDesigner3Snapshot(documentId, "easy", session, document);
+      })().catch((error: unknown) => {
+        showToast({
+          type: "error",
+          title: "Error de guardado",
+          message:
+            error instanceof Error
+              ? error.message
+              : "No se pudo guardar el documento Designer 3.",
+        });
+      });
+    }, 350);
+    return () => window.clearTimeout(timeout);
+  }, [
+    activeUploadedAssetId,
+    activeUploadedAsset?.image,
+    activeUploadedAsset?.name,
+    activeUploadedFolderId,
+    activeUploadedFolderPath,
+    artworkDimensions,
+    artworkTransform,
+    canvasPan,
+    canvasSettings,
+    canvasSettings.background,
+    canvasSettings.backgroundColor,
+    canvasZoom,
+    canvasSettings.dpi,
+    canvasSettings.heightCm,
+    canvasSettings.widthCm,
+    documentId,
+    imageHistory,
+    isArtworkSelected,
+    isDocumentHydrated,
+    processedDimensions,
+    processedImageUrl,
+    removeSemitransparencies,
+    selectedImage,
+    showProcessedImage,
+    uploadedAssets,
+    uploadedFolders,
+    uploadedLibraryTab,
+    uploadSearch,
+    showToast,
+  ]);
 
   const openFolderPicker = () => {
     const input = folderInputRef.current;
@@ -1844,7 +2347,10 @@ export function DesignerEasyModePage() {
         {/* Izquierda: logo + menú */}
         <div className="flex min-w-0 items-center gap-[clamp(26px,4.55vw,76px)]">
           <Link
-            to="/designer/easy"
+            to={{
+              pathname: "/store/designer/easy",
+              search: location.search,
+            }}
             aria-label="PrintShop, modo básico"
             className="flex shrink-0 items-center gap-4"
           >

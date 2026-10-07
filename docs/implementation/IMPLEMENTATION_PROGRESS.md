@@ -22,13 +22,22 @@
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
 | BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Geometría 2D compartida, flips, bounds de drag y resize de Konva conectados al engine; la integración global sigue parcial porque `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles y no se reinterpretan como herramientas. |
 | BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
-| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; exporta PNG según tamaño físico/DPI, zoom/pan del viewport y transformaciones 2D usan geometría afín canónica en preview/export. Easy ofrece handles de resize proporcional/rotación e intercambio temporal del artwork y transforms con Advanced. Presets de producción, PDF, documento multicapa y providers externos siguen pendientes. |
-| BLOCK 15 — Designer 3 Advanced | PARTIAL / BLOCKED | `/designer/advanced` puede recibir el artwork raster activo de Easy y devolver sus transforms mediante `CanvasStore`; la ruta sigue compartiendo `DesignerLayout`/Canvas con Personalizer, y el alcance Advanced dedicado y la sincronización de documentos multicapa continúan pendientes. |
+| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Designer 3 Easy está en `/store/designer/easy`; conserva sus funciones existentes y guarda su proyección sobre el `PrintShopDocument` canónico compartido. Easy aún no representa visualmente todas las capas Advanced. Presets de producción, PDF y providers externos siguen pendientes. |
+| BLOCK 15 — Designer 3 Advanced | PARTIAL / BLOCKED | Designer 3 Advanced está en `/store/designer/advanced`, separado de Designer 1. Easy y Advanced conservan el mismo `PrintShopDocument` identificado por `?document=<id>` y persistido localmente en IndexedDB; los snapshots por modo restauran el estado específico de cada editor. El alcance funcional Advanced sigue parcial/UNKNOWN. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
 | BLOCK 18 — Performance | PARTIAL / BLOCKED | `IntersectionObserver` difiere las miniaturas de las bibliotecas D2 y sidebar compartido sin depender de BLOCK 17. La validación de Konva con documentos de múltiples elementos sigue bloqueada por falta de carga objetivo y profiling. |
 | BLOCK 19 — Testing + Stabilization | PARTIAL / BLOCKED | Se validaron en navegador los subalcances implementados; no es posible certificar los tres diseñadores mientras continúen bloqueados D1, la integración de tools y producción/persistencia. No hay runner de pruebas frontend. |
 | BLOCK 19 — Testing + Stabilization | BLOCKED | Depende de los bloques pendientes y de que los flujos de D1/D3 tengan alcance verificable. |
+
+## Designer 3 — rutas canónicas y documento compartido
+
+- `/store/designerv` es la pantalla de entrada para crear, abrir o cargar un diseño; no es un canvas.
+- `/store/designer/easy` y `/store/designer/advanced` son los canvases Easy y Advanced, respectivamente.
+- El cambio entre modos navega directamente entre esas dos rutas y conserva `?document=<id>`; no vuelve a la entrada ni crea otro documento.
+- Ambos modos persisten sobre el mismo `PrintShopDocument` en IndexedDB. Los snapshots Easy/Advanced son proyecciones de estado de cada editor ligadas a ese ID, no documentos independientes. La recuperación después de refresh depende de que el guardado local haya terminado.
+- Easy sigue siendo una vista de artwork único; conserva en el documento las capas Advanced que no edita/renderiza. La sincronización remota y el alcance funcional completo de Advanced siguen pendientes.
+- Validación en navegador: entrada → crear → subir PNG → Easy → Advanced (rotación 30°) → Easy → refresh → Advanced → refresh. Se conservan el artwork, el ID, las dos capas y la rotación; el menú del avatar ofrece ambos modos y cierra con Escape/click externo. Build frontend: **PASS**. El lint focalizado de rutas/servicio pasa; el lint de los editores aún reporta errores preexistentes fuera de este handoff.
 
 ## Registro de BLOCK 00
 

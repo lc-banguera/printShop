@@ -23,6 +23,7 @@ export interface EasyModeImageSnapshot {
 }
 
 export interface EasyModeSession {
+  documentId: string;
   canvasSettings: {
     widthCm: string;
     heightCm: string;

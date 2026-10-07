@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   UploadCloud,
   Sparkles,
@@ -50,6 +50,7 @@ import {
 import { cn } from "@/shared/utils/cn";
 import { DesignerWorkspace } from "./designer-workspace";
 import { exportComposite } from "./designer/imageProcessor";
+import type { DesignElement, Layer } from "@/core/design/types";
 import {
   alignLayers,
   distributeLayers,
@@ -62,6 +63,14 @@ import {
   CropRect,
 } from "./designer/types";
 import { NewCanvasModal, NewCanvasConfig } from "./designer/NewCanvasModal";
+import {
+  createDesigner3Document,
+  createDesigner3DocumentId,
+  loadDesigner3Document,
+  saveDesigner3Snapshot,
+  updateDesigner3DocumentModel,
+  type Designer3CanvasConfig,
+} from "../designer/services/designer3-document-session";
 
 /* ── Interfaces ─────────────────────────────────────────────────────────── */
 interface DesignItem {
@@ -157,6 +166,162 @@ interface EditorDocumentState {
   brightness: number;
   contrast: number;
   saturation: number;
+}
+
+function isEditorDocumentState(value: unknown): value is EditorDocumentState {
+  if (typeof value !== "object" || value === null) return false;
+  const state = value as Record<string, unknown>;
+  return (
+    Array.isArray(state.layers) &&
+    typeof state.selectedLayerId === "string" &&
+    typeof state.blendMode === "string" &&
+    typeof state.layerOpacity === "number" &&
+    typeof state.documentWidth === "number" &&
+    typeof state.documentHeight === "number" &&
+    typeof state.dpi === "number"
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function readNewCanvasConfig(value: unknown): NewCanvasConfig | null {
+  if (!isRecord(value)) return null;
+  const config = value.newCanvasConfig;
+  if (!isRecord(config)) return null;
+  if (
+    typeof config.name !== "string" ||
+    typeof config.widthPx !== "number" ||
+    typeof config.heightPx !== "number" ||
+    typeof config.dpi !== "number" ||
+    (config.background !== "transparent" &&
+      config.background !== "white" &&
+      config.background !== "color") ||
+    typeof config.backgroundColor !== "string"
+  ) {
+    return null;
+  }
+  return {
+    name: config.name,
+    widthPx: config.widthPx,
+    heightPx: config.heightPx,
+    dpi: config.dpi,
+    background: config.background,
+    backgroundColor: config.backgroundColor,
+  };
+}
+
+function toDocumentLayers(layers: EditorLayer[]): Layer[] {
+  return layers.map((layer, order) => {
+    const source = layer.processedSrc ?? layer.src ?? layer.preview;
+    const elementType: DesignElement["type"] =
+      layer.type === "image"
+        ? "image"
+        : layer.type === "text"
+          ? "text"
+          : layer.shapeType === "circle"
+            ? "circle"
+            : "rectangle";
+    const element: DesignElement = {
+      id: layer.id,
+      type: elementType,
+      layer: "user",
+      zoneId: "front",
+      x: layer.x ?? 0,
+      y: layer.y ?? 0,
+      width: Math.max(1, layer.width ?? 1),
+      height: Math.max(1, layer.height ?? 1),
+      ...(layer.type === "image" && source ? { image: source, originalImageSrc: layer.src ?? source } : {}),
+      rotation: layer.rotation ?? 0,
+      scaleX: layer.flipX ? -1 : 1,
+      scaleY: layer.flipY ? -1 : 1,
+      fill: layer.fill ?? layer.color,
+      stroke: layer.stroke,
+      strokeWidth: layer.strokeWidth,
+      opacity: Math.max(0, Math.min(1, (layer.opacity ?? 100) / 100)),
+      name: layer.name,
+      locked: layer.locked,
+      visible: layer.visible,
+      filters: layer.filters,
+      textContent: layer.content,
+      fontFamily: layer.fontFamily,
+      fontWeight: layer.fontWeight,
+      fontSize: layer.fontSize,
+      textAlign: layer.textAlign,
+      letterSpacing: layer.letterSpacing,
+      lineHeight: layer.lineHeight,
+    };
+    return {
+      id: layer.id,
+      name: layer.name,
+      order,
+      locked: layer.locked,
+      visible: layer.visible,
+      elements: [element],
+    };
+  });
+}
+
+function fromDocumentLayers(
+  layers: Layer[],
+  previousLayers: EditorLayer[] = [],
+): EditorLayer[] {
+  const previousById = new Map(previousLayers.map((layer) => [layer.id, layer]));
+  return [...layers]
+    .sort((left, right) => left.order - right.order)
+    .flatMap((layer) => {
+      const element = layer.elements[0];
+      if (!element) return [];
+      const previous = previousById.get(layer.id);
+      const isBackground =
+        layer.id === "designer3-background" || layer.name === "Fondo";
+      const type: EditorLayer["type"] = isBackground
+        ? "background"
+        : element.type === "image"
+          ? "image"
+          : element.type === "text"
+            ? "text"
+            : "shape";
+      const mapped: EditorLayer = {
+        ...previous,
+        id: layer.id,
+        name: layer.name,
+        type,
+        visible: layer.visible && element.visible !== false,
+        locked: layer.locked || element.locked === true,
+        opacity: Math.round((element.opacity ?? 1) * 100),
+        preview: element.image ?? previous?.preview ?? "",
+        x: element.x,
+        y: element.y,
+        width: element.width,
+        height: element.height,
+        rotation: element.rotation ?? 0,
+        fill: element.fill,
+        color: element.fill,
+        shapeType: element.type === "circle" ? "circle" : previous?.shapeType ?? "rectangle",
+        stroke: element.stroke,
+        strokeWidth: element.strokeWidth,
+        content: element.textContent,
+        fontFamily: element.fontFamily,
+        fontSize: element.fontSize,
+        fontWeight:
+          element.fontWeight === "bold" || element.fontWeight === 700
+            ? "bold"
+            : "normal",
+        textAlign: element.textAlign,
+        letterSpacing: element.letterSpacing,
+        lineHeight: element.lineHeight,
+        filters: element.filters,
+        src: element.image ?? previous?.src,
+        processedSrc: element.image ? null : previous?.processedSrc,
+        naturalWidth: previous?.naturalWidth ?? element.width,
+        naturalHeight: previous?.naturalHeight ?? element.height,
+        flipX: (element.scaleX ?? 1) < 0,
+        flipY: (element.scaleY ?? 1) < 0,
+      };
+      return [mapped];
+    });
 }
 
 /* ── Mock Data: Diseños del Usuario ─────────────────────────────────────── */
@@ -330,8 +495,16 @@ const mockLinkableProducts = [
 /* ── Componente Principal ────────────────────────────────────────────────── */
 export default function StoreDesigner() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const isAdvancedRoute = location.pathname.endsWith("/advanced");
+  const documentId = new URLSearchParams(location.search).get("document");
+  const [advancedDocumentLoaded, setAdvancedDocumentLoaded] = React.useState(
+    !isAdvancedRoute,
+  );
   // Estado principal: 'hub' (Pantalla inicial) o 'editor' (Área de trabajo)
-  const [viewState, setViewState] = React.useState<"hub" | "editor">("hub");
+  const [viewState, setViewState] = React.useState<"hub" | "editor">(
+    isAdvancedRoute ? "editor" : "hub",
+  );
   const [activeDesign, setActiveDesign] = React.useState<DesignItem | null>(
     null,
   );
@@ -497,6 +670,15 @@ export default function StoreDesigner() {
       elementScale,
       elementRotation,
       elementSize,
+      documentWidth,
+      documentHeight,
+      dpi,
+      rotation,
+      flipHorizontal,
+      flipVertical,
+      brightness,
+      contrast,
+      saturation,
     ],
   );
 
@@ -526,6 +708,324 @@ export default function StoreDesigner() {
     },
     [],
   );
+
+  React.useEffect(() => {
+    if (!isAdvancedRoute) return;
+
+    let cancelled = false;
+    const routePath = "/store/designer/advanced";
+    const loadOrCreateDocument = async () => {
+      try {
+        const requestedConfig = readNewCanvasConfig(location.state);
+        if (!documentId) {
+          const id = createDesigner3DocumentId();
+          const config = requestedConfig
+            ? {
+                widthPx: requestedConfig.widthPx,
+                heightPx: requestedConfig.heightPx,
+                dpi: requestedConfig.dpi,
+                background: requestedConfig.background,
+                backgroundColor: requestedConfig.backgroundColor,
+              }
+            : {
+                widthPx: documentWidth,
+                heightPx: documentHeight,
+                dpi,
+                background: "white" as const,
+                backgroundColor: "#ffffff",
+              };
+          await createDesigner3Document(
+            id,
+            requestedConfig?.name ?? "Mi nuevo diseño",
+            config,
+          );
+          if (!cancelled) {
+            navigate(
+              { pathname: routePath, search: `?document=${encodeURIComponent(id)}` },
+              { replace: true, state: location.state },
+            );
+          }
+          return;
+        }
+
+        const persisted = await loadDesigner3Document(documentId);
+        if (!persisted) {
+          throw new Error(`No existe el documento Designer 3 "${documentId}".`);
+        }
+        if (cancelled) return;
+
+        const snapshot = persisted.advancedSnapshot;
+        const savedState =
+          isRecord(snapshot) && isEditorDocumentState(snapshot.editorState)
+            ? snapshot.editorState
+            : null;
+        const easyIsNewer =
+          Boolean(persisted.easySnapshot) &&
+          (!persisted.advancedUpdatedAt ||
+            (persisted.easyUpdatedAt ?? "") > persisted.advancedUpdatedAt);
+
+        if (savedState && !easyIsNewer) {
+          restoreEditorDocumentState(savedState);
+          const title =
+            isRecord(snapshot) && typeof snapshot.title === "string"
+              ? snapshot.title
+              : "Mi diseño";
+          setDesignTitle(title);
+          setActiveDesign({
+            id: documentId,
+            title,
+            previewUrl: "",
+            lastModified: "Guardado automáticamente",
+            productType: "Personalizado",
+            dimensions: `${savedState.documentWidth} × ${savedState.documentHeight} px`,
+            fileSize: "",
+            editorState: savedState,
+          });
+        } else {
+          const { metadata } = persisted.document;
+          const width = typeof metadata.widthPx === "number" ? metadata.widthPx : documentWidth;
+          const height = typeof metadata.heightPx === "number" ? metadata.heightPx : documentHeight;
+          const savedDpi = typeof metadata.dpi === "number" ? metadata.dpi : dpi;
+          setDocumentWidth(width);
+          setDocumentHeight(height);
+          setDpi(savedDpi);
+          const easySnapshot = persisted.easySnapshot;
+          const imageUrl =
+            isRecord(easySnapshot) && typeof easySnapshot.imageUrl === "string"
+              ? easySnapshot.imageUrl
+              : null;
+          const artworkDimensions =
+            isRecord(easySnapshot) && isRecord(easySnapshot.artworkDimensions)
+              ? easySnapshot.artworkDimensions
+              : null;
+          const artworkTransform =
+            isRecord(easySnapshot) && isRecord(easySnapshot.artworkTransform)
+              ? easySnapshot.artworkTransform
+              : null;
+          const previousAdvancedSnapshot = persisted.advancedSnapshot;
+          const previousAdvancedState =
+            isRecord(previousAdvancedSnapshot) &&
+            isEditorDocumentState(previousAdvancedSnapshot.editorState)
+              ? previousAdvancedSnapshot.editorState
+              : null;
+          const documentLayers =
+            persisted.document.surfaces.find((surface) => surface.id === "front")
+              ?.layers ?? [];
+          const restoredLayers = fromDocumentLayers(
+            documentLayers,
+            previousAdvancedState?.layers ?? [],
+          );
+          const imageWidth =
+            artworkDimensions && typeof artworkDimensions.width === "number"
+              ? artworkDimensions.width
+              : 480;
+          const imageHeight =
+            artworkDimensions && typeof artworkDimensions.height === "number"
+              ? artworkDimensions.height
+              : 480;
+          const fittedScale = Math.min(width / imageWidth, height / imageHeight);
+          const scale =
+            artworkTransform && typeof artworkTransform.scale === "number"
+              ? artworkTransform.scale
+              : 1;
+          const offsetX =
+            artworkTransform && typeof artworkTransform.offsetX === "number"
+              ? artworkTransform.offsetX
+              : 0;
+          const offsetY =
+            artworkTransform && typeof artworkTransform.offsetY === "number"
+              ? artworkTransform.offsetY
+              : 0;
+          const imageLayer: EditorLayer | null =
+            restoredLayers.find((layer) => layer.type === "image") ??
+            (imageUrl
+            ? {
+                id: "designer3-artwork",
+                name: "Diseño",
+                type: "image",
+                visible: true,
+                locked: false,
+                opacity: 100,
+                preview: imageUrl,
+                src: imageUrl,
+                x: width / 2 + offsetX * width - (imageWidth * fittedScale * scale) / 2,
+                y: height / 2 + offsetY * height - (imageHeight * fittedScale * scale) / 2,
+                width: imageWidth * fittedScale * scale,
+                height: imageHeight * fittedScale * scale,
+                naturalWidth: imageWidth,
+                naturalHeight: imageHeight,
+                rotation:
+                  artworkTransform && typeof artworkTransform.rotationDegrees === "number"
+                    ? artworkTransform.rotationDegrees
+                    : 0,
+                flipX: artworkTransform?.flipX === true,
+                flipY: artworkTransform?.flipY === true,
+              }
+            : null);
+          const background =
+            metadata.background === "transparent"
+              ? "transparent"
+              : typeof metadata.backgroundColor === "string"
+                ? metadata.backgroundColor
+                : "#ffffff";
+          const initialLayers: EditorLayer[] = restoredLayers.length
+            ? [...restoredLayers]
+            : [
+                ...(imageLayer ? [imageLayer] : []),
+                {
+                  id: "designer3-background",
+                  name: "Fondo",
+                  type: "background",
+                  visible: true,
+                  locked: true,
+                  opacity: 100,
+                  preview: "",
+                  fill: background,
+                },
+              ];
+          if (
+            imageLayer &&
+            !initialLayers.some((layer) => layer.id === imageLayer.id)
+          ) {
+            initialLayers.unshift(imageLayer);
+          }
+          if (
+            !initialLayers.some(
+              (layer) =>
+                layer.type === "background" ||
+                layer.id === "designer3-background",
+            )
+          ) {
+            initialLayers.push({
+              id: "designer3-background",
+              name: "Fondo",
+              type: "background",
+              visible: true,
+              locked: true,
+              opacity: 100,
+              preview: "",
+              fill: background,
+            });
+          }
+          const selectedId =
+            (previousAdvancedState &&
+            initialLayers.some(
+              (layer) => layer.id === previousAdvancedState.selectedLayerId,
+            )
+              ? previousAdvancedState.selectedLayerId
+              : imageLayer?.id ?? initialLayers[0]?.id ?? "designer3-background");
+          setLayers(initialLayers);
+          setSelectedLayerId(selectedId);
+          setSelectedLayerIds([selectedId]);
+          setElementPos({ x: 0, y: 0 });
+          setElementScale(1);
+          setElementRotation(0);
+          setElementSize({ w: width, h: height });
+          const title =
+            typeof metadata.title === "string" ? metadata.title : "Mi diseño";
+          setDesignTitle(title);
+          setActiveDesign({
+            id: documentId,
+            title,
+            previewUrl: imageUrl ?? "",
+            lastModified: "Guardado automáticamente",
+            productType: "Personalizado",
+            dimensions: `${width} × ${height} px`,
+            fileSize: "",
+            editorState: previousAdvancedState ?? undefined,
+          });
+        }
+        setViewState("editor");
+        setAdvancedDocumentLoaded(true);
+      } catch (error) {
+        if (cancelled) return;
+        showToast(
+          error instanceof Error
+            ? `No se pudo recuperar el documento: ${error.message}`
+            : "No se pudo recuperar el documento Designer 3.",
+        );
+        setAdvancedDocumentLoaded(true);
+      }
+    };
+
+    void loadOrCreateDocument();
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    documentHeight,
+    documentId,
+    documentWidth,
+    dpi,
+    isAdvancedRoute,
+    location.state,
+    navigate,
+    restoreEditorDocumentState,
+  ]);
+
+  React.useEffect(() => {
+    if (
+      !isAdvancedRoute ||
+      !documentId ||
+      !advancedDocumentLoaded ||
+      viewState !== "editor"
+    ) {
+      return;
+    }
+    const snapshot = {
+      title: designTitle || activeDesign?.title || "Mi diseño",
+      editorState: getEditorDocumentState(),
+    };
+    const timeout = window.setTimeout(() => {
+      void loadDesigner3Document(documentId)
+        .then((persisted) => {
+          if (!persisted) {
+            throw new Error(`No existe el documento Designer 3 "${documentId}".`);
+          }
+          const background =
+            persisted.document.metadata.background === "transparent" ||
+            persisted.document.metadata.background === "white" ||
+            persisted.document.metadata.background === "color"
+              ? persisted.document.metadata.background
+              : "white";
+          const backgroundColor =
+            typeof persisted.document.metadata.backgroundColor === "string"
+              ? persisted.document.metadata.backgroundColor
+              : "#ffffff";
+          const document = updateDesigner3DocumentModel(
+            persisted.document,
+            {
+              widthPx: snapshot.editorState.documentWidth,
+              heightPx: snapshot.editorState.documentHeight,
+              dpi: snapshot.editorState.dpi,
+              background,
+              backgroundColor,
+            },
+            toDocumentLayers(snapshot.editorState.layers),
+            {
+              title: snapshot.title,
+            },
+          );
+          return saveDesigner3Snapshot(documentId, "advanced", snapshot, document);
+        })
+        .catch((error: unknown) => {
+          showToast(
+            error instanceof Error
+              ? `No se pudo guardar el documento: ${error.message}`
+              : "No se pudo guardar el documento Designer 3.",
+          );
+        });
+    }, 250);
+    return () => window.clearTimeout(timeout);
+  }, [
+    activeDesign?.title,
+    advancedDocumentLoaded,
+    designTitle,
+    documentId,
+    getEditorDocumentState,
+    isAdvancedRoute,
+    viewState,
+  ]);
 
   React.useEffect(() => {
     const current = getEditorDocumentState();
@@ -574,6 +1074,36 @@ export default function StoreDesigner() {
 
   /* ── Funciones de Apertura del Editor ────────────────────────────────── */
   const openEditorWithDesign = (design: DesignItem) => {
+    if (!isAdvancedRoute) {
+      const editorState = design.editorState ?? getEditorDocumentState();
+      const config: Designer3CanvasConfig = {
+        widthPx: editorState.documentWidth,
+        heightPx: editorState.documentHeight,
+        dpi: editorState.dpi,
+        background: "white",
+        backgroundColor: "#ffffff",
+      };
+      void (async () => {
+        try {
+          await createDesigner3Document(design.id, design.title, config);
+          await saveDesigner3Snapshot(design.id, "advanced", {
+            title: design.title,
+            editorState,
+          });
+          navigate(
+            `/store/designer/advanced?document=${encodeURIComponent(design.id)}`,
+          );
+        } catch (error) {
+          showToast(
+            error instanceof Error
+              ? `No se pudo abrir el diseño: ${error.message}`
+              : "No se pudo abrir el diseño Designer 3.",
+          );
+        }
+      })();
+      return;
+    }
+
     setActiveDesign(design);
     setDesignTitle(design.title);
     if (design.editorState) {
@@ -634,71 +1164,32 @@ export default function StoreDesigner() {
   };
 
   /** Crea el nuevo documento real con la configuración del modal */
-  const handleNewCanvasApply = (config: NewCanvasConfig, isAdvancedMode: boolean) => {
-    if (!isAdvancedMode) {
-      navigate("/designer/easy", { state: { newCanvasConfig: config } });
-      return;
+  const handleNewCanvasApply = async (
+    config: NewCanvasConfig,
+    isAdvancedMode: boolean,
+  ) => {
+    const id = createDesigner3DocumentId();
+    try {
+      await createDesigner3Document(id, config.name, {
+        widthPx: config.widthPx,
+        heightPx: config.heightPx,
+        dpi: config.dpi,
+        background: config.background,
+        backgroundColor: config.backgroundColor,
+      });
+      const route = isAdvancedMode
+        ? "/store/designer/advanced"
+        : "/store/designer/easy";
+      navigate(`${route}?document=${encodeURIComponent(id)}`, {
+        state: { newCanvasConfig: config },
+      });
+    } catch (error) {
+      showToast(
+        error instanceof Error
+          ? `No se pudo crear el documento: ${error.message}`
+          : "No se pudo crear el documento Designer 3.",
+      );
     }
-
-    const bgColor =
-      config.background === "white"
-        ? "#ffffff"
-        : config.background === "color"
-        ? config.backgroundColor
-        : "transparent";
-
-    const newDesign: DesignItem = {
-      id: `des-${Date.now()}`,
-      title: config.name,
-      previewUrl: "",
-      lastModified: "Recién creado",
-      productType: "Personalizado",
-      dimensions: `${config.widthPx} × ${config.heightPx} px`,
-      fileSize: "",
-    };
-
-    // Reset historial limpio ANTES de cambiar cualquier estado
-    historyRef.current = { past: [], future: [] };
-    lastSnapshotRef.current = null;
-    applyingHistoryRef.current = false;
-
-    const bgLayerId = `layer-bg-${Date.now()}`;
-    const newLayers: EditorLayer[] = [
-      {
-        id: bgLayerId,
-        name: "Fondo",
-        type: "background",
-        visible: true,
-        locked: config.background !== "transparent",
-        opacity: 100,
-        preview: "",
-        fill: bgColor,
-      },
-    ];
-
-    setActiveDesign(newDesign);
-    setDesignTitle(config.name);
-    setLayers(newLayers);
-    setSelectedLayerId(bgLayerId);
-    setSelectedLayerIds([bgLayerId]);
-    setBlendMode("Normal");
-    setLayerOpacity(100);
-    setElementPos({ x: 0, y: 0 });
-    setElementScale(1);
-    setElementRotation(0);
-    setElementSize({ w: config.widthPx, h: config.heightPx });
-    setDocumentWidth(config.widthPx);
-    setDocumentHeight(config.heightPx);
-    setDpi(config.dpi);
-    setRotation(0);
-    setFlipHorizontal(false);
-    setFlipVertical(false);
-    setBrightness(100);
-    setContrast(100);
-    setSaturation(100);
-    setViewState("editor");
-    setIsDirty(false);
-    showToast(`Lienzo "${config.name}" creado · ${config.widthPx}×${config.heightPx}px · ${config.dpi} DPI`);
   };
 
   const openEditorWithPreset = (preset: StylePreset) => {
@@ -778,6 +1269,31 @@ export default function StoreDesigner() {
 
     const natW = img.naturalWidth || 800;
     const natH = img.naturalHeight || 800;
+
+    if (!isAdvancedRoute) {
+      const id = createDesigner3DocumentId();
+      const canvasConfig: NewCanvasConfig = {
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        widthPx: natW,
+        heightPx: natH,
+        dpi: 300,
+        background: "transparent",
+        backgroundColor: "transparent",
+      };
+      try {
+        await createDesigner3Document(id, canvasConfig.name, canvasConfig);
+        navigate(`/store/designer/easy?document=${encodeURIComponent(id)}`, {
+          state: { newCanvasConfig: canvasConfig, initialFile: file },
+        });
+      } catch (error) {
+        showToast(
+          error instanceof Error
+            ? `No se pudo crear el documento: ${error.message}`
+            : "No se pudo crear el documento Designer 3.",
+        );
+      }
+      return;
+    }
 
     // Scale to fit within canvas base (480px) while maintaining aspect ratio
     const BASE = 480;
@@ -1449,6 +1965,16 @@ export default function StoreDesigner() {
       d.productType.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  if (isAdvancedRoute && !advancedDocumentLoaded) {
+    return (
+      <div className="flex min-h-full items-center justify-center bg-[#F8FAFC]">
+        <p role="status" className="text-sm font-medium text-[#64748B]">
+          Recuperando documento…
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-full flex flex-col bg-[#F8FAFC]">
       {/* ── Toast de Notificación Flotante ─────────────────────────────── */}
@@ -1519,7 +2045,7 @@ export default function StoreDesigner() {
                 <span>/</span>
                 <span className="text-[#2563EB] font-medium">Diseñador</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] tracking-tight flex items-center gap-2.5">
                 <span>PrintShop Designer</span>
               </h1>
               <p className="text-sm text-[#64748B] mt-1">

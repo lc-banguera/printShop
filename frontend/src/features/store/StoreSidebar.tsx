@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
     badgeVariant: "count",
   },
   {
-    to: "/store/designer",
+    to: "/store/designerv",
     icon: Palette,
     label: "Diseñador",
     badge: "Nuevo",
