@@ -5,6 +5,7 @@ import {
   useState,
   type ChangeEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 
 import {
@@ -555,6 +556,9 @@ export function DesignerEasyModePage() {
     null,
   );
   const [canvasZoom, setCanvasZoom] = useState(1);
+  const [canvasPan, setCanvasPan] = useState({ x: 0, y: 0 });
+  const [isHandToolActive, setIsHandToolActive] = useState(false);
+  const [isPanning, setIsPanning] = useState(false);
   const [activeSidebarTool, setActiveSidebarTool] =
     useState<SidebarToolId>("archivo");
   const [keepRatio, setKeepRatio] = useState(false);
@@ -596,6 +600,13 @@ export function DesignerEasyModePage() {
   const [isExporting, setIsExporting] = useState(false);
 
   const processingRequestId = useRef(0);
+  const panDragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startPanX: number;
+    startPanY: number;
+  } | null>(null);
   const ownedProcessedImageUrlsRef = useRef(new Set<string>());
   const uploadedAssetIdsRef = useRef(new Set<string>());
   const semitransparencyResultRef = useRef<{
@@ -820,10 +831,12 @@ export function DesignerEasyModePage() {
       calculateCanvasViewport(width, height, safeWidthCm, safeHeightCm),
     );
     setCanvasZoom(1);
+    setCanvasPan({ x: 0, y: 0 });
   };
 
   const centerCanvasInWorkspace = () => {
     setCanvasZoom(1);
+    setCanvasPan({ x: 0, y: 0 });
     const el = workspaceRef.current;
     if (!el) return;
     const { width, height } = el.getBoundingClientRect();
@@ -836,6 +849,52 @@ export function DesignerEasyModePage() {
     setCanvasZoom((current) =>
       Math.min(4, Math.max(0.25, Number((current * (direction > 0 ? 1.15 : 0.87)).toFixed(3)))),
     );
+  };
+
+  const handleWorkspacePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+    if (!isHandToolActive || event.button !== 0) return;
+    if (
+      event.target instanceof Element &&
+      event.target.closest("button, input, select, textarea, [role='button']")
+    ) {
+      return;
+    }
+
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    event.preventDefault();
+    workspace.setPointerCapture(event.pointerId);
+    panDragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startY: event.clientY,
+      startPanX: canvasPan.x,
+      startPanY: canvasPan.y,
+    };
+    setIsPanning(true);
+  };
+
+  const handleWorkspacePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = panDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    setCanvasPan({
+      x: drag.startPanX + event.clientX - drag.startX,
+      y: drag.startPanY + event.clientY - drag.startY,
+    });
+  };
+
+  const finishWorkspacePan = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = panDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    panDragRef.current = null;
+    setIsPanning(false);
+    const workspace = workspaceRef.current;
+    if (workspace?.hasPointerCapture(event.pointerId)) {
+      workspace.releasePointerCapture(event.pointerId);
+    }
   };
 
   const handleExportPng = async () => {
@@ -2368,7 +2427,17 @@ export function DesignerEasyModePage() {
         <main
           ref={workspaceRef}
           aria-label="Área de trabajo del lienzo"
-          className="relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f4f5f8] select-none"
+          onPointerDown={handleWorkspacePointerDown}
+          onPointerMove={handleWorkspacePointerMove}
+          onPointerUp={finishWorkspacePan}
+          onPointerCancel={finishWorkspacePan}
+          className={`relative min-h-0 min-w-0 flex-1 overflow-hidden bg-[#f4f5f8] select-none ${
+            isHandToolActive
+              ? isPanning
+                ? "cursor-grabbing touch-none"
+                : "cursor-grab touch-none"
+              : ""
+          }`}
         >
           {/* Rulers and canvas share the same fitted viewport geometry. */}
           {canvasViewport && (
@@ -2377,7 +2446,7 @@ export function DesignerEasyModePage() {
               style={{
                 left: `${canvasViewport.leftPx}px`,
                 top: `${canvasViewport.topPx}px`,
-                transform: `scale(${canvasZoom})`,
+                transform: `translate(${canvasPan.x}px, ${canvasPan.y}px) scale(${canvasZoom})`,
                 transformOrigin: "top left",
               }}
             >
@@ -2437,9 +2506,23 @@ export function DesignerEasyModePage() {
           <div className="absolute bottom-6 left-1/2 z-20 flex -translate-x-1/2 items-center gap-0.5 rounded-[5px] border border-[#e2e8f0] bg-white p-1 shadow-[0_4px_16px_rgba(0,0,0,0.08)]">
             <button
               type="button"
-              aria-label="Herramienta mano"
-              title="Herramienta mano"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
+              aria-label={
+                isHandToolActive
+                  ? "Desactivar herramienta mano"
+                  : "Activar herramienta mano"
+              }
+              aria-pressed={isHandToolActive}
+              title={
+                isHandToolActive
+                  ? "Desactivar herramienta mano"
+                  : "Activar herramienta mano"
+              }
+              onClick={() => setIsHandToolActive((active) => !active)}
+              className={`flex h-8 w-8 items-center justify-center rounded-lg transition-colors ${
+                isHandToolActive
+                  ? "bg-indigo-50 text-indigo-700"
+                  : "text-[#475569] hover:bg-[#f1f5f9]"
+              }`}
             >
               <Hand className="h-4 w-4" />
             </button>
