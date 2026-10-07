@@ -131,7 +131,7 @@ export function createAlphaData(width: number, height: number, values: Uint8Arra
   }
 
   const expectedLength = width * height;
-  if (!values || !Number.isSafeInteger(values.length) || values.length !== expectedLength) {
+  if (!Number.isSafeInteger(expectedLength) || !values || values.length !== expectedLength) {
     throw new RangeError('Alpha data length must equal width multiplied by height.');
   }
 
@@ -143,6 +143,9 @@ export function cloneAlphaData(alpha: AlphaData): AlphaData {
 }
 
 export function createMask(id: string, sourceAssetId: string, alpha: AlphaData): Mask {
+  if (!id.trim() || !sourceAssetId.trim()) {
+    throw new TypeError('Mask id and source asset id must not be empty.');
+  }
   return {
     id,
     sourceAssetId,
@@ -205,18 +208,38 @@ export function mergeAlphaMasks(
   masks: readonly (AlphaData | Mask)[],
   composition: MaskCompositionMode = 'multiply',
 ): AlphaData {
-  if (masks.length === 0) {
+  const activeMasks = masks.filter((mask) => !isMask(mask) || mask.enabled !== false);
+  if (activeMasks.length === 0) {
     return createAlphaData(1, 1, new Uint8Array([255]));
   }
 
-  let current = toAlphaData(masks[0]);
+  const first = activeMasks[0];
+  let current = toAlphaData(first);
+  if (isMask(first) && first.opacity !== undefined) {
+    current = applyOpacityToAlpha(current, first.opacity);
+  }
 
-  for (let index = 1; index < masks.length; index += 1) {
-    const next = toAlphaData(masks[index]);
+  for (let index = 1; index < activeMasks.length; index += 1) {
+    const input = activeMasks[index];
+    let next = toAlphaData(input);
+    if (isMask(input) && input.opacity !== undefined) {
+      next = applyOpacityToAlpha(next, input.opacity);
+    }
     current = applyMaskToAlpha(current, next, composition);
   }
 
   return current;
+}
+
+function applyOpacityToAlpha(alpha: AlphaData, opacity: number): AlphaData {
+  if (!Number.isFinite(opacity) || opacity < 0 || opacity > 1) {
+    throw new RangeError('Mask opacity must be a finite number between 0 and 1.');
+  }
+  const result = cloneAlphaData(alpha);
+  for (let index = 0; index < result.values.length; index += 1) {
+    result.values[index] = clampByte(result.values[index] * opacity);
+  }
+  return result;
 }
 
 export function resolveEffectStack(stack?: EffectStack | null): readonly ImageEffect[] {

@@ -12,6 +12,7 @@ export { deserializeDocument, serializeDocument } from './document/serializer';
 export { CURRENT_DOCUMENT_SCHEMA_VERSION } from './document/schema-version';
 export { LayerManager, ReorderLayerCommand, ToggleLayerLockCommand, ToggleLayerVisibilityCommand } from './layers';
 export { CommandHistory } from './history';
+export * from './processing';
 export { SelectionManager } from './selection';
 export type { SelectionState } from './selection';
 export { TransformSystem } from './transform';
