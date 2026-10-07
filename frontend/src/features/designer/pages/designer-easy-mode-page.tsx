@@ -1292,11 +1292,6 @@ export function DesignerEasyModePage() {
     setShowProcessedImage(true);
   };
 
-  const handleDuplicate = () => {
-    if (!selectedImage) return;
-    setHistoryStack((prev) => [...prev, selectedImage]);
-  };
-
   const handleClearImage = () => {
     if (selectedImage) {
       setHistoryStack((prev) => [...prev, selectedImage]);
@@ -1911,9 +1906,9 @@ export function DesignerEasyModePage() {
                   </button>
                   <button
                     type="button"
-                    onClick={handleDuplicate}
-                    disabled={!selectedImage}
-                    className="flex h-9 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
+                    disabled
+                    title="Duplicar no está configurado en Modo Básico."
+                    className="flex h-9 cursor-not-allowed items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] opacity-45"
                   >
                     DUPLICAR
                   </button>

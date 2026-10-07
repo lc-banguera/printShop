@@ -405,4 +405,5 @@
 - `DONE`: Deshacer del header reutiliza el historial real de procesamiento ya disponible; smoke en navegador borró y restauró un artwork y verificó sus dimensiones raster cargadas. Rehacer está claramente disabled porque Modo Básico todavía no mantiene una pila de redo.
 - `DONE`: herramienta de mano activa el desplazamiento del canvas y sus reglas; browser smoke arrastró el canvas 72 × 48 px y confirmó que Centrar lienzo restaura exactamente las coordenadas previas.
 - `DONE`: smoke en navegador cargó un artwork local, confirmó el zoom y exportó PNG; el feedback reportó 4134 × 5906 px a 300 DPI.
+- `PARTIAL`: la acción DUPLICAR se deshabilitó explícitamente porque antes solo alteraba el historial sin crear una capa visible; la duplicación real requiere soporte multicapa.
 - `PARTIAL`: no se afirma paridad de preview/export de capas o transforms porque Easy aún renderiza una imagen activa sin documento multicapa.
