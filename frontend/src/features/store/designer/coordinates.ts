@@ -1,4 +1,10 @@
 import { Point, Rect, DesignerLayer } from "./types";
+import {
+  createAffineTransform,
+  transformBounds,
+} from "../../../../../engine/src/transform/affine-transform";
+
+export { rotatePoint } from "../../../../../engine/src/transform/affine-transform";
 
 /**
  * Convierte un punto en coordenadas de pantalla (clientX, clientY)
@@ -41,23 +47,6 @@ export function canvasToScreen(
   return {
     x: canvasCenterScreenX + canvasPoint.x * scale,
     y: canvasCenterScreenY + canvasPoint.y * scale,
-  };
-}
-
-/**
- * Rota un punto alrededor de un centro dado en grados.
- */
-export function rotatePoint(point: Point, center: Point, angleDeg: number): Point {
-  const rad = (angleDeg * Math.PI) / 180;
-  const cos = Math.cos(rad);
-  const sin = Math.sin(rad);
-
-  const dx = point.x - center.x;
-  const dy = point.y - center.y;
-
-  return {
-    x: center.x + (dx * cos - dy * sin),
-    y: center.y + (dx * sin + dy * cos),
   };
 }
 
@@ -134,27 +123,14 @@ export function getCombinedBoundingBox(layers: DesignerLayer[]): Rect | null {
     const rotation = layer.rotation ?? 0;
     const center = getLayerCenter(layer);
 
-    if (rotation === 0) {
-      minX = Math.min(minX, rect.x);
-      minY = Math.min(minY, rect.y);
-      maxX = Math.max(maxX, rect.x + rect.width);
-      maxY = Math.max(maxY, rect.y + rect.height);
-    } else {
-      // 4 esquinas rotadas
-      const corners: Point[] = [
-        { x: rect.x, y: rect.y },
-        { x: rect.x + rect.width, y: rect.y },
-        { x: rect.x + rect.width, y: rect.y + rect.height },
-        { x: rect.x, y: rect.y + rect.height },
-      ].map((pt) => rotatePoint(pt, center, rotation));
-
-      for (const c of corners) {
-        minX = Math.min(minX, c.x);
-        minY = Math.min(minY, c.y);
-        maxX = Math.max(maxX, c.x);
-        maxY = Math.max(maxY, c.y);
-      }
-    }
+    const rotatedBounds = transformBounds(
+      rect,
+      createAffineTransform({ rotationDegrees: rotation, origin: center })
+    );
+    minX = Math.min(minX, rotatedBounds.x);
+    minY = Math.min(minY, rotatedBounds.y);
+    maxX = Math.max(maxX, rotatedBounds.x + rotatedBounds.width);
+    maxY = Math.max(maxY, rotatedBounds.y + rotatedBounds.height);
   }
 
   return {

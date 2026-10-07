@@ -363,6 +363,13 @@
 - Tests cubren dimensiones/canales de región, copias overlap, límites, independencia de la región extraída e entradas inválidas.
 - Validación: `npm --prefix engine test` **PASS** (23/23); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
 
+## Transform Engine — geometría afín compartida
+
+- `DONE`: `/engine` contiene composición, aplicación, inversión y transformación de bounds para matrices afines 2D, con rotación en grados compatible con las coordenadas actuales del Designer.
+- `DONE`: `frontend/src/features/store/designer/coordinates.ts` conserva sus APIs existentes y delega rotación y bounds al engine; hit-testing y handles mantienen consumidores y contratos.
+- Tests cubren rotación y sentido de coordenadas, orden de composición, round-trip inverso, bounds rotados y rechazo explícito de valores/singularidades inválidos.
+- `PARTIAL`: esta base compartida aún no migra rendering Konva/CSS, rasterización de export ni gestos de resize; deben consumir la misma matriz en bloques de integración posteriores.
+
 ## Image Engine — resolución raster y escala física
 
 - `DONE`: `calculateRasterDimensions` calcula dimensiones px con ajuste proporcional explícito (ancho, alto o caja de ajuste); sin lock preserva las dimensiones solicitadas.

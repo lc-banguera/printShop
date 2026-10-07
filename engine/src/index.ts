@@ -16,7 +16,23 @@ export * from './processing';
 export { SelectionManager } from './selection';
 export type { SelectionState } from './selection';
 export { TransformSystem } from './transform';
-export type { CanvasAlignment, ElementUpdate, FlipAxis, TransformBounds } from './transform';
+export {
+  composeAffineTransforms,
+  createAffineTransform,
+  invertAffineTransform,
+  rotatePoint,
+  transformBounds,
+  transformPoint,
+} from './transform';
+export type {
+  AffineTransform,
+  AffineTransformOptions,
+  CanvasAlignment,
+  ElementUpdate,
+  FlipAxis,
+  TransformBounds,
+  TransformPoint,
+} from './transform';
 export { getTool, TOOLS, TOOLS_ORDER, toolRegistry, ToolRegistry } from './tools';
 export type {
   Tool,

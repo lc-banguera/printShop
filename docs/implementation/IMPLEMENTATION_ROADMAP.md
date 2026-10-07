@@ -184,6 +184,8 @@
 
 **Siguiente bloque**: BLOCK 06
 
+**Geometría portable**: `engine/src/transform/affine-transform.ts` es la implementación común de composición, rotación, inversión y bounds 2D. El adapter de coordenadas del Designer delega allí la rotación y los bounds combinados sin cambiar sus APIs. La integración con renderers y resize interactivo sigue `PARTIAL`.
+
 ---
 
 ## BLOCK 06 — Tool Registry + Tool Context
