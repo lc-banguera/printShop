@@ -2,6 +2,7 @@ export { TransformSystem } from './transform-system';
 export {
   composeAffineTransforms,
   createAffineTransform,
+  createCenteredTransform,
   invertAffineTransform,
   rotatePoint,
   transformBounds,
@@ -10,6 +11,7 @@ export {
 export type {
   AffineTransform,
   AffineTransformOptions,
+  TransformRectangle,
   TransformPoint,
 } from './affine-transform';
 export type {

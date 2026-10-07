@@ -5,6 +5,7 @@ import engine from '../dist/index.js';
 const {
   composeAffineTransforms,
   createAffineTransform,
+  createCenteredTransform,
   invertAffineTransform,
   rotatePoint,
   transformBounds,
@@ -58,6 +59,38 @@ test('transformed rectangle bounds include all rotated corners', () => {
   assert.ok(Math.abs(bounds.y + 5) < 1e-10);
   assert.ok(Math.abs(bounds.width - 10) < 1e-10);
   assert.ok(Math.abs(bounds.height - 20) < 1e-10);
+});
+
+test('centered global flips and rotations match exact raster orientation', () => {
+  const source = engine.createImageBuffer(2, 2, new Uint8Array([
+    255, 0, 0, 255, 0, 255, 0, 255,
+    0, 0, 255, 255, 255, 255, 0, 255,
+  ]));
+  const center = { x: 0, y: 0, width: 2, height: 2 };
+  const render = (options) => engine.transformImageBuffer(
+    source,
+    createCenteredTransform(center, options),
+    2,
+    2,
+    'nearest'
+  );
+
+  assert.deepEqual([...render({ scaleX: -1 }).data], [
+    0, 255, 0, 255, 255, 0, 0, 255,
+    255, 255, 0, 255, 0, 0, 255, 255,
+  ]);
+  assert.deepEqual([...render({ scaleY: -1 }).data], [
+    0, 0, 255, 255, 255, 255, 0, 255,
+    255, 0, 0, 255, 0, 255, 0, 255,
+  ]);
+  assert.deepEqual([...render({ rotationDegrees: 90, scaleX: -1 }).data], [
+    255, 255, 0, 255, 0, 255, 0, 255,
+    0, 0, 255, 255, 255, 0, 0, 255,
+  ]);
+  assert.deepEqual([...render({ rotationDegrees: 90, scaleY: -1 }).data], [
+    255, 0, 0, 255, 0, 0, 255, 255,
+    0, 255, 0, 255, 255, 255, 0, 255,
+  ]);
 });
 
 test('invalid or singular transforms fail explicitly', () => {

@@ -384,5 +384,7 @@
 
 - `DONE`: `compositeImageBuffer` compone una imagen RGBA sobre otra con source-over alpha correcto, opacidad, offsets enteros y clipping al canvas.
 - `DONE`: modos normal, multiply y screen aplican el blend en la región de solapamiento; el fondo y la fuente permanecen inmutables y errores de entrada se reportan explícitamente.
-- Tests cubren transparencia parcial, colores de mezcla, offsets negativos/clipping, inmutabilidad y opciones inválidas.
-- `PARTIAL`: helper portable aún no integrado al render de capas, preview ni export; el orden/visibilidad de capas queda a cargo de los adapters existentes.
+- `DONE`: `compositeRasterLayers` recibe raster layers bottom-to-top, aplica affine transform, visibility, opacity y blend mode y genera dimensiones finales fijas; usa el compositor existente y no muta fuentes.
+- `DONE`: el export del Designer clásico rasteriza cada capa con su renderer actual y matrices del engine, luego compone el resultado RGBA a través de `compositeRasterLayers` antes de codificar el data URL.
+- Tests cubren transparencia parcial, offsets/clipping, z-order, visibility, opacity, alpha, X/Y flip, rotación + flip, modos multiply/screen e inmutabilidad.
+- `PARTIAL`: preview aún debe aplicar flip global con la misma matriz document transform del export; la llamada de export debe verificarse en runtime browser.

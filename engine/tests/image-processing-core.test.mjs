@@ -83,6 +83,66 @@ test('image compositing rejects invalid placement and opacity', () => {
   assert.throws(() => engine.compositeImageBuffer(pixel, pixel, { opacity: 1.1 }), RangeError);
 });
 
+test('raster layer composition transforms and composites layers bottom-to-top', () => {
+  const bottom = engine.createImageBuffer(1, 1, new Uint8Array([0, 0, 255, 255]));
+  const top = engine.createImageBuffer(1, 1, new Uint8Array([255, 0, 0, 255]));
+  const output = engine.compositeRasterLayers([
+    {
+      image: bottom,
+      transform: engine.createAffineTransform({ translateX: 1 }),
+    },
+    {
+      image: top,
+      transform: engine.createAffineTransform({ translateX: 1 }),
+      opacity: 0.5,
+    },
+  ], { width: 3, height: 1, resampling: 'nearest' });
+
+  assert.deepEqual(engine.getPixel(output, 0, 0), [0, 0, 0, 0]);
+  assert.deepEqual(engine.getPixel(output, 1, 0), [128, 0, 128, 255]);
+  assert.deepEqual(engine.getPixel(output, 2, 0), [0, 0, 0, 0]);
+  assert.deepEqual([...bottom.data], [0, 0, 255, 255]);
+  assert.deepEqual([...top.data], [255, 0, 0, 255]);
+});
+
+test('raster layer composition applies rotation, flips, visibility, and blend modes', () => {
+  const source = engine.createImageBuffer(2, 1, new Uint8Array([
+    255, 0, 0, 255,
+    0, 255, 0, 255,
+  ]));
+  const flipped = engine.compositeRasterLayers([{
+    image: source,
+    transform: engine.createAffineTransform({
+      scaleX: -1,
+      translateX: 3,
+    }),
+  }], { width: 5, height: 1, resampling: 'nearest' });
+  assert.deepEqual(engine.getPixel(flipped, 1, 0), [0, 255, 0, 255]);
+  assert.deepEqual(engine.getPixel(flipped, 2, 0), [255, 0, 0, 255]);
+
+  const hiddenLayer = engine.compositeRasterLayers([
+    {
+      image: source,
+      transform: engine.createAffineTransform(),
+      visible: false,
+    },
+  ], { width: 2, height: 1, resampling: 'nearest' });
+  assert.deepEqual([...hiddenLayer.data], [0, 0, 0, 0, 0, 0, 0, 0]);
+
+  const screen = engine.compositeRasterLayers([
+    {
+      image: engine.createImageBuffer(1, 1, new Uint8Array([0, 0, 255, 255])),
+      transform: engine.createAffineTransform(),
+    },
+    {
+      image: engine.createImageBuffer(1, 1, new Uint8Array([255, 0, 0, 255])),
+      transform: engine.createAffineTransform(),
+      blendMode: 'screen',
+    },
+  ], { width: 1, height: 1, resampling: 'nearest' });
+  assert.deepEqual(engine.getPixel(screen, 0, 0), [255, 0, 255, 255]);
+});
+
 test('effect stack is stable, composable, and non-destructive', () => {
   const source = engine.createImageBuffer(1, 1, new Uint8Array([10, 20, 30, 255]));
   const stack = {

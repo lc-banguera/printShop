@@ -19,6 +19,7 @@ export { TransformSystem } from './transform';
 export {
   composeAffineTransforms,
   createAffineTransform,
+  createCenteredTransform,
   invertAffineTransform,
   rotatePoint,
   transformBounds,
@@ -32,6 +33,7 @@ export type {
   FlipAxis,
   TransformBounds,
   TransformPoint,
+  TransformRectangle,
 } from './transform';
 export { getTool, TOOLS, TOOLS_ORDER, toolRegistry, ToolRegistry } from './tools';
 export type {

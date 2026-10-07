@@ -23,6 +23,30 @@ export interface AffineTransformOptions {
   origin?: TransformPoint;
 }
 
+export interface TransformRectangle {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export function createCenteredTransform(
+  bounds: TransformRectangle,
+  options: Omit<AffineTransformOptions, 'origin'> = {}
+): AffineTransform {
+  assertFiniteValues([bounds.x, bounds.y, bounds.width, bounds.height]);
+  if (bounds.width < 0 || bounds.height < 0) {
+    throw new RangeError('Transform bounds width and height must be non-negative');
+  }
+  return createAffineTransform({
+    ...options,
+    origin: {
+      x: bounds.x + bounds.width / 2,
+      y: bounds.y + bounds.height / 2,
+    },
+  });
+}
+
 export function createAffineTransform(options: AffineTransformOptions = {}): AffineTransform {
   const translateX = options.translateX ?? 0;
   const translateY = options.translateY ?? 0;

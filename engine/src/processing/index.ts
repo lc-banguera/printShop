@@ -92,6 +92,12 @@ export { upscaleImage } from './upscaling';
 export type { UpscalingProcessor, UpscalingResult } from './upscaling';
 export { compositeImageBuffer } from './image-compositing';
 export type { ImageBlendMode, ImageCompositeOptions } from './image-compositing';
+export { transformImageBuffer } from './image-transform';
+export { compositeRasterLayers } from './raster-layer-composition';
+export type {
+  RasterLayerCompositionOptions,
+  RasterLayerInput,
+} from './raster-layer-composition';
 export { exportRaster } from './export';
 export type {
   JpegEncoder,

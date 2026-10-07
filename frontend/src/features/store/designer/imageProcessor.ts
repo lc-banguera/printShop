@@ -12,7 +12,12 @@ import {
   processArtworkImageUrl,
   processRasterImageUrl,
 } from "@/core/design/processing";
+import { createImageBuffer, compositeRasterLayers } from "../../../../../engine/src/processing";
+import {
+  createCenteredTransform,
+} from "../../../../../engine/src/transform/affine-transform";
 import { createAffineTransform } from "../../../../../engine/src/transform/affine-transform";
+import type { ImageBlendMode, RasterLayerInput } from "../../../../../engine/src/processing";
 import type { CropRect } from "./types";
 
 /** Progress callback (0-1) */
@@ -498,6 +503,7 @@ export interface ExportLayer {
     invert: number;
     blur: number;
   };
+  blendMode?: ImageBlendMode;
 }
 
 export interface ExportOptions {
@@ -526,80 +532,91 @@ export async function exportComposite(
   const outW = Math.round(BASE * opts.scale);
   const outH = Math.round((BASE * (aspectH / aspectW)) * opts.scale);
 
-  const canvas = document.createElement("canvas");
-  canvas.width = outW;
-  canvas.height = outH;
-  const ctx = canvas.getContext("2d")!;
-
-  ctx.save();
-  // Document-level transformations (rotation + flips)
-  if (opts.rotation || opts.flipHorizontal || opts.flipVertical) {
-    const transform = createAffineTransform({
+  const output = document.createElement("canvas");
+  output.width = outW;
+  output.height = outH;
+  const outputContext = output.getContext("2d");
+  if (!outputContext) throw new Error("Unable to create a 2D export canvas context.");
+  const documentTransform = createCenteredTransform(
+    { x: 0, y: 0, width: outW, height: outH },
+    {
       rotationDegrees: opts.rotation ?? 0,
       scaleX: opts.flipHorizontal ? -1 : 1,
       scaleY: opts.flipVertical ? -1 : 1,
-      origin: { x: outW / 2, y: outH / 2 },
-    });
-    ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
-  }
+    }
+  );
+  const rasterLayers: RasterLayerInput[] = [];
 
   // Draw from bottom to top (reverse order since layers[0] is topmost)
   const orderedLayers = [...layers].reverse();
 
-  for (const layer of orderedLayers) {
+  for (const [layerIndex, layer] of orderedLayers.entries()) {
     if (!layer.visible) continue;
-    ctx.save();
-    ctx.globalAlpha = Math.max(0, Math.min(1, layer.opacity / 100));
+    const layerCanvas = document.createElement("canvas");
+    layerCanvas.width = outW;
+    layerCanvas.height = outH;
+    const ctx = layerCanvas.getContext("2d");
+    if (!ctx) throw new Error(`Unable to create a raster canvas for layer ${layerIndex}.`);
 
     // Translate to layer center
     const cx = outW / 2 + (layer.x / BASE) * outW;
     const cy = outH / 2 + (layer.y / BASE) * outW;
-    ctx.translate(cx, cy);
 
     const transform = createAffineTransform({
       rotationDegrees: layer.rotation,
       scaleX: layer.flipX ? -1 : 1,
       scaleY: layer.flipY ? -1 : 1,
     });
-    ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
+    const rasterTransform = createAffineTransform();
+    ctx.setTransform(
+      documentTransform.a,
+      documentTransform.b,
+      documentTransform.c,
+      documentTransform.d,
+      documentTransform.e,
+      documentTransform.f
+    );
+
+    if (layer.type !== "background") {
+      ctx.translate(cx, cy);
+      ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
+    }
 
     const lw = (layer.width / BASE) * outW;
     const lh = (layer.height / BASE) * outW;
 
     if (layer.type === "image" && layer.src) {
-      try {
-        const img = await loadImage(layer.src);
-        if ("filter" in ctx && layer.filters) {
-          const f = layer.filters;
-          ctx.filter = [
-            `brightness(${f.brightness}%)`,
-            `contrast(${f.contrast}%)`,
-            `saturate(${f.saturation}%)`,
-            `grayscale(${f.grayscale}%)`,
-            `sepia(${f.sepia}%)`,
-            `invert(${f.invert}%)`,
-            f.blur > 0 ? `blur(${f.blur}px)` : "",
-          ]
-            .filter(Boolean)
-            .join(" ");
-        }
-
-        // Strictly preserve aspect ratio (object-contain) to prevent deformation
-        const imgAspect = (img.naturalWidth || lw) / (img.naturalHeight || lh);
-        const boxAspect = lw / lh;
-        let drawW = lw;
-        let drawH = lh;
-        if (imgAspect > boxAspect) {
-          drawH = lw / imgAspect;
-        } else {
-          drawW = lh * imgAspect;
-        }
-
-        ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
-        if ("filter" in ctx) ctx.filter = "none";
-      } catch {
-        // Image load failed – skip
+      const img = await loadImage(layer.src).catch(() => {
+        throw new Error(`Unable to load image for layer ${layerIndex}.`);
+      });
+      if ("filter" in ctx && layer.filters) {
+        const f = layer.filters;
+        ctx.filter = [
+          `brightness(${f.brightness}%)`,
+          `contrast(${f.contrast}%)`,
+          `saturate(${f.saturation}%)`,
+          `grayscale(${f.grayscale}%)`,
+          `sepia(${f.sepia}%)`,
+          `invert(${f.invert}%)`,
+          f.blur > 0 ? `blur(${f.blur}px)` : "",
+        ]
+          .filter(Boolean)
+          .join(" ");
       }
+
+      // Strictly preserve aspect ratio (object-contain) to prevent deformation
+      const imgAspect = (img.naturalWidth || lw) / (img.naturalHeight || lh);
+      const boxAspect = lw / lh;
+      let drawW = lw;
+      let drawH = lh;
+      if (imgAspect > boxAspect) {
+        drawH = lw / imgAspect;
+      } else {
+        drawW = lh * imgAspect;
+      }
+
+      ctx.drawImage(img, -drawW / 2, -drawH / 2, drawW, drawH);
+      if ("filter" in ctx) ctx.filter = "none";
     } else if (layer.type === "text") {
       const fontSize = (layer.fontSize ?? 48) * (outW / BASE);
       ctx.font = `${layer.fontStyle ?? "normal"} ${layer.fontWeight ?? "normal"} ${fontSize}px ${layer.fontFamily ?? "Arial"}`;
@@ -655,16 +672,29 @@ export async function exportComposite(
         if (layer.stroke && layer.strokeWidth) ctx.stroke();
       }
     } else if (layer.type === "background") {
-      ctx.translate(-cx, -cy);
       ctx.fillStyle = layer.fill ?? "#ffffff";
       ctx.fillRect(0, 0, outW, outH);
     }
 
-    ctx.restore();
+    const pixels = ctx.getImageData(0, 0, outW, outH);
+    rasterLayers.push({
+      image: createImageBuffer(outW, outH, pixels.data),
+      // Canvas applies the canonical document/layer matrices before rasterization.
+      transform: rasterTransform,
+      opacity: Math.max(0, Math.min(1, layer.opacity / 100)),
+      blendMode: layer.blendMode ?? "normal",
+    });
   }
 
-  ctx.restore(); // document-level transformations restore
+  const flattened = compositeRasterLayers(rasterLayers, {
+    width: outW,
+    height: outH,
+    resampling: "bilinear",
+  });
+  const finalPixels = outputContext.createImageData(outW, outH);
+  finalPixels.data.set(flattened.data);
+  outputContext.putImageData(finalPixels, 0, 0);
 
   const mime = opts.format === "jpeg" ? "image/jpeg" : "image/png";
-  return canvas.toDataURL(mime, opts.quality);
+  return output.toDataURL(mime, opts.quality);
 }
