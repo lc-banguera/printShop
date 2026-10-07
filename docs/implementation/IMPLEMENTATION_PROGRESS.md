@@ -368,7 +368,8 @@
 - `DONE`: `/engine` contiene composición, aplicación, inversión y transformación de bounds para matrices afines 2D, con rotación en grados compatible con las coordenadas actuales del Designer.
 - `DONE`: `frontend/src/features/store/designer/coordinates.ts` conserva sus APIs existentes y delega rotación y bounds al engine; hit-testing y handles mantienen consumidores y contratos.
 - Tests cubren rotación y sentido de coordenadas, orden de composición, round-trip inverso, bounds rotados y rechazo explícito de valores/singularidades inválidos.
-- `PARTIAL`: esta base compartida aún no migra rendering Konva/CSS, rasterización de export ni gestos de resize; deben consumir la misma matriz en bloques de integración posteriores.
+- `DONE`: preview del Designer clásico y su export raster usan las matrices del engine para rotación, flips y orden de aplicación por capa.
+- `PARTIAL`: rendering Konva/D2 y gestos de resize aún no consumen la misma matriz; verificar también la paridad visual de flip global entre preview y export antes de extender a otros designers.
 
 ## Image Engine — resolución raster y escala física
 

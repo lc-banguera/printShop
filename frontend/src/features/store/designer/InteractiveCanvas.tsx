@@ -5,6 +5,7 @@ import { DesignerLayer, FilterValues, Point } from "./types";
 import { getLayerDimensions } from "./coordinates";
 import { getHandlePositions } from "./hitTest";
 import { useCanvasInteraction } from "./useCanvasInteraction";
+import { createAffineTransform } from "../../../../../engine/src/transform/affine-transform";
 
 const DEFAULT_FILTERS: FilterValues = {
   brightness: 100,
@@ -185,6 +186,15 @@ export function InteractiveCanvas({
             const width = live ? live.width : dims.width;
             const height = live ? live.height : dims.height;
             const rotation = live ? live.rotation : (layer.rotation ?? 0);
+            const layerTransform = createAffineTransform({
+              rotationDegrees: rotation,
+              scaleX: layer.type === "image"
+                ? (flipHorizontal ? -1 : 1) * (layer.flipX ? -1 : 1)
+                : 1,
+              scaleY: layer.type === "image"
+                ? (flipVertical ? -1 : 1) * (layer.flipY ? -1 : 1)
+                : 1,
+            });
 
             // Center-origin positioning
             const leftOffset = baseSize / 2 + posX;
@@ -198,7 +208,7 @@ export function InteractiveCanvas({
               height: `${height}px`,
               zIndex: layers.length - index,
               opacity: (layer.opacity ?? 100) / 100,
-              transform: `translate(-50%, -50%) rotate(${rotation}deg)`,
+              transform: `translate(-50%, -50%) matrix(${layerTransform.a}, ${layerTransform.b}, ${layerTransform.c}, ${layerTransform.d}, ${layerTransform.e}, ${layerTransform.f})`,
               transformOrigin: "center center",
             };
 
@@ -252,7 +262,6 @@ export function InteractiveCanvas({
                     alt={layer.name}
                     className="h-full w-full object-contain pointer-events-none"
                     style={{
-                      transform: `scaleX(${(flipHorizontal ? -1 : 1) * (layer.flipX ? -1 : 1)}) scaleY(${(flipVertical ? -1 : 1) * (layer.flipY ? -1 : 1)})`,
                       // Bake document-level adjustments + layer CSS filters
                       filter: [
                         `brightness(${(brightness * filters.brightness) / 100}%)`,

@@ -12,6 +12,7 @@ import {
   processArtworkImageUrl,
   processRasterImageUrl,
 } from "@/core/design/processing";
+import { createAffineTransform } from "../../../../../engine/src/transform/affine-transform";
 import type { CropRect } from "./types";
 
 /** Progress callback (0-1) */
@@ -533,12 +534,13 @@ export async function exportComposite(
   ctx.save();
   // Document-level transformations (rotation + flips)
   if (opts.rotation || opts.flipHorizontal || opts.flipVertical) {
-    ctx.translate(outW / 2, outH / 2);
-    if (opts.rotation) ctx.rotate((opts.rotation * Math.PI) / 180);
-    if (opts.flipHorizontal || opts.flipVertical) {
-      ctx.scale(opts.flipHorizontal ? -1 : 1, opts.flipVertical ? -1 : 1);
-    }
-    ctx.translate(-outW / 2, -outH / 2);
+    const transform = createAffineTransform({
+      rotationDegrees: opts.rotation ?? 0,
+      scaleX: opts.flipHorizontal ? -1 : 1,
+      scaleY: opts.flipVertical ? -1 : 1,
+      origin: { x: outW / 2, y: outH / 2 },
+    });
+    ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
   }
 
   // Draw from bottom to top (reverse order since layers[0] is topmost)
@@ -554,10 +556,12 @@ export async function exportComposite(
     const cy = outH / 2 + (layer.y / BASE) * outW;
     ctx.translate(cx, cy);
 
-    if (layer.rotation) ctx.rotate((layer.rotation * Math.PI) / 180);
-    if (layer.flipX || layer.flipY) {
-      ctx.scale(layer.flipX ? -1 : 1, layer.flipY ? -1 : 1);
-    }
+    const transform = createAffineTransform({
+      rotationDegrees: layer.rotation,
+      scaleX: layer.flipX ? -1 : 1,
+      scaleY: layer.flipY ? -1 : 1,
+    });
+    ctx.transform(transform.a, transform.b, transform.c, transform.d, transform.e, transform.f);
 
     const lw = (layer.width / BASE) * outW;
     const lh = (layer.height / BASE) * outW;
