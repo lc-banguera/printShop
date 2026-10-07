@@ -133,6 +133,25 @@ test('semitransparency cleanup applies a deterministic threshold and reports cha
   assert.equal(result.after.semitransparentPixels, 0);
 });
 
+test('semitransparency cleanup can remove isolated alpha noise and preserve connected edge alpha', () => {
+  const source = buffer(5, 1, [
+    10, 20, 30, 255,
+    10, 20, 30, 128,
+    10, 20, 30, 0,
+    10, 20, 30, 96,
+    10, 20, 30, 0,
+  ]);
+  const result = engine.cleanupSemitransparency(source, {
+    strategy: 'remove-isolated',
+    maximumIsolatedPixels: 1,
+  });
+
+  assert.deepEqual([0, 1, 2, 3, 4].map((pixel) => result.image.data[pixel * 4 + 3]), [255, 128, 0, 0, 0]);
+  assert.equal(result.changedPixels, 1);
+  assert.equal(result.after.semitransparentPixels, 1);
+  assert.deepEqual([...source.data].filter((_, index) => index % 4 === 3), [255, 128, 0, 96, 0]);
+});
+
 test('color analysis groups by tolerance and recolor preserves other colors and alpha', () => {
   const source = buffer(3, 1, [250, 0, 0, 255, 245, 0, 0, 128, 0, 0, 255, 255]);
   const analysis = engine.analyzeColors(source, 'asset', { tolerance: 6 });

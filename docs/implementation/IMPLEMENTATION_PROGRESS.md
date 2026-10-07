@@ -338,3 +338,11 @@
 - Tests sintéticos cubren fondo multicolor desconectado, foreground encerrado, conectividad, preservación de agujeros por defecto, relleno explícito y feather limitado al borde.
 - Validación: `npm --prefix engine test` **PASS** (17/17); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**. Medición local orientativa: 512×512 RGBA sintético, 171 ms en Node; no es un benchmark de navegador ni fija un objetivo de rendimiento.
 - Límite explícito: esta mejora no sustituye segmentación semántica/ML y no valida fotografía, cabello, hamburguesas ni imágenes de Dragon Ball reales; el workspace no aportó esos fixtures.
+
+## Image Engine — limpieza conservadora de semitransparencia aislada
+
+- `DONE`: `cleanupSemitransparency` agrega la estrategia explícita `remove-isolated`, que elimina componentes semitransparentes aislados hasta un tamaño configurable y conserva alpha semitransparente conectado a píxeles opacos (probable antialias/borde).
+- `DONE`: `remove`, `make-opaque` y `threshold` conservan sus semánticas anteriores; `changedPixels` para la política nueva cuenta solo píxeles realmente eliminados. Conectividad 4/8 se puede configurar.
+- Test: se eliminó ruido alpha aislado de un píxel, se mantuvo un borde conectado con alpha 128 y se comprobó que el original no cambia.
+- Validación: `npm --prefix engine test` **PASS** (18/18); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
+- Límite: el alpha por sí solo no permite inferir semántica visual; esta política es una heurística espacial opt-in, no detecta automáticamente contaminación de color ni decide sobre transparencias intencionales grandes.
