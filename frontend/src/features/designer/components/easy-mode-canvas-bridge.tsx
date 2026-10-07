@@ -56,16 +56,18 @@ export function EasyModeCanvasBridge() {
       const transform = session.artworkTransform;
       const centerX = zone.x + zone.width / 2 + transform.offsetX * zone.width;
       const centerY = zone.y + zone.height / 2 + transform.offsetY * zone.height;
+      const width = baseSize.width * transform.scale;
+      const height = baseSize.height * transform.scale;
       canvas.updateElement(existingElement.id, {
-        x: centerX - baseSize.width / 2,
-        y: centerY - baseSize.height / 2,
-        width: baseSize.width,
-        height: baseSize.height,
+        x: centerX - width / 2,
+        y: centerY - height / 2,
+        width,
+        height,
         image: session.imageUrl ?? existingElement.image,
         originalImageSrc: session.imageUrl ?? existingElement.originalImageSrc,
         rotation: transform.rotationDegrees,
-        scaleX: transform.scale * (transform.flipX ? -1 : 1),
-        scaleY: transform.scale * (transform.flipY ? -1 : 1),
+        scaleX: transform.flipX ? -1 : 1,
+        scaleY: transform.flipY ? -1 : 1,
       });
       session.advancedImageUrl = session.imageUrl;
       viewer.setActiveZone(existingElement.zoneId);
