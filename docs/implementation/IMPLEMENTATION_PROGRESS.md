@@ -22,7 +22,7 @@
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
 | BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Geometría 2D compartida, flips, bounds de drag y resize de Konva conectados al engine; la integración global sigue parcial porque `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles y no se reinterpretan como herramientas. |
 | BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
-| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; exporta PNG según tamaño físico/DPI y tiene zoom de canvas. Presets, PDF, capas múltiples y providers externos siguen pendientes. |
+| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; exporta PNG según tamaño físico/DPI, zoom/pan del viewport y transformaciones 2D de escala/rotación/flip usan geometría afín canónica compartida en preview/export. Presets de producción, PDF, capas múltiples y providers externos siguen pendientes. |
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
@@ -396,14 +396,17 @@
 - `DONE`: tests comparan orientaciones raster de flip X, flip Y, flip X+rotación y flip Y+rotación; además verifican que preview/export a escalas distintas mantengan coordenadas normalizadas equivalentes.
 - `PARTIAL`: la UI D3 Easy cargó en navegador, pero no hay un artwork de prueba en el estado local para verificar visualmente una sesión transformada; no se afirma paridad visual de ese flujo.
 
-## Designer 3 Easy — export PNG y zoom del canvas
+## Designer 3 Easy — PNG, viewport y transformaciones 2D
 
 - `DONE`: Descargar PNG compone el fondo seleccionado y la imagen actualmente visible en el lienzo usando `widthCm`, `heightCm` y DPI; conserva alpha cuando el fondo es transparente y contiene la imagen proporcionalmente como el preview.
 - `DONE`: el export valida dimensiones y limita la rasterización a 40 MP/16.000 px por lado para evitar asignaciones descontroladas. Errores de carga/canvas/encoder se notifican explícitamente; el asset original no se modifica.
 - `NOT_CONFIGURED`: PDF permanece disabled con explicación visible porque no hay encoder PDF integrado; no se simula salida PDF.
 - `DONE`: Acercar/Alejar aplican zoom propio al workspace sin modificar escala raster ni dimensiones físicas; centrar/ajustar restablece el encuadre base.
-- `DONE`: Undo/Redo del header operan sobre snapshots de imagen, procesamiento, dimensiones y estado de semitransparencia; browser smoke comprobó remove-background → undo → redo y activar/desactivar cleanup → redo.
+- `DONE`: Designer 3 Easy usa `createArtworkTransformMatrix` del engine tanto en preview como en PNG export para escala uniforme, rotación 90° y flips X/Y; translate normalizado también forma parte del contrato geométrico compartido. Cambios de transform afectan el artwork, no el viewport.
+- `DONE`: engine tests raster validan flips X/Y y cada flip combinado con rotación; tests de matrices comparan geometría normalizada a escalas distintas. Browser smoke comprobó rotación + flip X + escala, lectura de matriz CSS, export PNG y la restauración del estado al deshacer/rehacer escala.
+- `DONE`: Undo/Redo del header operan sobre snapshots de imagen, procesamiento, dimensiones, semitransparencia y transformaciones de artwork; browser smoke previo comprobó remove-background → undo → redo y activar/desactivar cleanup → redo.
 - `DONE`: herramienta de mano activa el desplazamiento del canvas y sus reglas; browser smoke arrastró el canvas 72 × 48 px y confirmó que Centrar lienzo restaura exactamente las coordenadas previas.
 - `DONE`: smoke en navegador cargó un artwork local, confirmó el zoom y exportó PNG; el feedback reportó 4134 × 5906 px a 300 DPI.
 - `PARTIAL`: la acción DUPLICAR se deshabilitó explícitamente porque antes solo alteraba el historial sin crear una capa visible; la duplicación real requiere soporte multicapa.
-- `PARTIAL`: no se afirma paridad de preview/export de capas o transforms porque Easy aún renderiza una imagen activa sin documento multicapa.
+- `PARTIAL`: Easy sigue representando una única imagen activa. No tiene posición por arrastre ni documento multicapa; la matriz común cubre transforms 2D de esa imagen, sin afirmar paridad de composición de capas.
+- `VALIDATION`: `npm test --prefix engine` PASS (45/45); TypeScript frontend PASS con `--ignoreDeprecations 5.0` porque el `tsconfig.json` preexistente exige 6.0 mientras el paquete instalado es 5.9.3. Vite production build PASS. `npm run build --prefix frontend` aún falla antes del typecheck por esa incompatibilidad preexistente.

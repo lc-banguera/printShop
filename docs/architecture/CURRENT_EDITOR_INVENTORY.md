@@ -118,7 +118,7 @@ BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Regis
 
 ---
 
-## 2. DESIGNER 3 EASY — Estado: PARTIAL (canvas + procesamiento raster local + PNG)
+## 2. DESIGNER 3 EASY — Estado: PARTIAL (canvas + procesamiento raster local + PNG + transforms 2D)
 
 El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se encontró un punto de montaje adicional en Cliente.
 
@@ -145,7 +145,8 @@ El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se
 ✅ Campos de ancho/alto/DPI y selección del fondo del canvas<br>
 ✅ Descargar PNG compone la imagen activa sobre el fondo configurado a la resolución física solicitada; límite 40 MP / 16.000 px por lado<br>
 ✅ Zoom, pan de viewport y centrado; no cambian dimensiones físicas ni exportación<br>
-✅ Undo/Redo de snapshots de imagen/procesamiento y canvas image clear<br>
+✅ Escala uniforme, rotación de 90° y flips X/Y del artwork; preview y PNG usan la misma matriz canónica del engine<br>
+✅ Undo/Redo de snapshots de imagen/procesamiento, transform y canvas image clear<br>
 🟡 Selección visible de técnica DTF; no aplica transformaciones al asset
 
 ### 2.4 Controles deshabilitados o preview solamente
@@ -154,12 +155,12 @@ El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se
 🟡 Descargar PDF permanece disabled: no hay encoder PDF integrado<br>
 🟡 "Guardar" permanece disabled porque no hay persistencia<br>
 🟡 DTF no aplica un perfil de producción; no se afirma preflight ni salida de fabricación verificada<br>
-🟡 No hay controles de transformación de artwork (posición, escala, rotación o flip); el pan/zoom solo afecta el viewport
+🟡 No hay posición por arrastre ni documento multicapa; los controles geométricos actuales transforman una sola imagen activa
 
 ### 2.5 Funcionalidad ausente
 
 ❌ Proveedor externo de background removal con IA (distinto del algoritmo local ya integrado)
-❌ Documento multicapa, selección y transformaciones editables del artwork
+❌ Documento multicapa y selección independiente de objetos/capas
 ❌ Export PDF y perfil/preflight de producción<br>
 ❌ Persistencia
 

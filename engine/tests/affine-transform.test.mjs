@@ -4,6 +4,7 @@ import engine from '../dist/index.js';
 
 const {
   composeAffineTransforms,
+  createArtworkTransformMatrix,
   createAffineTransform,
   createCenteredTransform,
   invertAffineTransform,
@@ -117,6 +118,84 @@ test('preview-scale and export-scale document transforms have identical normaliz
     assert.ok(Math.abs(exportPoint.x - previewPoint.x * 2) < 1e-10);
     assert.ok(Math.abs(exportPoint.y - previewPoint.y * 2) < 1e-10);
   }
+});
+
+test('artwork transform keeps normalized preview and export geometry in sync', () => {
+  const artworkTransform = {
+    scale: 1.35,
+    rotationDegrees: 37,
+    flipX: true,
+    flipY: false,
+    offsetX: 0.125,
+    offsetY: -0.05,
+  };
+  const preview = createArtworkTransformMatrix(480, 320, artworkTransform);
+  const exported = createArtworkTransformMatrix(960, 640, artworkTransform);
+
+  for (const key of ['a', 'b', 'c', 'd']) {
+    assert.ok(Math.abs(exported[key] - preview[key]) < 1e-10);
+  }
+  assert.ok(Math.abs(exported.e - preview.e * 2) < 1e-10);
+  assert.ok(Math.abs(exported.f - preview.f * 2) < 1e-10);
+
+  const previewPoint = transformPoint({ x: 127, y: 81 }, preview);
+  const exportPoint = transformPoint({ x: 254, y: 162 }, exported);
+  assert.ok(Math.abs(exportPoint.x - previewPoint.x * 2) < 1e-10);
+  assert.ok(Math.abs(exportPoint.y - previewPoint.y * 2) < 1e-10);
+});
+
+test('artwork transform matrix preserves flip and rotation orientation for raster output', () => {
+  const source = engine.createImageBuffer(2, 2, new Uint8Array([
+    255, 0, 0, 255, 0, 255, 0, 255,
+    0, 0, 255, 255, 255, 255, 0, 255,
+  ]));
+  const render = (transform) => engine.transformImageBuffer(
+    source,
+    createArtworkTransformMatrix(2, 2, {
+      scale: 1,
+      offsetX: 0,
+      offsetY: 0,
+      ...transform,
+    }),
+    2,
+    2,
+    'nearest'
+  );
+
+  assert.deepEqual([...render({ rotationDegrees: 0, flipX: true, flipY: false }).data], [
+    0, 255, 0, 255, 255, 0, 0, 255,
+    255, 255, 0, 255, 0, 0, 255, 255,
+  ]);
+  assert.deepEqual([...render({ rotationDegrees: 0, flipX: false, flipY: true }).data], [
+    0, 0, 255, 255, 255, 255, 0, 255,
+    255, 0, 0, 255, 0, 255, 0, 255,
+  ]);
+  assert.deepEqual([...render({ rotationDegrees: 90, flipX: true, flipY: false }).data], [
+    255, 255, 0, 255, 0, 255, 0, 255,
+    0, 0, 255, 255, 255, 0, 0, 255,
+  ]);
+  assert.deepEqual([...render({ rotationDegrees: 90, flipX: false, flipY: true }).data], [
+    255, 0, 0, 255, 0, 0, 255, 255,
+    0, 255, 0, 255, 255, 255, 0, 255,
+  ]);
+});
+
+test('artwork transform matrix rejects invalid dimensions and scale', () => {
+  const transform = {
+    scale: 1,
+    rotationDegrees: 0,
+    flipX: false,
+    flipY: false,
+    offsetX: 0,
+    offsetY: 0,
+  };
+
+  assert.throws(() => createArtworkTransformMatrix(0, 10, transform), { name: 'RangeError' });
+  assert.throws(() => createArtworkTransformMatrix(10, Number.NaN, transform), { name: 'RangeError' });
+  assert.throws(
+    () => createArtworkTransformMatrix(10, 10, { ...transform, scale: 0 }),
+    { name: 'RangeError' }
+  );
 });
 
 test('invalid or singular transforms fail explicitly', () => {

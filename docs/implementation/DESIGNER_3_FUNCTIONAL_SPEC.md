@@ -2,7 +2,7 @@
 
 **Versión:** 0.1.0-draft  
 **Última actualización:** 2026-10-07
-**Estado de evidencia:** `PARTIAL` para Easy (canvas, procesamiento raster local, PNG y viewport) y para la existencia del layout Advanced; sus capacidades específicas siguen `UNKNOWN`.
+**Estado de evidencia:** `PARTIAL` para Easy (canvas, procesamiento raster local, PNG, viewport y transforms 2D del artwork) y para la existencia del layout Advanced; sus capacidades específicas siguen `UNKNOWN`.
 
 ## 1. Propósito documentado
 
@@ -24,12 +24,12 @@ El modal "Nuevo lienzo" actualmente solo tiene como punto de montaje verificado 
 | Eliminar semitransparencias | `IMPLEMENTED` mediante el Worker; el toggle modifica el asset procesado y puede deshacerse/rehacerse |
 | Canvas físico | `IMPLEMENTED`; tamaño, DPI y fondo controlan la presentación y el PNG rasterizado |
 | Zoom, pan y centrar lienzo | `IMPLEMENTED` como transformaciones del viewport; no cambian la escala de impresión ni el raster exportado |
-| Undo / Redo | `PARTIAL`; snapshots de imagen, dimensiones de procesamiento y estado de semitransparencia; no es historial de documento multicapa |
+| Undo / Redo | `PARTIAL`; snapshots de imagen, dimensiones de procesamiento, semitransparencia y transformaciones; no es historial de documento multicapa |
 | Descargar PNG | `IMPLEMENTED`; exporta el canvas al tamaño físico/DPI configurados, con fondo transparente o seleccionado, limitado a 40 MP y 16.000 px por lado |
 | Descargar PDF | `NOT CONFIGURED`; permanece disabled porque no hay encoder PDF integrado |
 | Duplicar imagen / capas múltiples | `NOT CONFIGURED`; duplicar permanece disabled porque Easy actualmente representa una sola imagen activa |
 | Guardar / persistencia | `BLOCKED`; no existe persistencia verificada |
-| Transformar artwork | `NOT IMPLEMENTED`; la imagen se contiene en el canvas, pero no hay controles de posición, escala, rotación o flip del artwork |
+| Transformar artwork | `PARTIAL`; escala uniforme (10–400%), rotación en pasos de 90° y flips X/Y usan una matriz canónica del engine tanto en preview como en PNG export. No hay posición por arrastre ni documento multicapa |
 
 La eliminación de fondo y el cleanup actúan sobre una copia raster local; no deben presentarse como servicio externo. El PNG exportado no afirma aplicar perfiles de impresión ni verificación de preflight.
 
@@ -48,8 +48,8 @@ No se deben derivar requisitos para Advanced a partir de la interfaz Easy, Desig
 
 1. Inspeccionar el layout compartido y verificar sus interacciones antes de atribuir capacidades específicas a Advanced.
 2. Confirmar en código los controles y estados de Easy antes de cualquier cambio en su comportamiento.
-3. Definir transformaciones reales para cada perfil antes de habilitar su aplicación.
-4. Integrar transformaciones geométricas del artwork con la misma geometría en preview y export; no confundirlas con zoom/pan del viewport.
+3. Definir transformaciones específicas de producción para cada perfil antes de habilitarlas; los transforms geométricos generales no aplican un perfil DTF.
+4. Ampliar la integración geométrica a posición interactiva y capas cuando exista un modelo verificable; los transforms de Easy implementados ya comparten matriz entre preview y export, separados de zoom/pan del viewport.
 5. Conectar un proveedor externo solo si se requiere background removal con IA; mantener distinto el algoritmo local ya disponible.
 6. Integrar PDF, perfiles de producción y preflight solo cuando exista un pipeline verificable.
 7. Actualizar este documento y la matriz con evidencia real antes de atribuir capacidades a Advanced.

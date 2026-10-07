@@ -1,4 +1,6 @@
 export { TransformSystem } from './transform-system';
+export { createArtworkTransformMatrix } from './artwork-transform';
+export type { ArtworkTransform } from './artwork-transform';
 export { getElementGeometry, resizeElementGeometry } from './element-geometry';
 export type {
   ElementGeometry,

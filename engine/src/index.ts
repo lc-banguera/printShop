@@ -16,6 +16,7 @@ export * from './processing';
 export { SelectionManager } from './selection';
 export type { SelectionState } from './selection';
 export { TransformSystem } from './transform';
+export { createArtworkTransformMatrix } from './transform';
 export { getElementGeometry, resizeElementGeometry } from './transform';
 export {
   composeAffineTransforms,
@@ -29,6 +30,7 @@ export {
 export type {
   AffineTransform,
   AffineTransformOptions,
+  ArtworkTransform,
   CanvasAlignment,
   ElementUpdate,
   ElementGeometry,

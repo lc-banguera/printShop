@@ -45,6 +45,10 @@ import {
   releaseUploadedDesign,
 } from "../services/design-resources";
 import { useToast } from "@/shared/components/Toast/Toast";
+import {
+  createArtworkTransformMatrix,
+  type ArtworkTransform,
+} from "../../../../../engine/src/transform/artwork-transform";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -84,6 +88,15 @@ interface ProcessedImageDimensions {
   height: number;
 }
 
+const DEFAULT_ARTWORK_TRANSFORM: ArtworkTransform = {
+  scale: 1,
+  rotationDegrees: 0,
+  flipX: false,
+  flipY: false,
+  offsetX: 0,
+  offsetY: 0,
+};
+
 interface SemitransparencyResult {
   resultUrl: string;
   previousUrl: string;
@@ -97,6 +110,7 @@ interface EasyImageSnapshot {
   showProcessedImage: boolean;
   removeSemitransparencies: boolean;
   semitransparencyResult: SemitransparencyResult | null;
+  artworkTransform: ArtworkTransform;
 }
 
 interface EasyImageHistory {
@@ -622,6 +636,9 @@ export function DesignerEasyModePage() {
     undo: [],
     redo: [],
   });
+  const [artworkTransform, setArtworkTransform] = useState<ArtworkTransform>(
+    DEFAULT_ARTWORK_TRANSFORM,
+  );
   const [isRemovingBg, setIsRemovingBg] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -970,8 +987,21 @@ export function DesignerEasyModePage() {
         );
         const width = image.naturalWidth * scale;
         const height = image.naturalHeight * scale;
+        const transform = createArtworkTransformMatrix(
+          rasterWidth,
+          rasterHeight,
+          artworkTransform,
+        );
         context.imageSmoothingEnabled = true;
         context.imageSmoothingQuality = "high";
+        context.setTransform(
+          transform.a,
+          transform.b,
+          transform.c,
+          transform.d,
+          transform.e,
+          transform.f,
+        );
         context.drawImage(
           image,
           (rasterWidth - width) / 2,
@@ -1077,6 +1107,7 @@ export function DesignerEasyModePage() {
     showProcessedImage,
     removeSemitransparencies,
     semitransparencyResult: semitransparencyResultRef.current,
+    artworkTransform,
   });
 
   const recordImageChange = (snapshot = captureImageSnapshot()) => {
@@ -1093,6 +1124,7 @@ export function DesignerEasyModePage() {
     setShowProcessedImage(snapshot.showProcessedImage);
     setRemoveSemitransparencies(snapshot.removeSemitransparencies);
     semitransparencyResultRef.current = snapshot.semitransparencyResult;
+    setArtworkTransform(snapshot.artworkTransform);
   };
 
   const activateUploadedAsset = (assetId: string) => {
@@ -1106,6 +1138,7 @@ export function DesignerEasyModePage() {
     setShowProcessedImage(true);
     setImageHistory({ undo: [], redo: [] });
     setRemoveSemitransparencies(false);
+    setArtworkTransform(DEFAULT_ARTWORK_TRANSFORM);
     semitransparencyResultRef.current = null;
   };
 
@@ -1373,7 +1406,41 @@ export function DesignerEasyModePage() {
     setIsProcessing(false);
     setIsRemovingBg(false);
     setRemoveSemitransparencies(false);
+    setArtworkTransform(DEFAULT_ARTWORK_TRANSFORM);
     semitransparencyResultRef.current = null;
+  };
+
+  const commitArtworkTransform = (next: ArtworkTransform) => {
+    if (!selectedImage || next === artworkTransform) return;
+    recordImageChange();
+    setArtworkTransform(next);
+  };
+
+  const handleRotateArtwork = () => {
+    commitArtworkTransform({
+      ...artworkTransform,
+      rotationDegrees: (artworkTransform.rotationDegrees + 90) % 360,
+    });
+  };
+
+  const handleArtworkFlip = (axis: "x" | "y") => {
+    commitArtworkTransform({
+      ...artworkTransform,
+      flipX: axis === "x" ? !artworkTransform.flipX : artworkTransform.flipX,
+      flipY: axis === "y" ? !artworkTransform.flipY : artworkTransform.flipY,
+    });
+  };
+
+  const handleArtworkScale = (direction: 1 | -1) => {
+    const scale = Math.min(
+      4,
+      Math.max(0.1, Number((artworkTransform.scale + direction * 0.1).toFixed(2))),
+    );
+    commitArtworkTransform({ ...artworkTransform, scale });
+  };
+
+  const handleResetArtworkTransform = () => {
+    commitArtworkTransform({ ...DEFAULT_ARTWORK_TRANSFORM });
   };
 
   const handleSemitransparencyToggle = async (enabled: boolean) => {
@@ -1510,6 +1577,13 @@ export function DesignerEasyModePage() {
         ? "0 0, 0 8px, 8px -8px, -8px 0px"
         : undefined,
   };
+  const previewTransform = canvasViewport
+    ? createArtworkTransformMatrix(
+        Math.max(1, canvasViewport.widthPx - 2),
+        Math.max(1, canvasViewport.heightPx - 2),
+        artworkTransform,
+      )
+    : null;
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -1968,6 +2042,77 @@ export function DesignerEasyModePage() {
                 >
                   {isRemovingBg ? "ELIMINANDO FONDO…" : "ELIMINAR FONDO"}
                 </button>
+
+                <div className="mt-3">
+                  <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-[#475569]">
+                    <span>Transformación 2D</span>
+                    <span aria-live="polite">{Math.round(artworkTransform.scale * 100)}%</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      aria-label="Girar diseño 90 grados"
+                      title="Girar 90°"
+                      onClick={handleRotateArtwork}
+                      disabled={!selectedImage}
+                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Girar 90°
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Voltear diseño horizontalmente"
+                      aria-pressed={artworkTransform.flipX}
+                      title="Voltear horizontal"
+                      onClick={() => handleArtworkFlip("x")}
+                      disabled={!selectedImage}
+                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Voltear X
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Voltear diseño verticalmente"
+                      aria-pressed={artworkTransform.flipY}
+                      title="Voltear vertical"
+                      onClick={() => handleArtworkFlip("y")}
+                      disabled={!selectedImage}
+                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Voltear Y
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Reducir diseño un diez por ciento"
+                      title="Reducir 10%"
+                      onClick={() => handleArtworkScale(-1)}
+                      disabled={!selectedImage || artworkTransform.scale <= 0.1}
+                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Escala −
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Aumentar diseño un diez por ciento"
+                      title="Aumentar 10%"
+                      onClick={() => handleArtworkScale(1)}
+                      disabled={!selectedImage || artworkTransform.scale >= 4}
+                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Escala +
+                    </button>
+                    <button
+                      type="button"
+                      aria-label="Restablecer transformación del diseño"
+                      title="Restablecer transformación"
+                      onClick={handleResetArtworkTransform}
+                      disabled={!selectedImage}
+                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Restablecer
+                    </button>
+                  </div>
+                </div>
 
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
                   <button
@@ -2565,6 +2710,12 @@ export function DesignerEasyModePage() {
                       }
                       className="h-full w-full select-none object-contain"
                       draggable={false}
+                      style={{
+                        transform: previewTransform
+                          ? `matrix(${previewTransform.a}, ${previewTransform.b}, ${previewTransform.c}, ${previewTransform.d}, ${previewTransform.e}, ${previewTransform.f})`
+                          : undefined,
+                        transformOrigin: "0 0",
+                      }}
                     />
                   )}
                 </div>

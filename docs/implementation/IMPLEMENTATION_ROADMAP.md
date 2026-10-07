@@ -3,7 +3,7 @@
 
 **Versión:** 0.1.0  
 **Última actualización:** 2026-10-07
-**Estado actual**: BLOCK 07 sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 están completados dentro de sus límites. BLOCK 12 está parcialmente integrado y continúa bloqueado en la integración de Tool Registry. D3 Easy tiene export PNG de canvas a dimensión/DPI configurados y zoom de workspace operativo; sus capas y transforms aún son parciales. Designer 3 Advanced sigue sin capacidades verificadas. El análisis de dependencias posteriores está en [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md).
+**Estado actual**: BLOCK 07 sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 están completados dentro de sus límites. BLOCK 12 está parcialmente integrado y continúa bloqueado en la integración de Tool Registry. D3 Easy exporta PNG a dimensión/DPI configurados y aplica escala/rotación/flip 2D con la matriz compartida del engine en preview/export; posición interactiva y capas siguen pendientes. Designer 3 Advanced sigue sin capacidades verificadas. El análisis de dependencias posteriores está en [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md).
 
 ---
 
@@ -377,9 +377,9 @@
 
 **Requisito externo**: Servicio Python de background removal debe estar disponible.
 
-**Subalcances independientes completados**: "Eliminar fondo" usa el algoritmo local portable del Image Engine a través del Worker; el switch de semitransparencia aplica cleanup real y se puede revertir mientras siga siendo la última salida activa. Se corrigió la conexión anterior que hacía que el switch de semitransparencia aplicara contraste en vez de limpiar alpha. El algoritmo local no equivale a un modelo/servicio externo de background removal. Los presets continúan pendientes hasta definir transformaciones reales; la exportación de producción depende de BLOCK 16.
+**Subalcances independientes completados**: "Eliminar fondo" usa el algoritmo local portable del Image Engine a través del Worker; el switch de semitransparencia aplica cleanup real y se puede revertir mientras siga siendo la última salida activa. Se corrigió la conexión anterior que hacía que el switch de semitransparencia aplicara contraste en vez de limpiar alpha. El algoritmo local no equivale a un modelo/servicio externo de background removal. Easy ya ofrece scale/rotate/flip 2D con la matriz canónica del engine en preview y PNG export; los presets de producción siguen pendientes y la exportación de producción depende de BLOCK 16.
 
-**Estado actual**: `PARTIAL / BLOCKED`. Eliminación local de fondo y cleanup de semitransparencia están integrados en Designer 3 Easy por el Worker compartido; Undo/Redo del header y pan con la herramienta mano funcionan sobre el estado del canvas. El canvas exporta PNG con dimensiones físicas/DPI solicitados y zoom/pan del workspace no altera la resolución raster. Duplicar permanece deshabilitado hasta que exista soporte multicapa real; PDF y export de producción no están configurados, no hay provider externo/Python, los perfiles no tienen transformaciones reales definidas y la experiencia aún opera sobre una imagen activa.
+**Estado actual**: `PARTIAL / BLOCKED`. Eliminación local de fondo y cleanup de semitransparencia están integrados en Designer 3 Easy por el Worker compartido; Undo/Redo cubre imagen, procesamiento y transformaciones 2D. Rotación, flip y escala usan `createArtworkTransformMatrix` para preview y PNG export. Pan con la herramienta mano solo desplaza el viewport; no hay movimiento interactivo del artwork ni capas múltiples. El canvas exporta PNG con dimensiones físicas/DPI solicitados y zoom/pan del workspace no altera la resolución raster. Duplicar permanece deshabilitado hasta que exista soporte multicapa real; PDF y export de producción no están configurados, no hay provider externo/Python y los perfiles de producción no tienen transformaciones definidas.
 
 **Resultado esperado**:
 - El botón "Eliminar fondo" llama a un servicio real
