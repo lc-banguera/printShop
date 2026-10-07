@@ -1,8 +1,8 @@
 # PrintShop — Especificación funcional: Designer 3 (Editor)
 
 **Versión:** 0.1.0-draft  
-**Última actualización:** 2026-10-05  
-**Estado de evidencia:** `PARTIAL` para Easy (UI y preview) y para la existencia del layout Advanced; sus capacidades específicas siguen `UNKNOWN`.
+**Última actualización:** 2026-10-07
+**Estado de evidencia:** `PARTIAL` para Easy (canvas, procesamiento raster local, PNG y viewport) y para la existencia del layout Advanced; sus capacidades específicas siguen `UNKNOWN`.
 
 ## 1. Propósito documentado
 
@@ -17,21 +17,21 @@ El modal "Nuevo lienzo" actualmente solo tiene como punto de montaje verificado 
 | Elemento | Estado documentado |
 |---|---|
 | Ruta `/designer/easy` y `DesignerEasyModePage` | `IMPLEMENTED` (UI) |
-| Entrada desde "Nuevo lienzo" con Modo avanzado OFF | Navega a `/designer/easy` y conserva `NewCanvasConfig` en `location.state`; Easy todavía no consume esa configuración |
+| Entrada desde "Nuevo lienzo" con Modo avanzado OFF | Navega a `/designer/easy`, consume `NewCanvasConfig` desde `location.state` y aplica tamaño físico, DPI y fondo inicial |
 | Selección de imagen desde el botón de upload | `IMPLEMENTED` |
-| Comparación antes/después con filtros CSS | `IMPLEMENTED` como preview visual, no como procesamiento real |
-| Selección de preset DTF, serigrafía, vinilo o sublimación | `IMPLEMENTED` como selección visible |
-| Mostrar/ocultar comparación | `IMPLEMENTED` |
-| Navegación hacia `/designer/advanced` | `IMPLEMENTED` como navegación; destino funcional no verificado |
-| Guardar | `BLOCKED`; control disabled mientras no exista persistencia |
-| Mejorar contraste | `PARTIAL`; para una imagen subida, procesa el original en el Worker con `contrast: 110` y presenta un PNG del mismo tamaño en píxeles |
-| Indicadores de procesamiento | `PARTIAL`; solo "Color mejorado" refleja la operación Worker; otros pasos no se presentan como completados |
-| Presets / "Aplicar" | `PARTIAL`; la selección es visible y la preview CSS no es procesamiento; "Aplicar" está disabled porque no hay transformaciones reales definidas por perfil |
-| Eliminar fondo | `BLOCKED`; control disabled, no se encontró servicio Python |
-| Exportar / salida de producción | `BLOCKED`; control disabled, no hay export 300 DPI ni perfil de producción |
-| Procesador compartido de filtros raster | Integrado en D3 Easy para el ajuste de contraste; los demás filtros aún no están conectados |
+| Técnica DTF | `PARTIAL`; la opción visible puede seleccionarse, pero no aplica transformaciones de perfil |
+| Eliminar fondo | `IMPLEMENTED` localmente mediante el Worker compartido; el resultado es un asset separado y el original permanece intacto. No equivale a un proveedor externo de IA |
+| Eliminar semitransparencias | `IMPLEMENTED` mediante el Worker; el toggle modifica el asset procesado y puede deshacerse/rehacerse |
+| Canvas físico | `IMPLEMENTED`; tamaño, DPI y fondo controlan la presentación y el PNG rasterizado |
+| Zoom, pan y centrar lienzo | `IMPLEMENTED` como transformaciones del viewport; no cambian la escala de impresión ni el raster exportado |
+| Undo / Redo | `PARTIAL`; snapshots de imagen, dimensiones de procesamiento y estado de semitransparencia; no es historial de documento multicapa |
+| Descargar PNG | `IMPLEMENTED`; exporta el canvas al tamaño físico/DPI configurados, con fondo transparente o seleccionado, limitado a 40 MP y 16.000 px por lado |
+| Descargar PDF | `NOT CONFIGURED`; permanece disabled porque no hay encoder PDF integrado |
+| Duplicar imagen / capas múltiples | `NOT CONFIGURED`; duplicar permanece disabled porque Easy actualmente representa una sola imagen activa |
+| Guardar / persistencia | `BLOCKED`; no existe persistencia verificada |
+| Transformar artwork | `NOT IMPLEMENTED`; la imagen se contiene en el canvas, pero no hay controles de posición, escala, rotación o flip del artwork |
 
-Los filtros CSS siguen siendo una vista previa. El procesamiento de contraste usa una copia PNG y no modifica el `File` fuente. No se debe informar que se eliminó un fondo, se aplicó un perfil de impresión o se exportó un resultado de producción.
+La eliminación de fondo y el cleanup actúan sobre una copia raster local; no deben presentarse como servicio externo. El PNG exportado no afirma aplicar perfiles de impresión ni verificación de preflight.
 
 ## 3. Designer 3 Advanced — estado observado
 
@@ -48,10 +48,11 @@ No se deben derivar requisitos para Advanced a partir de la interfaz Easy, Desig
 
 1. Inspeccionar el layout compartido y verificar sus interacciones antes de atribuir capacidades específicas a Advanced.
 2. Confirmar en código los controles y estados de Easy antes de cualquier cambio en su comportamiento.
-3. Definir transformaciones reales para cada perfil antes de habilitar "Aplicar".
-4. Conectar un servicio real antes de habilitar eliminación de fondo y un motor de producción antes de habilitar export.
-5. Mantener explícito que la preview CSS no es procesamiento real; solo el ajuste de contraste consume actualmente la API Worker.
-6. Actualizar este documento y la matriz con evidencia real antes de continuar BLOCK 14 o BLOCK 15.
+3. Definir transformaciones reales para cada perfil antes de habilitar su aplicación.
+4. Integrar transformaciones geométricas del artwork con la misma geometría en preview y export; no confundirlas con zoom/pan del viewport.
+5. Conectar un proveedor externo solo si se requiere background removal con IA; mantener distinto el algoritmo local ya disponible.
+6. Integrar PDF, perfiles de producción y preflight solo cuando exista un pipeline verificable.
+7. Actualizar este documento y la matriz con evidencia real antes de atribuir capacidades a Advanced.
 
 Estos pendientes no introducen decisiones de producto; preservan como `UNKNOWN` aquello no comprobado.
 

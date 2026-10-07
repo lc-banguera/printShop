@@ -118,7 +118,7 @@ BLOCK 12 queda `BLOCKED (PARTIAL)` hasta integrar handlers reales del Tool Regis
 
 ---
 
-## 2. DESIGNER 3 EASY — Estado: PARTIAL (UI + contraste raster)
+## 2. DESIGNER 3 EASY — Estado: PARTIAL (canvas + procesamiento raster local + PNG)
 
 El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se encontró un punto de montaje adicional en Cliente.
 
@@ -127,40 +127,41 @@ El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se
 | Ruta | Componente | Estado |
 |---|---|---|
 | `/designer/easy` | `DesignerEasyModePage` | 🟡 PARTIAL |
-| `/store/designer` → "Nuevo lienzo", Modo avanzado OFF | `DesignerEasyModePage` | La configuración se envía en `location.state`, pero Easy aún no la consume |
+| `/store/designer` → "Nuevo lienzo", Modo avanzado OFF | `DesignerEasyModePage` | Consume `NewCanvasConfig` de `location.state` para tamaño, DPI y fondo inicial |
 | `/store/designer` → "Nuevo lienzo", Modo avanzado ON | `StoreDesigner` / `DesignerWorkspace` | Aplica la configuración al workspace existente |
 
 ### 2.2 Componentes
 
 | Componente | Archivo | Función | Estado |
 |---|---|---|---|
-| `DesignerEasyModePage` | `pages/designer-easy-mode-page.tsx` | Workspace de modo fácil y operación Worker de contraste | 🟡 |
+| `DesignerEasyModePage` | `pages/designer-easy-mode-page.tsx` | Workspace de modo fácil, procesamiento local de imagen y export PNG | 🟡 |
 
 ### 2.3 Funcionalidad real
 
 ✅ Upload de imagen (click sobre botón)  
-✅ Vista antes/después con CSS filters  
-✅ Selección de preset: DTF, serigrafía, vinilo, sublimación  
-✅ Toggle mostrar/ocultar comparación  
-✅ Navegación a modo avanzado (`/designer/advanced`)  
-✅ "Mejorar contraste" procesa la imagen subida con el Worker compartido de BLOCK 11 (`contrast: 110`); muestra un PNG nuevo a la resolución en píxeles de origen y conserva el archivo fuente<br>
-✅ El estado de "Color mejorado" refleja si esa operación Worker terminó correctamente
+✅ Upload de imagen y registro local temporal<br>
+✅ "Eliminar fondo" usa el algoritmo raster local por Worker; el asset original no se muta<br>
+✅ "Eliminar semitransparencias" ejecuta cleanup raster por Worker y participa en undo/redo<br>
+✅ Campos de ancho/alto/DPI y selección del fondo del canvas<br>
+✅ Descargar PNG compone la imagen activa sobre el fondo configurado a la resolución física solicitada; límite 40 MP / 16.000 px por lado<br>
+✅ Zoom, pan de viewport y centrado; no cambian dimensiones físicas ni exportación<br>
+✅ Undo/Redo de snapshots de imagen/procesamiento y canvas image clear<br>
+🟡 Selección visible de técnica DTF; no aplica transformaciones al asset
 
 ### 2.4 Controles deshabilitados o preview solamente
 
-🟡 Los presets se pueden seleccionar, pero sus transformaciones no están definidas; "Aplicar" permanece disabled. La preview CSS no representa procesamiento real<br>
-🟡 "Eliminar fondo" permanece disabled porque no hay servicio Python de background removal<br>
-🟡 "Exportar" permanece disabled porque no hay salida de producción verificada<br>
+🟡 "Duplicar" permanece disabled: no hay modelo multicapa en Easy y la acción previa no generaba una capa visible<br>
+🟡 Descargar PDF permanece disabled: no hay encoder PDF integrado<br>
 🟡 "Guardar" permanece disabled porque no hay persistencia<br>
-🟡 Semitransparencias, semitono y eliminación de fondo no se declaran procesados; sus estados ya no se muestran como completados por defecto
+🟡 DTF no aplica un perfil de producción; no se afirma preflight ni salida de fabricación verificada<br>
+🟡 No hay controles de transformación de artwork (posición, escala, rotación o flip); el pan/zoom solo afecta el viewport
 
 ### 2.5 Funcionalidad ausente
 
-❌ Servicio Python de background removal
-❌ Background removal real  
-❌ Export de alta resolución / perfil de 300 DPI<br>
+❌ Proveedor externo de background removal con IA (distinto del algoritmo local ya integrado)
+❌ Documento multicapa, selección y transformaciones editables del artwork
+❌ Export PDF y perfil/preflight de producción<br>
 ❌ Persistencia
-🟡 Los demás filtros de `ArtworkFilters` aún no están integrados en D3 Easy
 
 ---
 
