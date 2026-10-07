@@ -35,7 +35,6 @@ import {
   applyAdjustments,
   removeBackground,
   hasTransparency,
-  RemoveBgOptions,
   AdjustmentValues,
 } from "./imageProcessor";
 
@@ -171,6 +170,7 @@ function RemoveBgTool({
   const autoResultRef = React.useRef<string | null>(null); // auto remove-bg result
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const generationRef = React.useRef(0);
+  const processingAbortRef = React.useRef<AbortController | null>(null);
 
   const src = layer.processedSrc ?? layer.src ?? layer.preview;
 
@@ -197,23 +197,34 @@ function RemoveBgTool({
   const generatePreview = React.useCallback(async (t: number, f: number) => {
     if (!src) return;
     const currentGen = ++generationRef.current;
+    processingAbortRef.current?.abort();
     await new Promise((r) => setTimeout(r, 50));
     if (currentGen !== generationRef.current) return;
 
+    const controller = new AbortController();
+    processingAbortRef.current = controller;
     setProcessing(true);
     try {
-      const result = await removeBackground(src, { tolerance: t, feather: f }, () => {
-        if (currentGen !== generationRef.current) throw new Error("Aborted");
-      });
+      const resultUrl = await removeBackground(
+        src,
+        { tolerance: t, feather: f },
+        undefined,
+        controller.signal,
+      );
       if (currentGen === generationRef.current) {
-        autoResultRef.current = result;
-        setPreviewSrc(result);
+        autoResultRef.current = resultUrl;
+        setPreviewSrc(resultUrl);
       }
-    } catch (e) {
-      if ((e as Error).message !== "Aborted" && currentGen === generationRef.current) {
+    } catch (error) {
+      const cancelled = error instanceof Error && error.name === "AbortError";
+      if (!cancelled && currentGen === generationRef.current) {
+        console.error("Failed to remove the image background.", error);
         setPreviewSrc(null);
       }
     } finally {
+      if (processingAbortRef.current === controller) {
+        processingAbortRef.current = null;
+      }
       if (currentGen === generationRef.current) setProcessing(false);
     }
   }, [src]);
@@ -221,7 +232,10 @@ function RemoveBgTool({
   // Initial preview
   React.useEffect(() => {
     generatePreview(tolerance, feather);
-    return () => { generationRef.current++; };
+    return () => {
+      generationRef.current++;
+      processingAbortRef.current?.abort();
+    };
   }, [generatePreview]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const schedulePreview = (t: number, f: number) => {
@@ -306,6 +320,7 @@ function RemoveBgTool({
 
   const handleCancel = () => {
     generationRef.current++;
+    processingAbortRef.current?.abort();
     onCancel();
   };
 

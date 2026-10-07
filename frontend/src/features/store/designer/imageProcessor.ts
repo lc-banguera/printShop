@@ -1,15 +1,15 @@
 /**
  * imageProcessor.ts
- * Real pixel-level image processing engine for PrintShop Designer.
- * All operations work on HTMLCanvasElement/OffscreenCanvas and return
- * a data URL (PNG) so the result can be assigned to processedSrc on a layer.
+ * Canvas utilities and adapters used by PrintShop Designer.
+ * Shared raster operations run through the portable design core Worker.
  *
  * Design goals:
  *  - Keep original image untouched (original → process → processedSrc)
  *  - All operations are reversible (caller holds src)
- *  - No external dependencies – browser Canvas API only
- *  - Architecture ready for WebWorker / WASM replacement of heavy ops
+ *  - Preserve the existing data URL contract used by processedSrc
  */
+import { processRasterImageUrl } from "@/core/design/processing";
+import type { CropRect } from "./types";
 
 /** Progress callback (0-1) */
 export type ProgressCallback = (p: number) => void;
@@ -67,7 +67,19 @@ function toPngDataUrl(canvas: HTMLCanvasElement): string {
   return canvas.toDataURL("image/png");
 }
 
-import { CropRect } from "./types";
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Could not encode the processed image."));
+    }, { once: true });
+    reader.addEventListener("error", () => {
+      reject(reader.error ?? new Error("Could not encode the processed image."));
+    }, { once: true });
+    reader.readAsDataURL(blob);
+  });
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Real Crop Operation
@@ -471,7 +483,7 @@ export async function applyHalftone(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Background removal — local pixel-based
+// Background removal — portable engine adapter
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface RemoveBgOptions {
@@ -491,237 +503,32 @@ export interface RemoveBgOptions {
   shift?: number;
 }
 
-/**
- * Local background removal using flood-fill from the edges.
- * Suitable for images with uniform or near-uniform backgrounds.
- * Sets removed pixels to fully transparent.
- *
- * Architecture is designed to be replaced by a remote ML model later
- * (e.g., rembg or Segment Anything) by swapping this function's body.
- */
-/**
- * Improved background removal using flood-fill from edges.
- * Improvements over v1:
- * - Multi-point median background color sampling (more robust than average)
- * - Distance metric uses weighted Euclidean in perceptual space
- * - Gradient-aware feathering (box blur applied to 0-1 soft mask)
- * - Softer decontamination only at true edge pixels (avoids destroying interior)
- * - Preserves existing alpha transparency from source
- */
+/** Runs the engine's local flood-fill remover through the shared Worker. */
 export async function removeBackgroundLocal(
   src: string,
   opts: RemoveBgOptions,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  signal?: AbortSignal,
 ): Promise<string> {
-  const img = await loadImage(src);
-  const [canvas, ctx] = imageToCanvas(img);
-  const { width, height } = canvas;
-  const imageData = ctx.getImageData(0, 0, width, height);
-  const d = imageData.data;
-
-  onProgress?.(0.05);
-
-  // ── Step 1: Determine background color using multi-point sampling ────────
-  let [bgR, bgG, bgB]: [number, number, number] = opts.sampleColor ?? [255, 255, 255];
-
-  if (!opts.sampleColor) {
-    // Collect all edge pixel colors into buckets (quantize to 8-level per channel)
-    const buckets = new Map<string, { r: number; g: number; b: number; count: number }>();
-    const sampleEdge = (px: number, py: number) => {
-      const i = (py * width + px) * 4;
-      const a = d[i + 3];
-      if (a < 128) return; // skip already-transparent edge pixels
-      const r = d[i], g = d[i + 1], b = d[i + 2];
-      // Quantize to reduce noise — 32 levels per channel
-      const key = `${Math.round(r / 32)},${Math.round(g / 32)},${Math.round(b / 32)}`;
-      const existing = buckets.get(key);
-      if (existing) { existing.r += r; existing.g += g; existing.b += b; existing.count++; }
-      else buckets.set(key, { r, g, b, count: 1 });
-    };
-    // Sample multiple rows/columns from each edge (more robust than just border)
-    const edgeDepth = Math.min(3, Math.floor(Math.min(width, height) * 0.05));
-    for (let e = 0; e < edgeDepth; e++) {
-      for (let x = 0; x < width; x++) { sampleEdge(x, e); sampleEdge(x, height - 1 - e); }
-      for (let y = 0; y < height; y++) { sampleEdge(e, y); sampleEdge(width - 1 - e, y); }
-    }
-
-    // Find the dominant color bucket
-    let maxCount = 0;
-    for (const [, bucket] of buckets) {
-      if (bucket.count > maxCount) {
-        maxCount = bucket.count;
-        bgR = bucket.r / bucket.count;
-        bgG = bucket.g / bucket.count;
-        bgB = bucket.b / bucket.count;
-      }
-    }
-  }
-
-  onProgress?.(0.1);
-
-  // ── Step 2: BFS flood-fill from all edges ────────────────────────────────
-  const tol = Math.max(1, opts.tolerance);
-  // Weighted perceptual distance (human eye is more sensitive to green)
-  const isBg = (idx: number): boolean => {
-    const dr = d[idx]     - bgR;
-    const dg = d[idx + 1] - bgG;
-    const db = d[idx + 2] - bgB;
-    // Perceptual weights: R=0.30, G=0.59, B=0.11
-    const dist = Math.sqrt(0.30 * dr * dr + 0.59 * dg * dg + 0.11 * db * db);
-    return dist <= tol;
-  };
-
-  // mask: 0 = background, 255 = foreground
-  const mask = new Uint8Array(width * height).fill(255);
-
-  const queue: number[] = [];
-  const enqueue = (x: number, y: number) => {
-    if (x < 0 || y < 0 || x >= width || y >= height) return;
-    const idx = y * width + x;
-    if (mask[idx] === 0) return;
-    if (isBg(idx * 4)) {
-      mask[idx] = 0;
-      queue.push(x, y);
-    }
-  };
-
-  // Seed from all 4 edges
-  for (let x = 0; x < width; x++) { enqueue(x, 0); enqueue(x, height - 1); }
-  for (let y = 0; y < height; y++) { enqueue(0, y); enqueue(width - 1, y); }
-
-  let processed = 0;
-  while (queue.length > 0) {
-    const y = queue.pop()!;
-    const x = queue.pop()!;
-    enqueue(x + 1, y); enqueue(x - 1, y);
-    enqueue(x, y + 1); enqueue(x, y - 1);
-    processed++;
-    if (processed % 80000 === 0) {
-      onProgress?.(0.1 + 0.65 * Math.min(1, processed / (width * height)));
-      await new Promise(r => setTimeout(r, 0));
-    }
-  }
-
-  onProgress?.(0.75);
-
-  // ── Step 2.5: Morphological shift (expand/contract foreground) ───────────
-  let finalMask = mask;
-  const shift = Math.round(opts.shift || 0);
-  if (shift !== 0) {
-    const shiftedMask = new Uint8Array(width * height);
-    const r = Math.abs(shift);
-    for (let y = 0; y < height; y++) {
-      for (let x = 0; x < width; x++) {
-        const val = mask[y * width + x];
-        let localVal = val;
-        for (let dy = -r; dy <= r && Math.abs(localVal - (shift > 0 ? 255 : 0)) > 0; dy++) {
-          for (let dx = -r; dx <= r; dx++) {
-            if (dx * dx + dy * dy <= r * r) {
-              const nx = x + dx, ny = y + dy;
-              if (nx >= 0 && ny >= 0 && nx < width && ny < height) {
-                const m = mask[ny * width + nx];
-                if (shift > 0 && m > localVal) localVal = m;
-                if (shift < 0 && m < localVal) localVal = m;
-              }
-            }
-          }
-        }
-        shiftedMask[y * width + x] = localVal;
-      }
-    }
-    finalMask = shiftedMask;
-  }
-
-  // ── Step 3: Edge-aware Gaussian-approximation feathering ─────────────────
-  const feather = Math.max(0, Math.round(opts.feather));
-  if (feather > 0) {
-    // Two-pass box blur approximation (faster than full Gaussian)
-    const tmp = new Float32Array(width * height);
-    const out = new Uint8Array(width * height);
-    const r = feather;
-    // Horizontal pass
-    for (let y = 0; y < height; y++) {
-      let sum = 0, cnt = 0;
-      // Init window
-      for (let dx = 0; dx <= r; dx++) {
-        if (dx < width) { sum += finalMask[y * width + dx]; cnt++; }
-      }
-      for (let x = 0; x < width; x++) {
-        tmp[y * width + x] = sum / cnt;
-        const addX = x + r + 1;
-        const removeX = x - r;
-        if (addX < width) { sum += finalMask[y * width + addX]; cnt++; }
-        if (removeX >= 0) { sum -= finalMask[y * width + removeX]; cnt--; }
-      }
-    }
-    // Vertical pass
-    for (let x = 0; x < width; x++) {
-      let sum = 0, cnt = 0;
-      for (let dy = 0; dy <= r; dy++) {
-        if (dy < height) { sum += tmp[dy * width + x]; cnt++; }
-      }
-      for (let y = 0; y < height; y++) {
-        out[y * width + x] = Math.round(sum / cnt);
-        const addY = y + r + 1;
-        const removeY = y - r;
-        if (addY < height) { sum += tmp[addY * width + x]; cnt++; }
-        if (removeY >= 0) { sum -= tmp[removeY * width + x]; cnt--; }
-      }
-    }
-    finalMask = out;
-  }
-
-  onProgress?.(0.90);
-
-  // ── Step 4: Apply mask to alpha, conservative decontamination ────────────
-  for (let i = 0; i < width * height; i++) {
-    const maskVal = finalMask[i];
-    const pixIdx = i * 4;
-    const origAlpha = d[pixIdx + 3];
-
-    // Final alpha = min(original alpha, mask value)
-    const finalAlpha = Math.min(origAlpha, maskVal);
-    d[pixIdx + 3] = finalAlpha;
-
-    // Conservative decontamination: only on genuine semi-transparent edge pixels
-    // (mask is between 10 and 245, original was opaque, and pixel is near background)
-    if (maskVal > 10 && maskVal < 245 && origAlpha > 200) {
-      const alphaF = maskVal / 255;
-      const invA = 1 - alphaF;
-      // Un-premultiply background contribution from RGB channels
-      // Only decontaminate if the pixel color is actually close-ish to background
-      const dr = d[pixIdx]     - bgR;
-      const dg = d[pixIdx + 1] - bgG;
-      const db = d[pixIdx + 2] - bgB;
-      const dist = Math.sqrt(0.30 * dr * dr + 0.59 * dg * dg + 0.11 * db * db);
-      // Only decontaminate if within 2x the tolerance from bg color
-      if (dist < tol * 2) {
-        const newR = (d[pixIdx]     - bgR * invA) / Math.max(0.01, alphaF);
-        const newG = (d[pixIdx + 1] - bgG * invA) / Math.max(0.01, alphaF);
-        const newB = (d[pixIdx + 2] - bgB * invA) / Math.max(0.01, alphaF);
-        d[pixIdx]     = Math.max(0, Math.min(255, newR));
-        d[pixIdx + 1] = Math.max(0, Math.min(255, newG));
-        d[pixIdx + 2] = Math.max(0, Math.min(255, newB));
-      }
-    }
-  }
-
-  ctx.putImageData(imageData, 0, 0);
+  onProgress?.(0);
+  const result = await processRasterImageUrl(
+    src,
+    { kind: "remove-background", options: opts },
+    signal,
+  );
+  const dataUrl = await blobToDataUrl(result.blob);
   onProgress?.(1);
-  return toPngDataUrl(canvas);
+  return dataUrl;
 }
 
-/**
- * Main entry point for background removal.
- * Currently uses local processing, but structured to support AI later.
- */
+/** Main entry point for local background removal. */
 export async function removeBackground(
   src: string,
   opts: RemoveBgOptions,
-  onProgress?: ProgressCallback
+  onProgress?: ProgressCallback,
+  signal?: AbortSignal,
 ): Promise<string> {
-  // TODO: Add removeBackgroundAI route here when external ML API is ready
-  return removeBackgroundLocal(src, opts, onProgress);
+  return removeBackgroundLocal(src, opts, onProgress, signal);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

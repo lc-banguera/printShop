@@ -314,3 +314,11 @@
 - Runtime smoke en `/designer/new`: se abrió Camisetas, se seleccionó un diseño, se llevó Brillo a 200% y se verificó que el decal procesado se renderizara en el canvas 3D.
 - Validación: TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; ESLint focalizado en los cinco archivos de procesamiento/render **PASS**; `npm --prefix engine test` **PASS** (12/12); `git diff --check` **PASS**.
 - Alcance: este sub-bloque no completa BLOCK 12; Designer 2 sigue `BLOCKED (PARTIAL)` hasta resolver Tool Registry e integración restante sin alterar la semántica de los tabs.
+
+## Integración incremental — Remove Background de ImageTools en Worker
+
+- `DONE`: el preview de Remove Background en `ImageTools` ejecuta `removeBackgroundLocal` canónico del engine mediante el Worker y conserva tolerancia, suavizado, formato de preview, máscara manual de refinamiento y el commit existente de una entrada al historial.
+- `DONE`: los cambios de parámetros, cancelación y desmontaje abortan el Worker activo; la salida sigue usando el contrato `data:` URL de `processedSrc`. Se eliminó el algoritmo Canvas duplicado del adapter legacy.
+- Runtime smoke en `/store/designer`: abrir un diseño, generar preview sin fondo y Aplicar produjo `Op. activa: remove-background · Original conservado`.
+- Validación: TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `npm --prefix engine test` **PASS** (12/12); `git diff --check` **PASS**. ESLint focalizado sigue reportando problemas preexistentes fuera de este cambio (`FilterValues` y `previewCanvasRef` sin uso en `ImageTools.tsx`, y `any` en la exportación legacy de `imageProcessor.ts`).
+- Alcance: esta integración no añade proveedor ML; la eliminación local permanece diferenciada de background removal externo.
