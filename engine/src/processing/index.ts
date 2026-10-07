@@ -46,3 +46,19 @@ export {
 export type { AlphaSummary, ImageBuffer } from './image-buffer';
 export { applyImageEffectStack, composeEffectStacks } from './image-effects';
 export type { RasterEffectKind } from './image-effects';
+export { removeBackgroundLocal } from './background-removal';
+export type { RemoveBackgroundOptions, RemoveBackgroundResult } from './background-removal';
+export { applyHalftone } from './halftone';
+export type { HalftoneOptions } from './halftone';
+export { cleanupSemitransparency } from './semitransparency';
+export type {
+  SemitransparencyCleanupOptions,
+  SemitransparencyCleanupResult,
+  SemitransparencyCleanupStrategy,
+} from './semitransparency';
+export { analyzeColors } from './color-analysis';
+export type { ColorAnalysisOptions, ColorAnalysisResult } from './color-analysis';
+export { recolorImage } from './recolor';
+export type { RecolorOptions, RecolorResult } from './recolor';
+export { upscaleImage } from './upscaling';
+export type { UpscalingProcessor, UpscalingResult } from './upscaling';
