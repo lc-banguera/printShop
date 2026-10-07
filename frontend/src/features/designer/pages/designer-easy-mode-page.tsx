@@ -1541,15 +1541,11 @@ export function DesignerEasyModePage() {
 
   const handleSemitransparencyToggle = async (enabled: boolean) => {
     if (!enabled) {
+      if (!removeSemitransparencies) return;
+
       const previous = semitransparencyResultRef.current;
+      recordImageChange();
       if (previous && processedImageUrl === previous.resultUrl) {
-        const currentState = captureImageSnapshot();
-        setImageHistory((history) => ({
-          undo: history.undo.slice(0, -1),
-          redo: [...history.redo, currentState],
-        }));
-        semitransparencyResultRef.current = null;
-        setRemoveSemitransparencies(false);
         replaceProcessedImage(
           previous.previousUrl === activeUploadedAsset?.image
             ? null
@@ -1557,10 +1553,9 @@ export function DesignerEasyModePage() {
         );
         setProcessedDimensions(previous.previousDimensions);
         setShowProcessedImage(true);
-      } else {
-        semitransparencyResultRef.current = null;
-        setRemoveSemitransparencies(false);
       }
+      semitransparencyResultRef.current = null;
+      setRemoveSemitransparencies(false);
       return;
     }
 

@@ -21,7 +21,7 @@ El modal "Nuevo lienzo" actualmente solo tiene como punto de montaje verificado 
 | Selección de imagen desde el botón de upload | `IMPLEMENTED` |
 | Técnica DTF | `PARTIAL`; la opción visible puede seleccionarse, pero no aplica transformaciones de perfil |
 | Eliminar fondo | `IMPLEMENTED` localmente mediante el Worker compartido; el resultado es un asset separado y el original permanece intacto. No equivale a un proveedor externo de IA |
-| Eliminar semitransparencias | `IMPLEMENTED` mediante el Worker; el toggle modifica el asset procesado y puede deshacerse/rehacerse |
+| Eliminar semitransparencias | `IMPLEMENTED` mediante el Worker; activar y desactivar el cleanup son transiciones de historial reversibles que conservan transforms posteriores |
 | Canvas físico | `IMPLEMENTED`; tamaño, DPI y fondo controlan la presentación y el PNG rasterizado |
 | Zoom, pan y centrar lienzo | `IMPLEMENTED` como transformaciones del viewport; no cambian la escala de impresión ni el raster exportado |
 | Undo / Redo | `PARTIAL`; snapshots de imagen, dimensiones de procesamiento, semitransparencia y transformaciones; no es historial de documento multicapa |
