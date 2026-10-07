@@ -34,11 +34,30 @@ export type RasterExportResult =
 
 const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
+export interface PngByteRange {
+  start: number;
+  end: number;
+}
+
+export interface PngDpiMetadataPlan {
+  sourceRanges: readonly PngByteRange[];
+  resolutionChunk: Uint8Array;
+}
+
 function writeUint32(target: Uint8Array, offset: number, value: number): void {
   target[offset] = (value >>> 24) & 255;
   target[offset + 1] = (value >>> 16) & 255;
   target[offset + 2] = (value >>> 8) & 255;
   target[offset + 3] = value & 255;
+}
+
+function readUint32(source: Uint8Array, offset: number): number {
+  return (
+    source[offset] * 0x1000000 +
+    (source[offset + 1] << 16) +
+    (source[offset + 2] << 8) +
+    source[offset + 3]
+  );
 }
 
 function concat(parts: readonly Uint8Array[]): Uint8Array {
@@ -164,6 +183,84 @@ function encodePng(image: ImageBuffer, dpi?: number, metadata: Readonly<Record<s
     chunks.push(pngChunk('tEXt', concat([ascii(key), new Uint8Array([0]), ascii(value)])));
   }
   chunks.push(pngChunk('IDAT', zlibStore(scanlines)), pngChunk('IEND', new Uint8Array()));
+  return concat(chunks);
+}
+
+export function createPngDpiMetadataPlan(png: Uint8Array, dpi: number): PngDpiMetadataPlan {
+  if (!Number.isFinite(dpi) || dpi <= 0) {
+    throw new RangeError('Export DPI must be a positive finite number.');
+  }
+  if (png.length < PNG_SIGNATURE.length + 25 ||
+      !PNG_SIGNATURE.every((value, index) => png[index] === value)) {
+    throw new TypeError('PNG data has an invalid signature or is truncated.');
+  }
+
+  const pixelsPerMeter = Math.round(dpi / 0.0254);
+  if (pixelsPerMeter <= 0 || pixelsPerMeter > 0xffffffff) {
+    throw new RangeError('Export DPI exceeds the PNG pHYs field range.');
+  }
+
+  const physical = new Uint8Array(9);
+  writeUint32(physical, 0, pixelsPerMeter);
+  writeUint32(physical, 4, pixelsPerMeter);
+  physical[8] = 1;
+  const resolutionChunk = pngChunk('pHYs', physical);
+  const sourceRanges: PngByteRange[] = [];
+  let offset = PNG_SIGNATURE.length;
+  let rangeStart = 0;
+  let hasHeader = false;
+  let hasEnd = false;
+
+  while (offset < png.length) {
+    if (offset + 12 > png.length) {
+      throw new TypeError('PNG data contains a truncated chunk header.');
+    }
+    const length = readUint32(png, offset);
+    const chunkEnd = offset + length + 12;
+    if (chunkEnd > png.length) {
+      throw new TypeError('PNG data contains a truncated chunk.');
+    }
+    const type = String.fromCharCode(...png.subarray(offset + 4, offset + 8));
+
+    if (!hasHeader) {
+      if (type !== 'IHDR' || length !== 13) {
+        throw new TypeError('PNG data must start with a valid IHDR chunk.');
+      }
+      hasHeader = true;
+      sourceRanges.push({ start: rangeStart, end: chunkEnd });
+      rangeStart = chunkEnd;
+    } else if (type === 'IHDR') {
+      throw new TypeError('PNG data contains more than one IHDR chunk.');
+    } else if (type === 'pHYs') {
+      if (rangeStart < offset) sourceRanges.push({ start: rangeStart, end: offset });
+      rangeStart = chunkEnd;
+    }
+
+    offset = chunkEnd;
+    if (type === 'IEND') {
+      if (length !== 0 || offset !== png.length) {
+        throw new TypeError('PNG data contains an invalid IEND chunk.');
+      }
+      hasEnd = true;
+      break;
+    }
+  }
+
+  if (!hasHeader || !hasEnd) {
+    throw new TypeError('PNG data is missing its IHDR or IEND chunk.');
+  }
+
+  if (rangeStart < png.length) sourceRanges.push({ start: rangeStart, end: png.length });
+  return { sourceRanges, resolutionChunk };
+}
+
+export function setPngDpiMetadata(png: Uint8Array, dpi: number): Uint8Array {
+  const plan = createPngDpiMetadataPlan(png, dpi);
+  const chunks: Uint8Array[] = [];
+  for (const [index, range] of plan.sourceRanges.entries()) {
+    chunks.push(png.subarray(range.start, range.end));
+    if (index === 0) chunks.push(plan.resolutionChunk);
+  }
   return concat(chunks);
 }
 

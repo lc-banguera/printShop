@@ -49,6 +49,7 @@ import {
   createArtworkTransformMatrix,
   type ArtworkTransform,
 } from "../../../../../engine/src/transform/artwork-transform";
+import { createPngDpiMetadataPlan } from "../../../../../engine/src/processing/export";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -1084,7 +1085,19 @@ export function DesignerEasyModePage() {
           "image/png",
         );
       });
-      const downloadUrl = URL.createObjectURL(blob);
+      const pngBytes = new Uint8Array(await blob.arrayBuffer());
+      const metadataPlan = createPngDpiMetadataPlan(pngBytes, canvasSettings.dpi);
+      const downloadParts: BlobPart[] = [];
+      for (const [index, range] of metadataPlan.sourceRanges.entries()) {
+        downloadParts.push(blob.slice(range.start, range.end));
+        if (index === 0) {
+          const metadataBuffer = new ArrayBuffer(metadataPlan.resolutionChunk.byteLength);
+          new Uint8Array(metadataBuffer).set(metadataPlan.resolutionChunk);
+          downloadParts.push(metadataBuffer);
+        }
+      }
+      const downloadBlob = new Blob(downloadParts, { type: "image/png" });
+      const downloadUrl = URL.createObjectURL(downloadBlob);
       const anchor = document.createElement("a");
       anchor.href = downloadUrl;
       anchor.download = `printshop-${rasterWidth}x${rasterHeight}.png`;

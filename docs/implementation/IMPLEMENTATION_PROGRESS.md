@@ -394,11 +394,12 @@
 - Tests cubren transparencia parcial, offsets/clipping, z-order, visibility, opacity, alpha, X/Y flip, rotación + flip, modos multiply/screen e inmutabilidad.
 - `DONE`: `InteractiveCanvas` aplica document rotation y flip X/Y a todas las capas usando `createCenteredTransform`, igual que export; cada layer usa la misma convención para su transform local. Zoom/pan continúan siendo solo viewport.
 - `DONE`: tests comparan orientaciones raster de flip X, flip Y, flip X+rotación y flip Y+rotación; además verifican que preview/export a escalas distintas mantengan coordenadas normalizadas equivalentes.
-- `PARTIAL`: la UI D3 Easy cargó en navegador, pero no hay un artwork de prueba en el estado local para verificar visualmente una sesión transformada; no se afirma paridad visual de ese flujo.
+- `PARTIAL`: browser smoke cargó un artwork local y ejecutó Descargar PNG; no se afirma paridad visual transformada específica de Easy.
 
 ## Designer 3 Easy — PNG, viewport y transformaciones 2D
 
 - `DONE`: Descargar PNG compone el fondo seleccionado y la imagen actualmente visible en el lienzo usando `widthCm`, `heightCm` y DPI; conserva alpha cuando el fondo es transparente y contiene la imagen proporcionalmente como el preview.
+- `DONE`: el pipeline usa `createPngDpiMetadataPlan` del engine para insertar/reemplazar un único chunk PNG `pHYs`; la descarga reusa slices del Blob original y solo copia el pequeño chunk de resolución, evitando duplicar el PNG completo.
 - `DONE`: el export valida dimensiones y limita la rasterización a 40 MP/16.000 px por lado para evitar asignaciones descontroladas. Errores de carga/canvas/encoder se notifican explícitamente; el asset original no se modifica.
 - `NOT_CONFIGURED`: PDF permanece disabled con explicación visible porque no hay encoder PDF integrado; no se simula salida PDF.
 - `DONE`: Acercar/Alejar aplican zoom propio al workspace sin modificar escala raster ni dimensiones físicas; centrar/ajustar restablece el encuadre base.
@@ -411,4 +412,4 @@
 - `DONE`: smoke en navegador cargó un artwork local, confirmó el zoom y exportó PNG; el feedback reportó 4134 × 5906 px a 300 DPI.
 - `PARTIAL`: la acción DUPLICAR se deshabilitó explícitamente porque antes solo alteraba el historial sin crear una capa visible; la duplicación real requiere soporte multicapa.
 - `PARTIAL`: Easy sigue representando una única imagen activa; no tiene documento multicapa ni composición de layers.
-- `VALIDATION`: `npm test --prefix engine` PASS (45/45); TypeScript frontend PASS con `--ignoreDeprecations 5.0` porque el `tsconfig.json` preexistente exige 6.0 mientras el paquete instalado es 5.9.3. Vite production build PASS. `npm run build --prefix frontend` aún falla antes del typecheck por esa incompatibilidad preexistente.
+- `VALIDATION`: `npm test --prefix engine` PASS (46/46), incluida la inserción/reemplazo de metadata `pHYs`; TypeScript frontend PASS con `--ignoreDeprecations 5.0` porque el `tsconfig.json` preexistente exige 6.0 mientras el paquete instalado es 5.9.3. Vite production build PASS. `npm run build --prefix frontend` aún falla antes del typecheck por esa incompatibilidad preexistente.

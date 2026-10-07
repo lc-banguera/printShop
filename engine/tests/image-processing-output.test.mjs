@@ -30,6 +30,52 @@ test('PNG export retains RGBA pixels, dimensions, DPI and metadata', () => {
   assert.deepEqual([...raw], [0, 12, 34, 56, 78]);
 });
 
+test('PNG DPI metadata updates or inserts one valid pHYs chunk', () => {
+  const image = engine.createImageBuffer(1, 1, new Uint8Array([12, 34, 56, 78]));
+  const original = engine.exportRaster(image, { format: 'png', dpi: 96 });
+  const updated = engine.setPngDpiMetadata(original.bytes, 300);
+  const physicalChunks = [];
+  let offset = 8;
+
+  while (offset < updated.length) {
+    const length = new DataView(
+      updated.buffer,
+      updated.byteOffset + offset,
+      4,
+    ).getUint32(0);
+    const type = String.fromCharCode(...updated.slice(offset + 4, offset + 8));
+    if (type === 'pHYs') {
+      physicalChunks.push(updated.slice(offset + 8, offset + 8 + length));
+    }
+    offset += length + 12;
+    if (type === 'IEND') break;
+  }
+
+  assert.equal(physicalChunks.length, 1);
+  const resolution = new DataView(
+    physicalChunks[0].buffer,
+    physicalChunks[0].byteOffset,
+    physicalChunks[0].byteLength,
+  );
+  assert.equal(resolution.getUint32(0), 11811);
+  assert.equal(resolution.getUint32(4), 11811);
+  assert.equal(resolution.getUint8(8), 1);
+  const withoutResolution = engine.exportRaster(image, { format: 'png' });
+  const inserted = engine.setPngDpiMetadata(withoutResolution.bytes, 300);
+  let insertedPhysicalChunks = 0;
+  offset = 8;
+  while (offset < inserted.length) {
+    const length = new DataView(inserted.buffer, inserted.byteOffset + offset, 4).getUint32(0);
+    const type = String.fromCharCode(...inserted.slice(offset + 4, offset + 8));
+    if (type === 'pHYs') insertedPhysicalChunks += 1;
+    offset += length + 12;
+    if (type === 'IEND') break;
+  }
+  assert.equal(insertedPhysicalChunks, 1);
+  assert.throws(() => engine.setPngDpiMetadata(original.bytes, 0), { name: 'RangeError' });
+  assert.throws(() => engine.setPngDpiMetadata(new Uint8Array([1, 2, 3]), 300), { name: 'TypeError' });
+});
+
 test('JPEG export flattens alpha through a configured encoder and reports missing encoders', () => {
   const image = engine.createImageBuffer(1, 1, new Uint8Array([12, 34, 56, 78]));
   assert.deepEqual(engine.exportRaster(image, { format: 'jpeg' }), {

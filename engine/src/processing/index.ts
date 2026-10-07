@@ -98,9 +98,15 @@ export type {
   RasterLayerCompositionOptions,
   RasterLayerInput,
 } from './raster-layer-composition';
-export { exportRaster } from './export';
+export {
+  createPngDpiMetadataPlan,
+  exportRaster,
+  setPngDpiMetadata,
+} from './export';
 export type {
   JpegEncoder,
+  PngByteRange,
+  PngDpiMetadataPlan,
   RasterExportFormat,
   RasterExportOptions,
   RasterExportResult,
