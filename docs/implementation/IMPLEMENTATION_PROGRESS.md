@@ -329,3 +329,12 @@
 - `DONE`: las operaciones rápidas y previews cancelan el Worker anterior al reemplazarse o desmontarse; los errores del procesamiento se exponen en el estado existente de la herramienta.
 - Runtime smoke en `/store/designer`: grayscale e invert produjeron sus operaciones activas; brillo a 140% generó preview y Aplicar produjo `Op. activa: adjustments · Original conservado`.
 - Validación: TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `npm --prefix engine test` **PASS** (12/12); `git diff --check` **PASS**. ESLint focalizado **PASS sin errores**; queda un warning de hooks en el cleanup de preview de Halftone.
+
+## Image Engine — análisis y refinamiento inicial de fondo
+
+- `DONE`: el removedor conserva el muestreo explícito y 4-conectividad por defecto, pero ahora puede clasificar desde hasta 16 muestras distribuidas por el perímetro (configurables hasta 64), mejorando fondos con variaciones cromáticas.
+- `DONE`: se exponen conectividad 4/8 y `refineForegroundMask` con opening/closing, limpieza opcional de islas pequeñas y relleno de agujeros opt-in; las operaciones trabajan sobre alpha/mask y no alteran el original.
+- `DONE`: feather ahora usa distancia de borde con suavizado localizado, no blur global; la descontaminación de color elige la muestra de fondo más cercana en la transición.
+- Tests sintéticos cubren fondo multicolor desconectado, foreground encerrado, conectividad, preservación de agujeros por defecto, relleno explícito y feather limitado al borde.
+- Validación: `npm --prefix engine test` **PASS** (17/17); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**. Medición local orientativa: 512×512 RGBA sintético, 171 ms en Node; no es un benchmark de navegador ni fija un objetivo de rendimiento.
+- Límite explícito: esta mejora no sustituye segmentación semántica/ML y no valida fotografía, cabello, hamburguesas ni imágenes de Dragon Ball reales; el workspace no aportó esos fixtures.

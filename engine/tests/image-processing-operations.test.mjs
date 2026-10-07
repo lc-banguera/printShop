@@ -17,6 +17,95 @@ test('background removal flood-fills edge-connected background without mutating 
   assert.deepEqual([...source.data], pixels);
 });
 
+test('background removal learns multiple edge colors while preserving enclosed foreground', () => {
+  const width = 9;
+  const height = 5;
+  const pixels = [];
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const color = x < 4 ? [12, 24, 36] : [232, 218, 198];
+      const foreground = x === 4 && y > 0 && y < height - 1;
+      pixels.push(...(foreground ? [32, 180, 80] : color), 255);
+    }
+  }
+  const source = buffer(width, height, pixels);
+  const result = engine.removeBackgroundLocal(source, { tolerance: 8, feather: 0 });
+
+  assert.equal(result.image.data[(2 * width + 1) * 4 + 3], 0);
+  assert.equal(result.image.data[(2 * width + 7) * 4 + 3], 0);
+  assert.equal(result.image.data[(2 * width + 4) * 4 + 3], 255);
+  assert.deepEqual([...source.data], pixels);
+});
+
+test('background removal exposes connectivity without changing the default 4-connectivity', () => {
+  const source = buffer(3, 3, [
+    0, 0, 0, 255, 30, 40, 50, 255, 30, 40, 50, 255,
+    30, 40, 50, 255, 0, 0, 0, 255, 30, 40, 50, 255,
+    30, 40, 50, 255, 30, 40, 50, 255, 30, 40, 50, 255,
+  ]);
+  const fourConnected = engine.removeBackgroundLocal(source, {
+    tolerance: 1,
+    feather: 0,
+    sampleColor: [0, 0, 0],
+  });
+  const eightConnected = engine.removeBackgroundLocal(source, {
+    tolerance: 1,
+    feather: 0,
+    connectivity: 8,
+    sampleColor: [0, 0, 0],
+  });
+  assert.equal(fourConnected.image.data[(1 * 3 + 1) * 4 + 3], 255);
+  assert.equal(eightConnected.image.data[(1 * 3 + 1) * 4 + 3], 0);
+});
+
+test('background feather is limited to the mask edge and preserves opaque interior', () => {
+  const source = buffer(5, 3, Array.from({ length: 15 }, (_, pixel) =>
+    pixel % 5 < 2 ? [255, 255, 255, 255] : [20, 40, 80, 255],
+  ).flat());
+  const result = engine.removeBackgroundLocal(source, {
+    tolerance: 1,
+    feather: 1,
+    sampleColor: [255, 255, 255],
+  });
+
+  assert.ok(result.foregroundMask.values[2] > 0 && result.foregroundMask.values[2] < 255);
+  assert.equal(result.foregroundMask.values[3], 255);
+  assert.equal(result.image.data[0 * 4 + 3], 0);
+});
+
+test('mask refinement supports morphology and only fills holes when explicitly requested', () => {
+  const values = new Uint8Array([
+    0, 0, 0, 0, 0,
+    0, 255, 255, 255, 0,
+    0, 255, 0, 255, 0,
+    0, 255, 255, 255, 0,
+    0, 0, 0, 0, 0,
+  ]);
+  const sourceMask = engine.createAlphaData(5, 5, values);
+  const preserved = engine.refineForegroundMask(sourceMask, { operation: 'none' });
+  const filled = engine.refineForegroundMask(sourceMask, { fillHoles: true });
+  const opened = engine.refineForegroundMask(sourceMask, { operation: 'opening', radius: 1 });
+
+  assert.equal(preserved.values[12], 0);
+  assert.equal(filled.values[12], 255);
+  assert.equal(opened.values[12], 0);
+  assert.equal(sourceMask.values[12], 0);
+});
+
+test('mask refinement removes small foreground islands without deleting a larger subject', () => {
+  const values = new Uint8Array(7 * 7);
+  for (let y = 1; y <= 5; y += 1) {
+    for (let x = 1; x <= 5; x += 1) values[y * 7 + x] = 255;
+  }
+  values[0] = 255;
+  const refined = engine.refineForegroundMask(engine.createAlphaData(7, 7, values), {
+    minimumForegroundRegionSize: 2,
+  });
+
+  assert.equal(refined.values[0], 0);
+  assert.equal(refined.values[24], 255);
+});
+
 test('halftone preserves source alpha input and output dimensions', () => {
   const pixels = Array(8 * 8).fill([0, 0, 0, 255]).flat();
   const source = buffer(8, 8, pixels);

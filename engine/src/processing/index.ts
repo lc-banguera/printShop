@@ -47,7 +47,16 @@ export type { AlphaSummary, ImageBuffer } from './image-buffer';
 export { applyImageEffectStack, composeEffectStacks } from './image-effects';
 export type { RasterEffectKind } from './image-effects';
 export { removeBackgroundLocal } from './background-removal';
-export type { RemoveBackgroundOptions, RemoveBackgroundResult } from './background-removal';
+export type {
+  RemoveBackgroundOptions,
+  RemoveBackgroundResult,
+} from './background-removal';
+export { refineForegroundMask } from './mask-refinement';
+export type {
+  MaskConnectivity,
+  MaskMorphologyOperation,
+  MaskRefinementOptions,
+} from './mask-refinement';
 export { applyHalftone } from './halftone';
 export type { HalftoneOptions } from './halftone';
 export { cleanupSemitransparency } from './semitransparency';
