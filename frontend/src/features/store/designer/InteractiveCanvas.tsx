@@ -5,7 +5,7 @@ import { DesignerLayer, FilterValues, Point } from "./types";
 import { getLayerDimensions } from "./coordinates";
 import { getHandlePositions } from "./hitTest";
 import { useCanvasInteraction } from "./useCanvasInteraction";
-import { createAffineTransform } from "../../../../../engine/src/transform/affine-transform";
+import { createCenteredTransform } from "../../../../../engine/src/transform/affine-transform";
 
 const DEFAULT_FILTERS: FilterValues = {
   brightness: 100,
@@ -110,6 +110,15 @@ export function InteractiveCanvas({
   // Document aspect-ratio style
   const aspectW = documentWidth || 3000;
   const aspectH = documentHeight || 3000;
+  const boardHeight = Math.round(baseSize * (aspectH / aspectW));
+  const documentTransform = createCenteredTransform(
+    { x: 0, y: 0, width: baseSize, height: boardHeight },
+    {
+      rotationDegrees: documentRotation,
+      scaleX: flipHorizontal ? -1 : 1,
+      scaleY: flipVertical ? -1 : 1,
+    }
+  );
 
   return (
     <div
@@ -125,10 +134,10 @@ export function InteractiveCanvas({
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
         style={{
-          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom / 100}) rotate(${documentRotation}deg)`,
-          transformOrigin: "center center",
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom / 100}) matrix(${documentTransform.a}, ${documentTransform.b}, ${documentTransform.c}, ${documentTransform.d}, ${documentTransform.e}, ${documentTransform.f})`,
+          transformOrigin: "top left",
           width: `${baseSize}px`,
-          height: `${Math.round(baseSize * (aspectH / aspectW))}px`,
+          height: `${boardHeight}px`,
         }}
         className="relative bg-white shadow-md transition-[transform] duration-75 ease-out select-none border border-[#E2E8F0]"
       >
@@ -186,15 +195,14 @@ export function InteractiveCanvas({
             const width = live ? live.width : dims.width;
             const height = live ? live.height : dims.height;
             const rotation = live ? live.rotation : (layer.rotation ?? 0);
-            const layerTransform = createAffineTransform({
+            const layerTransform = createCenteredTransform(
+              { x: 0, y: 0, width, height },
+              {
               rotationDegrees: rotation,
-              scaleX: layer.type === "image"
-                ? (flipHorizontal ? -1 : 1) * (layer.flipX ? -1 : 1)
-                : 1,
-              scaleY: layer.type === "image"
-                ? (flipVertical ? -1 : 1) * (layer.flipY ? -1 : 1)
-                : 1,
-            });
+              scaleX: layer.flipX ? -1 : 1,
+              scaleY: layer.flipY ? -1 : 1,
+              }
+            );
 
             // Center-origin positioning
             const leftOffset = baseSize / 2 + posX;
@@ -202,14 +210,14 @@ export function InteractiveCanvas({
 
             const layerStyle: React.CSSProperties = {
               position: "absolute",
-              left: `${leftOffset}px`,
-              top: `${topOffset}px`,
+              left: `${leftOffset - width / 2}px`,
+              top: `${topOffset - height / 2}px`,
               width: `${width}px`,
               height: `${height}px`,
               zIndex: layers.length - index,
               opacity: (layer.opacity ?? 100) / 100,
-              transform: `translate(-50%, -50%) matrix(${layerTransform.a}, ${layerTransform.b}, ${layerTransform.c}, ${layerTransform.d}, ${layerTransform.e}, ${layerTransform.f})`,
-              transformOrigin: "center center",
+              transform: `matrix(${layerTransform.a}, ${layerTransform.b}, ${layerTransform.c}, ${layerTransform.d}, ${layerTransform.e}, ${layerTransform.f})`,
+              transformOrigin: "top left",
             };
 
             const filters = { ...DEFAULT_FILTERS, ...layer.filters };

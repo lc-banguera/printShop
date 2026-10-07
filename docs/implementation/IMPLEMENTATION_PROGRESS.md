@@ -387,4 +387,6 @@
 - `DONE`: `compositeRasterLayers` recibe raster layers bottom-to-top, aplica affine transform, visibility, opacity y blend mode y genera dimensiones finales fijas; usa el compositor existente y no muta fuentes.
 - `DONE`: el export del Designer clásico rasteriza cada capa con su renderer actual y matrices del engine, luego compone el resultado RGBA a través de `compositeRasterLayers` antes de codificar el data URL.
 - Tests cubren transparencia parcial, offsets/clipping, z-order, visibility, opacity, alpha, X/Y flip, rotación + flip, modos multiply/screen e inmutabilidad.
-- `PARTIAL`: preview aún debe aplicar flip global con la misma matriz document transform del export; la llamada de export debe verificarse en runtime browser.
+- `DONE`: `InteractiveCanvas` aplica document rotation y flip X/Y a todas las capas usando `createCenteredTransform`, igual que export; cada layer usa la misma convención para su transform local. Zoom/pan continúan siendo solo viewport.
+- `DONE`: tests comparan orientaciones raster de flip X, flip Y, flip X+rotación y flip Y+rotación; además verifican que preview/export a escalas distintas mantengan coordenadas normalizadas equivalentes.
+- `PARTIAL`: la UI D3 Easy cargó en navegador, pero no hay un artwork de prueba en el estado local para verificar visualmente una sesión transformada; no se afirma paridad visual de ese flujo.

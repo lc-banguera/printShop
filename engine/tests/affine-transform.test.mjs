@@ -93,6 +93,32 @@ test('centered global flips and rotations match exact raster orientation', () =>
   ]);
 });
 
+test('preview-scale and export-scale document transforms have identical normalized geometry', () => {
+  const options = [
+    { scaleX: -1 },
+    { scaleY: -1 },
+    { rotationDegrees: 37, scaleX: -1 },
+    { rotationDegrees: 37, scaleY: -1 },
+  ];
+  const previewBounds = { x: 0, y: 0, width: 480, height: 320 };
+  const exportBounds = { x: 0, y: 0, width: 960, height: 640 };
+
+  for (const transformOptions of options) {
+    const preview = createCenteredTransform(previewBounds, transformOptions);
+    const exported = createCenteredTransform(exportBounds, transformOptions);
+    for (const key of ['a', 'b', 'c', 'd']) {
+      assert.ok(Math.abs(exported[key] - preview[key]) < 1e-10);
+    }
+    assert.ok(Math.abs(exported.e - preview.e * 2) < 1e-10);
+    assert.ok(Math.abs(exported.f - preview.f * 2) < 1e-10);
+
+    const previewPoint = transformPoint({ x: 127, y: 81 }, preview);
+    const exportPoint = transformPoint({ x: 254, y: 162 }, exported);
+    assert.ok(Math.abs(exportPoint.x - previewPoint.x * 2) < 1e-10);
+    assert.ok(Math.abs(exportPoint.y - previewPoint.y * 2) < 1e-10);
+  }
+});
+
 test('invalid or singular transforms fail explicitly', () => {
   assert.throws(
     () => createAffineTransform({ scaleX: Number.NaN }),
