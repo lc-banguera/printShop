@@ -89,6 +89,17 @@ interface ProcessedImageDimensions {
   height: number;
 }
 
+type ArtworkGestureMode = "scale" | "rotate";
+
+interface ArtworkGesture {
+  pointerId: number;
+  mode: ArtworkGestureMode;
+  startTransform: ArtworkTransform;
+  startDistance: number;
+  startAngle: number;
+  hasChanged: boolean;
+}
+
 const DEFAULT_ARTWORK_TRANSFORM: ArtworkTransform = {
   scale: 1,
   rotationDegrees: 0,
@@ -640,6 +651,9 @@ export function DesignerEasyModePage() {
   const [artworkTransform, setArtworkTransform] = useState<ArtworkTransform>(
     DEFAULT_ARTWORK_TRANSFORM,
   );
+  const [artworkDimensions, setArtworkDimensions] =
+    useState<ProcessedImageDimensions | null>(null);
+  const [isArtworkSelected, setIsArtworkSelected] = useState(true);
   const [isRemovingBg, setIsRemovingBg] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -651,6 +665,7 @@ export function DesignerEasyModePage() {
     startPanX: number;
     startPanY: number;
   } | null>(null);
+  const artworkGestureRef = useRef<ArtworkGesture | null>(null);
   const artworkDragRef = useRef<{
     pointerId: number;
     lastX: number;
@@ -959,6 +974,7 @@ export function DesignerEasyModePage() {
 
     event.preventDefault();
     event.stopPropagation();
+    setIsArtworkSelected(true);
     event.currentTarget.setPointerCapture(event.pointerId);
     artworkDragRef.current = {
       pointerId: event.pointerId,
@@ -999,6 +1015,76 @@ export function DesignerEasyModePage() {
     if (!drag || drag.pointerId !== event.pointerId) return;
 
     artworkDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleArtworkGesturePointerDown = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+    mode: ArtworkGestureMode,
+  ) => {
+    if (!selectedImage || !canvasViewport || isHandToolActive) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const canvas = event.currentTarget.closest<HTMLElement>("[data-artwork-canvas]");
+    if (!canvas) return;
+    const bounds = canvas.getBoundingClientRect();
+    const canvasX = (event.clientX - bounds.left) / canvasZoom;
+    const canvasY = (event.clientY - bounds.top) / canvasZoom;
+    const deltaX = canvasX - canvasViewport.widthPx / 2;
+    const deltaY = canvasY - canvasViewport.heightPx / 2;
+    setIsArtworkSelected(true);
+    artworkGestureRef.current = {
+      pointerId: event.pointerId,
+      mode,
+      startTransform: artworkTransform,
+      startDistance: Math.max(1, Math.hypot(deltaX, deltaY)),
+      startAngle: Math.atan2(deltaY, deltaX),
+      hasChanged: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleArtworkGesturePointerMove = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) => {
+    const gesture = artworkGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId || !canvasViewport) return;
+    const canvas = event.currentTarget.closest<HTMLElement>("[data-artwork-canvas]");
+    if (!canvas) return;
+    const bounds = canvas.getBoundingClientRect();
+    const canvasX = (event.clientX - bounds.left) / canvasZoom;
+    const canvasY = (event.clientY - bounds.top) / canvasZoom;
+    const deltaX = canvasX - canvasViewport.widthPx / 2;
+    const deltaY = canvasY - canvasViewport.heightPx / 2;
+    if (!gesture.hasChanged) {
+      recordImageChange();
+      gesture.hasChanged = true;
+    }
+
+    if (gesture.mode === "scale") {
+      const ratio = Math.hypot(deltaX, deltaY) / gesture.startDistance;
+      const scale = Math.min(4, Math.max(0.1, gesture.startTransform.scale * ratio));
+      setArtworkTransform({ ...gesture.startTransform, scale });
+      return;
+    }
+
+    const rawAngleDelta = Math.atan2(deltaY, deltaX) - gesture.startAngle;
+    const angleDelta = Math.atan2(
+      Math.sin(rawAngleDelta),
+      Math.cos(rawAngleDelta),
+    );
+    setArtworkTransform({
+      ...gesture.startTransform,
+      rotationDegrees: gesture.startTransform.rotationDegrees + angleDelta * (180 / Math.PI),
+    });
+  };
+
+  const finishArtworkGesture = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    const gesture = artworkGestureRef.current;
+    if (!gesture || gesture.pointerId !== event.pointerId) return;
+    artworkGestureRef.current = null;
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
@@ -1217,6 +1303,8 @@ export function DesignerEasyModePage() {
     setImageHistory({ undo: [], redo: [] });
     setRemoveSemitransparencies(false);
     setArtworkTransform(DEFAULT_ARTWORK_TRANSFORM);
+    setArtworkDimensions(null);
+    setIsArtworkSelected(true);
     semitransparencyResultRef.current = null;
   };
 
@@ -1525,33 +1613,6 @@ export function DesignerEasyModePage() {
     });
   };
 
-  const handleRotateArtwork = () => {
-    commitArtworkTransform({
-      ...artworkTransform,
-      rotationDegrees: (artworkTransform.rotationDegrees + 90) % 360,
-    });
-  };
-
-  const handleArtworkFlip = (axis: "x" | "y") => {
-    commitArtworkTransform({
-      ...artworkTransform,
-      flipX: axis === "x" ? !artworkTransform.flipX : artworkTransform.flipX,
-      flipY: axis === "y" ? !artworkTransform.flipY : artworkTransform.flipY,
-    });
-  };
-
-  const handleArtworkScale = (direction: 1 | -1) => {
-    const scale = Math.min(
-      4,
-      Math.max(0.1, Number((artworkTransform.scale + direction * 0.1).toFixed(2))),
-    );
-    commitArtworkTransform({ ...artworkTransform, scale });
-  };
-
-  const handleResetArtworkTransform = () => {
-    commitArtworkTransform({ ...DEFAULT_ARTWORK_TRANSFORM });
-  };
-
   const handleSemitransparencyToggle = async (enabled: boolean) => {
     if (!enabled) {
       if (!removeSemitransparencies) return;
@@ -1688,6 +1749,22 @@ export function DesignerEasyModePage() {
         artworkTransform,
       )
     : null;
+  const artworkBox = canvasViewport && artworkDimensions
+    ? (() => {
+        const availableWidth = Math.max(1, canvasViewport.widthPx - 2);
+        const availableHeight = Math.max(1, canvasViewport.heightPx - 2);
+        const fitScale = Math.min(
+          availableWidth / artworkDimensions.width,
+          availableHeight / artworkDimensions.height,
+        );
+        return {
+          width: artworkDimensions.width * fitScale,
+          height: artworkDimensions.height * fitScale,
+        };
+      })()
+    : canvasViewport
+      ? { width: canvasViewport.widthPx - 2, height: canvasViewport.heightPx - 2 }
+      : null;
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -2146,77 +2223,6 @@ export function DesignerEasyModePage() {
                 >
                   {isRemovingBg ? "ELIMINANDO FONDO…" : "ELIMINAR FONDO"}
                 </button>
-
-                <div className="mt-3">
-                  <div className="mb-2 flex items-center justify-between text-[11px] font-semibold text-[#475569]">
-                    <span>Transformación 2D</span>
-                    <span aria-live="polite">{Math.round(artworkTransform.scale * 100)}%</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      aria-label="Girar diseño 90 grados"
-                      title="Girar 90°"
-                      onClick={handleRotateArtwork}
-                      disabled={!selectedImage}
-                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Girar 90°
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Voltear diseño horizontalmente"
-                      aria-pressed={artworkTransform.flipX}
-                      title="Voltear horizontal"
-                      onClick={() => handleArtworkFlip("x")}
-                      disabled={!selectedImage}
-                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Voltear X
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Voltear diseño verticalmente"
-                      aria-pressed={artworkTransform.flipY}
-                      title="Voltear vertical"
-                      onClick={() => handleArtworkFlip("y")}
-                      disabled={!selectedImage}
-                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Voltear Y
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Reducir diseño un diez por ciento"
-                      title="Reducir 10%"
-                      onClick={() => handleArtworkScale(-1)}
-                      disabled={!selectedImage || artworkTransform.scale <= 0.1}
-                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Escala −
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Aumentar diseño un diez por ciento"
-                      title="Aumentar 10%"
-                      onClick={() => handleArtworkScale(1)}
-                      disabled={!selectedImage || artworkTransform.scale >= 4}
-                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Escala +
-                    </button>
-                    <button
-                      type="button"
-                      aria-label="Restablecer transformación del diseño"
-                      title="Restablecer transformación"
-                      onClick={handleResetArtworkTransform}
-                      disabled={!selectedImage}
-                      className="h-9 rounded-[5px] border border-[#e2e8f0] bg-white text-[10px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      Restablecer
-                    </button>
-                  </div>
-                </div>
 
                 <div className="mt-2.5 grid grid-cols-3 gap-2">
                   <button
@@ -2793,8 +2799,14 @@ export function DesignerEasyModePage() {
 
                 {/* Lienzo / Canvas dominante */}
                 <div
-                  role="img"
+                  data-artwork-canvas
+                  role="group"
                   aria-label={`Lienzo ${widthCm} por ${heightCm} centímetros a ${canvasSettings.dpi} DPI`}
+                  onPointerDown={(event) => {
+                    if (event.target === event.currentTarget) {
+                      setIsArtworkSelected(false);
+                    }
+                  }}
                   className="relative shrink-0 overflow-hidden border border-[#cbd5e1] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
                   style={{
                     width: `${canvasViewport.widthPx}px`,
@@ -2803,38 +2815,114 @@ export function DesignerEasyModePage() {
                   }}
                 >
                   {selectedImage && (
-                    <img
-                      src={selectedImage}
-                      alt={
-                        processedImageUrl &&
-                        processedImageUrl !== activeUploadedAsset?.image &&
-                        showProcessedImage
-                          ? "Imagen procesada"
-                          : "Imagen subida al lienzo"
-                      }
-                      className={`h-full w-full select-none object-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                        isHandToolActive ? "" : "cursor-move touch-none"
-                      }`}
-                      draggable={false}
-                      tabIndex={0}
-                      aria-label="Diseño activo. Arrastra para moverlo o usa las flechas."
-                      title={
-                        isHandToolActive
-                          ? "Lienzo"
-                          : "Arrastra para mover el diseño"
-                      }
-                      onPointerDown={handleArtworkPointerDown}
-                      onPointerMove={handleArtworkPointerMove}
-                      onPointerUp={finishArtworkDrag}
-                      onPointerCancel={finishArtworkDrag}
-                      onKeyDown={handleArtworkKeyDown}
+                    <div
                       style={{
+                        position: "absolute",
+                        inset: 0,
+                        pointerEvents: "none",
                         transform: previewTransform
                           ? `matrix(${previewTransform.a}, ${previewTransform.b}, ${previewTransform.c}, ${previewTransform.d}, ${previewTransform.e}, ${previewTransform.f})`
                           : undefined,
                         transformOrigin: "0 0",
                       }}
-                    />
+                    >
+                      <div
+                        className="absolute pointer-events-auto"
+                        style={{
+                          left: "50%",
+                          top: "50%",
+                          width: `${artworkBox?.width ?? 1}px`,
+                          height: `${artworkBox?.height ?? 1}px`,
+                          transform: "translate(-50%, -50%)",
+                        }}
+                      >
+                        <img
+                          src={selectedImage}
+                          alt={
+                            processedImageUrl &&
+                            processedImageUrl !== activeUploadedAsset?.image &&
+                            showProcessedImage
+                              ? "Imagen procesada"
+                              : "Imagen subida al lienzo"
+                          }
+                          className={`h-full w-full select-none object-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                            isHandToolActive ? "" : "cursor-move touch-none"
+                          }`}
+                          draggable={false}
+                          tabIndex={0}
+                          aria-label="Diseño activo. Arrastra para moverlo o usa las flechas."
+                          title={
+                            isHandToolActive
+                              ? "Lienzo"
+                              : "Arrastra para mover el diseño"
+                          }
+                          onLoad={(event) => {
+                            const { naturalWidth, naturalHeight } = event.currentTarget;
+                            if (naturalWidth > 0 && naturalHeight > 0) {
+                              setArtworkDimensions({
+                                width: naturalWidth,
+                                height: naturalHeight,
+                              });
+                            }
+                          }}
+                          onPointerDown={handleArtworkPointerDown}
+                          onPointerMove={handleArtworkPointerMove}
+                          onPointerUp={finishArtworkDrag}
+                          onPointerCancel={finishArtworkDrag}
+                          onKeyDown={(event) => {
+                            if (event.key === "Escape") {
+                              event.preventDefault();
+                              setIsArtworkSelected(false);
+                              return;
+                            }
+                            handleArtworkKeyDown(event);
+                          }}
+                          style={{ pointerEvents: isHandToolActive ? "none" : "auto" }}
+                        />
+                        {isArtworkSelected && !isHandToolActive && (
+                          <>
+                            <div className="pointer-events-none absolute inset-0 border border-indigo-500" />
+                            {(["top-left", "top-right", "bottom-left", "bottom-right"] as const).map((position) => {
+                              const cursor = position === "top-left" || position === "bottom-right"
+                                ? "nwse-resize"
+                                : "nesw-resize";
+                              return (
+                                <button
+                                  key={position}
+                                  type="button"
+                                  aria-label="Cambiar tamaño del diseño"
+                                  title="Arrastra para cambiar el tamaño"
+                                  className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-sm border-2 border-indigo-600 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
+                                  style={{
+                                    left: position.endsWith("left") ? 0 : "100%",
+                                    top: position.startsWith("top") ? 0 : "100%",
+                                    cursor,
+                                    touchAction: "none",
+                                  }}
+                                  onPointerDown={(event) => handleArtworkGesturePointerDown(event, "scale")}
+                                  onPointerMove={handleArtworkGesturePointerMove}
+                                  onPointerUp={finishArtworkGesture}
+                                  onPointerCancel={finishArtworkGesture}
+                                />
+                              );
+                            })}
+                            <button
+                              type="button"
+                              aria-label="Rotar diseño"
+                              title="Arrastra para rotar"
+                              className="absolute left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-600 bg-white text-indigo-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                              style={{ top: -24, cursor: "grab", touchAction: "none" }}
+                              onPointerDown={(event) => handleArtworkGesturePointerDown(event, "rotate")}
+                              onPointerMove={handleArtworkGesturePointerMove}
+                              onPointerUp={finishArtworkGesture}
+                              onPointerCancel={finishArtworkGesture}
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
