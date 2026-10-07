@@ -7,7 +7,7 @@ import type {
 
 export type RasterImageOperation =
   | { kind: 'remove-background'; options: RemoveBackgroundOptions }
-  | { kind: 'halftone'; options: HalftoneOptions }
+  | { kind: 'halftone'; options: HalftoneOptions; previewMaxDimension?: number }
   | { kind: 'cleanup-semitransparency'; options: SemitransparencyCleanupOptions }
   | { kind: 'export-png'; dpi?: number };
 

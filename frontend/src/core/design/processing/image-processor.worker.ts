@@ -20,7 +20,22 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
     const bitmap = await createImageBitmap(request.source);
 
     try {
-      const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+      let width = bitmap.width;
+      let height = bitmap.height;
+      if (
+        request.kind === 'raster-operation' &&
+        request.operation.kind === 'halftone' &&
+        request.operation.previewMaxDimension !== undefined
+      ) {
+        const maxDimension = request.operation.previewMaxDimension;
+        if (!Number.isFinite(maxDimension) || maxDimension <= 0) {
+          throw new RangeError('Halftone preview dimension must be positive.');
+        }
+        const scale = Math.min(1, maxDimension / Math.max(width, height));
+        width = Math.max(1, Math.round(width * scale));
+        height = Math.max(1, Math.round(height * scale));
+      }
+      const canvas = new OffscreenCanvas(width, height);
       const context = canvas.getContext('2d');
       if (!context) {
         throw new Error('Could not create a 2D processing context in the image worker.');
@@ -36,9 +51,9 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
         context.drawImage(bitmap, 0, 0);
         blob = await canvas.convertToBlob({ type: 'image/png' });
       } else {
-        context.drawImage(bitmap, 0, 0);
-        const pixels = context.getImageData(0, 0, bitmap.width, bitmap.height);
-        const sourceBuffer = createImageBuffer(bitmap.width, bitmap.height, pixels.data);
+        context.drawImage(bitmap, 0, 0, width, height);
+        const pixels = context.getImageData(0, 0, width, height);
+        const sourceBuffer = createImageBuffer(width, height, pixels.data);
         switch (request.operation.kind) {
           case 'remove-background':
             processed = removeBackgroundLocal(sourceBuffer, request.operation.options).image;
@@ -84,7 +99,7 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
 
       const response: ImageProcessingResponse = {
         ok: true,
-        image: { blob, width: bitmap.width, height: bitmap.height },
+        image: { blob, width, height },
       };
       self.postMessage(response);
     } finally {

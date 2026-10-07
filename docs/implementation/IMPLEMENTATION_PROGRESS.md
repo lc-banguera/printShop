@@ -283,7 +283,7 @@
 - `DONE`: eliminación local de fondo con muestreo de bordes, flood-fill de cuatro vecinos, distancia perceptual, tolerance, shift, feather y descontaminación; halftone conserva tamaño, ángulo de trama, forma, polaridad, intensidad/contraste, color y alpha.
 - `DONE`: cleanup configurable de semitransparencia, análisis de color/regiones con masks, recolor por tolerancia con alpha/mask, PNG RGBA portable, y DTF preflight con límites físicos explícitos y política de 300 DPI documentada.
 - `PARTIAL`: upscale requiere un `UpscalingProcessor` real y devuelve `NOT_CONFIGURED` si falta; JPEG requiere un encoder inyectado, aplana alpha sobre matte configurable y devuelve `NOT_CONFIGURED` si falta. No se simulan modelos ni codificación.
-- `PENDING`: el frontend aún no consume estos algoritmos canónicos; las funciones Canvas existentes siguen siendo la referencia visual activa hasta completar y validar el adapter. No se marca la integración de D1/D2/D3 como hecha.
+- `PARTIAL`: el Worker frontend ya consume las operaciones canónicas raster; D3 Easy conecta background cleanup y semitransparency cleanup, y `ImageTools` conecta Halftone. Las funciones Canvas de otras operaciones aún no migradas siguen siendo la referencia activa. No se marca la integración completa de D1/D2/D3.
 - Validación: `npm --prefix engine test` **PASS** (build TypeScript y 12 tests); PNG verificado por firma, datos zlib y píxel RGBA; operaciones verificadas con tests de comportamiento e inmutabilidad. `git diff --check` **PASS**.
 - Portabilidad: el nuevo código del engine no requiere React, Zustand, Konva, Three.js ni APIs DOM.
 - Commit: `feat(engine): add portable raster processing operations`.
@@ -297,4 +297,12 @@
 - `PARTIAL`: no se habilita JPEG, upscaling ni un provider ML no configurado.
 - `PARTIAL / BLOCKED`: la eliminación implementada es el algoritmo local portable del engine, no un servicio/modelo externo. Presets y exportación de producción aún no tienen reglas/contratos verificables.
 - Validación: `npm --prefix engine test` **PASS** (12/12); TypeScript de frontend **PASS** con `--ignoreDeprecations 5.0` porque el cambio preexistente en `frontend/tsconfig.json` configura `6.0`, inválido para el TypeScript 5.9.3 instalado; Vite build **PASS**; el build compuesto estándar no puede iniciar por ese mismo valor preexistente. Smoke test de navegador en `/designer/easy`: carga de imagen, cleanup ON/OFF, eliminación local de fondo y undo **PASS**. `git diff --check` **PASS**. ESLint focalizado detecta únicamente el `addedCount` sin uso preexistente en esta página; no se alteró ese código ajeno.
-- Siguiente: smoke test de Designer 3 Easy; después continuar integración solo con interacciones existentes y verificables. Designer 3 Advanced sigue bloqueado por alcance `UNKNOWN`.
+- Siguiente: continuar con integraciones de procesamiento en consumidores existentes y verificables; Designer 3 Advanced sigue bloqueado por alcance `UNKNOWN`.
+
+## Integración incremental — Halftone de ImageTools en Worker
+
+- `DONE`: el panel existente `ImageTools` envía preview y aplicación de Halftone al Worker compartido, usando el algoritmo de `/engine`. La preview conserva el límite de 500 px; Aplicar procesa la resolución natural. Se preservan los controles, parámetros, conversión a `data:` URL que usa la capa y el commit existente de una sola entrada de historial.
+- `DONE`: las solicitudes de preview obsoletas/canceladas abortan fetch y terminan el Worker en lugar de continuar consumiendo CPU.
+- Runtime smoke en `/store/designer`: se cargó una imagen, se abrió “Semitono / Halftone”, se generó preview y Aplicar produjo `lastOp: halftone`; la UI confirmó “Original conservado”.
+- Validación: `npm --prefix engine test` **PASS** (12/12); TypeScript de frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**. ESLint de `ImageTools.tsx` conserva tres errores no relacionados y preexistentes (`FilterValues`, `RemoveBgOptions` y `previewCanvasRef` sin uso); no se modificaron.
+- Estado: integración específica de Halftone en `ImageTools` **DONE**; BLOCK 12 completo continúa `BLOCKED (PARTIAL)` por su alcance de Tool Registry y otras capacidades no verificadas.

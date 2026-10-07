@@ -488,7 +488,7 @@ Este track convierte el Design Core existente en una fuente canónica portable e
 | Bloque | Estado | Resultado / siguiente acción |
 |---|---|---|
 | Engine Bootstrap + extracción de bloques 01–06 | DONE | Paquete TypeScript aislado, modelos y managers existentes migrados, fachada frontend compatible y prueba vertical de documento/capas/selección/transformación/undo/redo. |
-| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Contrato y Worker del frontend ya despachan las operaciones raster sin duplicar algoritmos; upscale/JPEG requieren provider/encoder. |
+| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Contrato y Worker del frontend despachan las operaciones raster; Halftone está integrado en `ImageTools` y Remove Background/cleanup en D3 Easy. Upscale/JPEG requieren provider/encoder. |
 | Designer 3 Easy — `/designer/easy` | PARTIAL / BLOCKED | Eliminación local de fondo y cleanup de semitransparencia integrados por Worker. Falta provider externo, reglas verificables de presets y exportación de producción; JPEG/upscale siguen no configurados. |
 | Designer 3 Advanced | PENDING | Integrar capacidades comunes una vez verificados sus flujos y contratos. |
 | Designer 1 — `/designer/personalize` | PENDING | Integrar capacidades comunes verificadas, sin inventar funcionalidades específicas del flujo. |

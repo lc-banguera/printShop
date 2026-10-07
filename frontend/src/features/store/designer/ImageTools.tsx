@@ -24,15 +24,17 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
+import {
+  processRasterImageUrl,
+  type HalftoneOptions,
+} from "@/core/design/processing";
 import { DesignerLayer, FilterValues } from "./types";
 import {
   applyGrayscale,
   applyInvert,
   applyAdjustments,
-  applyHalftone,
   removeBackground,
   hasTransparency,
-  HalftoneOptions,
   RemoveBgOptions,
   AdjustmentValues,
 } from "./imageProcessor";
@@ -59,6 +61,20 @@ function sliderClass() {
 
 function labelClass() {
   return "flex justify-between text-[10px] text-[#64748B] mb-1";
+}
+
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => {
+      if (typeof reader.result === "string") resolve(reader.result);
+      else reject(new Error("Could not encode the processed image preview."));
+    }, { once: true });
+    reader.addEventListener("error", () => {
+      reject(reader.error ?? new Error("Could not encode the processed image preview."));
+    }, { once: true });
+    reader.readAsDataURL(blob);
+  });
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -461,6 +477,7 @@ function HalftoneTool({
 
   const debounceRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
   const generationRef = React.useRef(0);
+  const workerAbortRef = React.useRef<AbortController | null>(null);
 
   // Always use the latest processed representation or original source
   const src = layer.processedSrc ?? layer.src ?? layer.preview;
@@ -497,6 +514,9 @@ function HalftoneTool({
       await new Promise((r) => setTimeout(r, 40));
       if (currentGen !== generationRef.current) return;
 
+      workerAbortRef.current?.abort();
+      const controller = new AbortController();
+      workerAbortRef.current = controller;
       setProcessing(true);
       try {
         const opts: HalftoneOptions = {
@@ -509,24 +529,19 @@ function HalftoneTool({
           shape: sh,
           invert: inv,
         };
-        // Use maxDimension=500 for fast, responsive interactive preview
-        const result = await applyHalftone(
+        const result = await processRasterImageUrl(
           src,
-          opts,
-          () => {
-            if (currentGen !== generationRef.current) throw new Error("Aborted");
-          },
-          500
+          { kind: "halftone", options: opts, previewMaxDimension: 500 },
+          controller.signal,
         );
-        if (currentGen === generationRef.current) setPreviewSrc(result);
+        const preview = await blobToDataUrl(result.blob);
+        if (currentGen === generationRef.current) setPreviewSrc(preview);
       } catch (e) {
-        if (
-          (e as Error).message !== "Aborted" &&
-          currentGen === generationRef.current
-        ) {
+        if ((e as Error).name !== "AbortError" && currentGen === generationRef.current) {
           setPreviewSrc(null);
         }
       } finally {
+        if (workerAbortRef.current === controller) workerAbortRef.current = null;
         if (currentGen === generationRef.current) setProcessing(false);
       }
     },
@@ -549,6 +564,7 @@ function HalftoneTool({
     );
     return () => {
       generationRef.current++;
+      workerAbortRef.current?.abort();
     };
   }, [generatePreview]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -565,6 +581,10 @@ function HalftoneTool({
     inv: boolean
   ) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    generationRef.current++;
+    workerAbortRef.current?.abort();
+    workerAbortRef.current = null;
+    setProcessing(false);
     debounceRef.current = setTimeout(
       () =>
         generatePreview(
@@ -635,11 +655,18 @@ function HalftoneTool({
 
   const handleCancel = () => {
     generationRef.current++;
+    workerAbortRef.current?.abort();
+    workerAbortRef.current = null;
     onCancel();
   };
 
   const handleApply = async () => {
     if (!src) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const currentGen = ++generationRef.current;
+    workerAbortRef.current?.abort();
+    const controller = new AbortController();
+    workerAbortRef.current = controller;
     setProcessing(true);
     try {
       const opts: HalftoneOptions = {
@@ -653,12 +680,20 @@ function HalftoneTool({
         invert,
       };
       // Full natural resolution export
-      const finalResult = await applyHalftone(src, opts);
-      onApply(finalResult);
+      const finalResult = await processRasterImageUrl(
+        src,
+        { kind: "halftone", options: opts },
+        controller.signal,
+      );
+      if (currentGen !== generationRef.current) return;
+      onApply(await blobToDataUrl(finalResult.blob));
     } catch (err) {
-      console.error("Failed to apply halftone:", err);
+      if ((err as Error).name !== "AbortError") {
+        console.error("Failed to apply halftone:", err);
+      }
     } finally {
-      setProcessing(false);
+      if (workerAbortRef.current === controller) workerAbortRef.current = null;
+      if (currentGen === generationRef.current) setProcessing(false);
     }
   };
 
