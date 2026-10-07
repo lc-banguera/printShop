@@ -346,3 +346,11 @@
 - Test: se eliminó ruido alpha aislado de un píxel, se mantuvo un borde conectado con alpha 128 y se comprobó que el original no cambia.
 - Validación: `npm --prefix engine test` **PASS** (18/18); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
 - Límite: el alpha por sí solo no permite inferir semántica visual; esta política es una heurística espacial opt-in, no detecta automáticamente contaminación de color ni decide sobre transparencias intencionales grandes.
+
+## Image Engine — halftone alpha y calidad de raster
+
+- `DONE`: el muestreo ignora RGB oculto bajo alpha cero, pondera luminancia y color por alpha visible y omite muestras fuera del canvas en vez de replicar los píxeles del borde.
+- `DONE`: círculos/cuadrados rasterizan con cobertura subpixel 2×2, componiendo alpha correctamente sobre fondos transparentes u opacos. Se mantienen dimensiones, controles y geometría del patrón existente.
+- Tests verifican determinismo, ausencia de contaminación por RGB transparente, alpha intermedio en bordes antialias, píxeles transparentes/opacity plena, efecto de angle sobre la trama e inmutabilidad del original.
+- Validación: `npm --prefix engine test` **PASS** (21/21); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
+- Compatibilidad visual: la cobertura antialias modifica los píxeles de borde de los puntos respecto al raster duro anterior; parámetros y disposición permanecen intactos.

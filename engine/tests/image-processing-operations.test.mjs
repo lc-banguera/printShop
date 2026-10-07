@@ -124,6 +124,66 @@ test('halftone preserves source alpha input and output dimensions', () => {
   assert.deepEqual([...source.data], pixels);
 });
 
+test('halftone color samples ignore hidden RGB under transparent pixels and remain deterministic', () => {
+  const pixels = Array.from({ length: 64 }, (_, pixel) =>
+    (pixel % 2 === 0 ? [240, 20, 30, 255] : [10, 30, 240, 0]),
+  ).flat();
+  const source = buffer(8, 8, pixels);
+  const options = {
+    cellSize: 4,
+    angle: 23,
+    intensity: 100,
+    contrast: 100,
+    dotColor: 'original',
+    bgColor: 'transparent',
+    shape: 'circle',
+  };
+  const first = engine.applyHalftone(source, options);
+  const second = engine.applyHalftone(source, options);
+  assert.deepEqual([...first.data], [...second.data]);
+  for (let pixel = 0; pixel < first.width * first.height; pixel += 1) {
+    if (first.data[pixel * 4 + 3] === 0) continue;
+    assert.deepEqual([...first.data.slice(pixel * 4, pixel * 4 + 3)], [240, 20, 30]);
+  }
+});
+
+test('halftone antialiases dot edges and retains transparent output outside the dots', () => {
+  const source = buffer(8, 8, Array(64).fill([0, 0, 0, 255]).flat());
+  const output = engine.applyHalftone(source, {
+    cellSize: 8,
+    angle: 0,
+    intensity: 35,
+    contrast: 100,
+    dotColor: '#000000',
+    bgColor: 'transparent',
+    shape: 'circle',
+  });
+  const alpha = Array.from({ length: 64 }, (_, pixel) => output.data[pixel * 4 + 3]);
+  assert.ok(alpha.some((value) => value > 0 && value < 255));
+  assert.ok(alpha.some((value) => value === 0));
+  assert.ok(alpha.some((value) => value === 255));
+});
+
+test('halftone angle rotates the screen pattern without mutating the source image', () => {
+  const pixels = Array.from({ length: 32 * 32 }, (_, pixel) => {
+    const x = pixel % 32;
+    return x < 16 ? [0, 0, 0, 255] : [255, 255, 255, 255];
+  }).flat();
+  const source = buffer(32, 32, pixels);
+  const baseOptions = {
+    cellSize: 5,
+    intensity: 100,
+    contrast: 100,
+    dotColor: '#000000',
+    bgColor: '#ffffff',
+    shape: 'square',
+  };
+  const unrotated = engine.applyHalftone(source, { ...baseOptions, angle: 0 });
+  const rotated = engine.applyHalftone(source, { ...baseOptions, angle: 45 });
+  assert.notDeepEqual([...unrotated.data], [...rotated.data]);
+  assert.deepEqual([...source.data], pixels);
+});
+
 test('semitransparency cleanup applies a deterministic threshold and reports changed alpha', () => {
   const source = buffer(4, 1, [1, 2, 3, 0, 4, 5, 6, 64, 7, 8, 9, 192, 10, 11, 12, 255]);
   const result = engine.cleanupSemitransparency(source, { strategy: 'threshold', threshold: 128 });

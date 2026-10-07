@@ -33,16 +33,17 @@ function composite(
   x: number,
   y: number,
   color: readonly [number, number, number],
+  sourceAlpha: number,
 ): void {
   if (x < 0 || y < 0 || x >= output.width || y >= output.height) return;
   const index = (y * output.width + x) * 4;
-  const alpha = 255;
   const dstAlpha = output.data[index + 3];
-  const outAlpha = alpha + (dstAlpha * (255 - alpha)) / 255;
+  const outAlpha = sourceAlpha + (dstAlpha * (255 - sourceAlpha)) / 255;
   if (outAlpha === 0) return;
   for (let channel = 0; channel < 3; channel += 1) {
     output.data[index + channel] = clampByte(
-      (color[channel] * alpha + output.data[index + channel] * dstAlpha * (255 - alpha) / 255) / outAlpha,
+      (color[channel] * sourceAlpha +
+        output.data[index + channel] * dstAlpha * (255 - sourceAlpha) / 255) / outAlpha,
     );
   }
   output.data[index + 3] = clampByte(outAlpha);
@@ -67,16 +68,21 @@ function drawDot(
 
   for (let y = top; y <= bottom; y += 1) {
     for (let x = left; x <= right; x += 1) {
-      const dx = x + 0.5 - centerX;
-      const dy = y + 0.5 - centerY;
-      if (shape === 'circle') {
-        if (dx * dx + dy * dy > size * size) continue;
-      } else {
-        const localX = dx * cos + dy * sin;
-        const localY = -dx * sin + dy * cos;
-        if (Math.abs(localX) > size / 2 || Math.abs(localY) > size / 2) continue;
+      let covered = 0;
+      for (const sampleY of [0.25, 0.75]) {
+        for (const sampleX of [0.25, 0.75]) {
+          const dx = x + sampleX - centerX;
+          const dy = y + sampleY - centerY;
+          if (shape === 'circle') {
+            if (dx * dx + dy * dy <= size * size) covered += 1;
+          } else {
+            const localX = dx * cos + dy * sin;
+            const localY = -dx * sin + dy * cos;
+            if (Math.abs(localX) <= size / 2 && Math.abs(localY) <= size / 2) covered += 1;
+          }
+        }
       }
-      composite(output, x, y, color);
+      if (covered > 0) composite(output, x, y, color, (covered / 4) * 255);
     }
   }
 }
@@ -145,23 +151,27 @@ export function applyHalftone(source: ImageBuffer, options: HalftoneOptions): Im
       let redSum = 0;
       let greenSum = 0;
       let blueSum = 0;
+      let sampleCount = 0;
       for (const [dx, dy] of offsets) {
-        const sx = Math.round(Math.max(0, Math.min(width - 1, x + dx * cos - dy * sin)));
-        const sy = Math.round(Math.max(0, Math.min(height - 1, y + dx * sin + dy * cos)));
+        const sx = Math.round(x + dx * cos - dy * sin);
+        const sy = Math.round(y + dx * sin + dy * cos);
+        if (sx < 0 || sy < 0 || sx >= width || sy >= height) continue;
         const index = (sy * width + sx) * 4;
         const red = input.data[index];
         const green = input.data[index + 1];
         const blue = input.data[index + 2];
-        luminanceSum += (0.299 * red + 0.587 * green + 0.114 * blue) / 255;
-        alphaSum += input.data[index + 3] / 255;
-        redSum += red;
-        greenSum += green;
-        blueSum += blue;
+        const alpha = input.data[index + 3] / 255;
+        luminanceSum += ((0.299 * red + 0.587 * green + 0.114 * blue) / 255) * alpha;
+        alphaSum += alpha;
+        redSum += red * alpha;
+        greenSum += green * alpha;
+        blueSum += blue * alpha;
+        sampleCount += 1;
       }
 
-      const averageAlpha = alphaSum / offsets.length;
-      if (averageAlpha < 0.015) continue;
-      const averageLuminance = luminanceSum / offsets.length;
+      if (sampleCount === 0 || alphaSum < 0.015) continue;
+      const averageAlpha = alphaSum / sampleCount;
+      const averageLuminance = luminanceSum / alphaSum;
       const adjustedLuminance = Math.max(0, Math.min(1, (averageLuminance - 0.5) * contrast + 0.5));
       let coverage = dotIsDark ? 1 - adjustedLuminance : adjustedLuminance;
       if (options.invert) coverage = 1 - coverage;
@@ -169,7 +179,7 @@ export function applyHalftone(source: ImageBuffer, options: HalftoneOptions): Im
       if (coverage <= 0.005) continue;
 
       const dotColor: [number, number, number] = colorDots
-        ? [Math.round(redSum / offsets.length), Math.round(greenSum / offsets.length), Math.round(blueSum / offsets.length)]
+        ? [Math.round(redSum / alphaSum), Math.round(greenSum / alphaSum), Math.round(blueSum / alphaSum)]
         : fixedDotColor;
       if (shape === 'square') {
         const size = Math.sqrt(coverage) * cellSize;
