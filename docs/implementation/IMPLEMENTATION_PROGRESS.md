@@ -402,7 +402,7 @@
 - `DONE`: el export valida dimensiones y limita la rasterización a 40 MP/16.000 px por lado para evitar asignaciones descontroladas. Errores de carga/canvas/encoder se notifican explícitamente; el asset original no se modifica.
 - `NOT_CONFIGURED`: PDF permanece disabled con explicación visible porque no hay encoder PDF integrado; no se simula salida PDF.
 - `DONE`: Acercar/Alejar aplican zoom propio al workspace sin modificar escala raster ni dimensiones físicas; centrar/ajustar restablece el encuadre base.
-- `DONE`: Deshacer del header reutiliza el historial real de procesamiento ya disponible; smoke en navegador borró y restauró un artwork y verificó sus dimensiones raster cargadas. Rehacer está claramente disabled porque Modo Básico todavía no mantiene una pila de redo.
+- `DONE`: Undo/Redo del header operan sobre snapshots de imagen, procesamiento, dimensiones y estado de semitransparencia; browser smoke comprobó remove-background → undo → redo y activar/desactivar cleanup → redo.
 - `DONE`: herramienta de mano activa el desplazamiento del canvas y sus reglas; browser smoke arrastró el canvas 72 × 48 px y confirmó que Centrar lienzo restaura exactamente las coordenadas previas.
 - `DONE`: smoke en navegador cargó un artwork local, confirmó el zoom y exportó PNG; el feedback reportó 4134 × 5906 px a 300 DPI.
 - `PARTIAL`: la acción DUPLICAR se deshabilitó explícitamente porque antes solo alteraba el historial sin crear una capa visible; la duplicación real requiere soporte multicapa.

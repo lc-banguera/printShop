@@ -79,6 +79,31 @@ interface UploadedAsset extends DesignResource {
   identityKey: string;
 }
 
+interface ProcessedImageDimensions {
+  width: number;
+  height: number;
+}
+
+interface SemitransparencyResult {
+  resultUrl: string;
+  previousUrl: string;
+  previousDimensions: ProcessedImageDimensions | null;
+}
+
+interface EasyImageSnapshot {
+  activeUploadedAssetId: string | null;
+  processedImageUrl: string | null;
+  processedDimensions: ProcessedImageDimensions | null;
+  showProcessedImage: boolean;
+  removeSemitransparencies: boolean;
+  semitransparencyResult: SemitransparencyResult | null;
+}
+
+interface EasyImageHistory {
+  undo: EasyImageSnapshot[];
+  redo: EasyImageSnapshot[];
+}
+
 interface UploadedFolderAsset {
   assetId: string;
   relativePath: string;
@@ -585,17 +610,18 @@ export function DesignerEasyModePage() {
   const [processedImageUrl, setProcessedImageUrl] = useState<string | null>(
     null,
   );
-  const [processedDimensions, setProcessedDimensions] = useState<{
-    width: number;
-    height: number;
-  } | null>(null);
+  const [processedDimensions, setProcessedDimensions] =
+    useState<ProcessedImageDimensions | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingError, setProcessingError] = useState<string | null>(null);
   const [showProcessedImage, setShowProcessedImage] = useState(true);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [removeSemitransparencies, setRemoveSemitransparencies] =
     useState(false);
-  const [historyStack, setHistoryStack] = useState<string[]>([]);
+  const [imageHistory, setImageHistory] = useState<EasyImageHistory>({
+    undo: [],
+    redo: [],
+  });
   const [isRemovingBg, setIsRemovingBg] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -609,11 +635,9 @@ export function DesignerEasyModePage() {
   } | null>(null);
   const ownedProcessedImageUrlsRef = useRef(new Set<string>());
   const uploadedAssetIdsRef = useRef(new Set<string>());
-  const semitransparencyResultRef = useRef<{
-    resultUrl: string;
-    previousUrl: string;
-    previousDimensions: { width: number; height: number } | null;
-  } | null>(null);
+  const semitransparencyResultRef = useRef<SemitransparencyResult | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!isHeaderMenuOpen) return;
@@ -1023,8 +1047,16 @@ export function DesignerEasyModePage() {
   );
 
   useEffect(() => {
-    const retainedUrls = new Set(historyStack);
+    const retainedUrls = new Set<string>();
     if (processedImageUrl) retainedUrls.add(processedImageUrl);
+    for (const snapshot of [...imageHistory.undo, ...imageHistory.redo]) {
+      if (snapshot.processedImageUrl)
+        retainedUrls.add(snapshot.processedImageUrl);
+      if (snapshot.semitransparencyResult) {
+        retainedUrls.add(snapshot.semitransparencyResult.resultUrl);
+        retainedUrls.add(snapshot.semitransparencyResult.previousUrl);
+      }
+    }
 
     ownedProcessedImageUrlsRef.current.forEach((url) => {
       if (!retainedUrls.has(url)) {
@@ -1032,10 +1064,35 @@ export function DesignerEasyModePage() {
         ownedProcessedImageUrlsRef.current.delete(url);
       }
     });
-  }, [historyStack, processedImageUrl]);
+  }, [imageHistory, processedImageUrl]);
 
   const replaceProcessedImage = (url: string | null) => {
     setProcessedImageUrl(url);
+  };
+
+  const captureImageSnapshot = (): EasyImageSnapshot => ({
+    activeUploadedAssetId,
+    processedImageUrl,
+    processedDimensions,
+    showProcessedImage,
+    removeSemitransparencies,
+    semitransparencyResult: semitransparencyResultRef.current,
+  });
+
+  const recordImageChange = (snapshot = captureImageSnapshot()) => {
+    setImageHistory((current) => ({
+      undo: [...current.undo, snapshot],
+      redo: [],
+    }));
+  };
+
+  const restoreImageSnapshot = (snapshot: EasyImageSnapshot) => {
+    setActiveUploadedAssetId(snapshot.activeUploadedAssetId);
+    replaceProcessedImage(snapshot.processedImageUrl);
+    setProcessedDimensions(snapshot.processedDimensions);
+    setShowProcessedImage(snapshot.showProcessedImage);
+    setRemoveSemitransparencies(snapshot.removeSemitransparencies);
+    semitransparencyResultRef.current = snapshot.semitransparencyResult;
   };
 
   const activateUploadedAsset = (assetId: string) => {
@@ -1047,7 +1104,7 @@ export function DesignerEasyModePage() {
     setProcessingError(null);
     setActiveUploadedAssetId(assetId);
     setShowProcessedImage(true);
-    setHistoryStack([]);
+    setImageHistory({ undo: [], redo: [] });
     setRemoveSemitransparencies(false);
     semitransparencyResultRef.current = null;
   };
@@ -1252,6 +1309,7 @@ export function DesignerEasyModePage() {
   const handleRemoveBackground = async () => {
     if (!selectedImage || isRemovingBg || isProcessing) return;
     const requestId = ++processingRequestId.current;
+    const previousState = captureImageSnapshot();
     setIsRemovingBg(true);
     setProcessingError(null);
     try {
@@ -1263,7 +1321,7 @@ export function DesignerEasyModePage() {
 
       const resultUrl = URL.createObjectURL(result.blob);
       ownedProcessedImageUrlsRef.current.add(resultUrl);
-      setHistoryStack((prev) => [...prev, selectedImage]);
+      recordImageChange(previousState);
       replaceProcessedImage(resultUrl);
       setProcessedDimensions({ width: result.width, height: result.height });
       setShowProcessedImage(true);
@@ -1281,20 +1339,32 @@ export function DesignerEasyModePage() {
   };
 
   const handleUndo = () => {
-    if (historyStack.length === 0) return;
-    const previous = historyStack[historyStack.length - 1];
-    if (semitransparencyResultRef.current?.resultUrl === processedImageUrl) {
-      semitransparencyResultRef.current = null;
-      setRemoveSemitransparencies(false);
-    }
-    setHistoryStack((prev) => prev.slice(0, -1));
-    replaceProcessedImage(previous);
-    setShowProcessedImage(true);
+    const previous = imageHistory.undo.at(-1);
+    if (!previous) return;
+
+    const current = captureImageSnapshot();
+    setImageHistory((history) => ({
+      undo: history.undo.slice(0, -1),
+      redo: [...history.redo, current],
+    }));
+    restoreImageSnapshot(previous);
+  };
+
+  const handleRedo = () => {
+    const next = imageHistory.redo.at(-1);
+    if (!next) return;
+
+    const current = captureImageSnapshot();
+    setImageHistory((history) => ({
+      undo: [...history.undo, current],
+      redo: history.redo.slice(0, -1),
+    }));
+    restoreImageSnapshot(next);
   };
 
   const handleClearImage = () => {
     if (selectedImage) {
-      setHistoryStack((prev) => [...prev, selectedImage]);
+      recordImageChange();
     }
     processingRequestId.current += 1;
     setActiveUploadedAssetId(null);
@@ -1308,15 +1378,15 @@ export function DesignerEasyModePage() {
 
   const handleSemitransparencyToggle = async (enabled: boolean) => {
     if (!enabled) {
-      setRemoveSemitransparencies(false);
       const previous = semitransparencyResultRef.current;
-      semitransparencyResultRef.current = null;
       if (previous && processedImageUrl === previous.resultUrl) {
-        setHistoryStack((current) =>
-          current[current.length - 1] === previous.previousUrl
-            ? current.slice(0, -1)
-            : current,
-        );
+        const currentState = captureImageSnapshot();
+        setImageHistory((history) => ({
+          undo: history.undo.slice(0, -1),
+          redo: [...history.redo, currentState],
+        }));
+        semitransparencyResultRef.current = null;
+        setRemoveSemitransparencies(false);
         replaceProcessedImage(
           previous.previousUrl === activeUploadedAsset?.image
             ? null
@@ -1324,6 +1394,9 @@ export function DesignerEasyModePage() {
         );
         setProcessedDimensions(previous.previousDimensions);
         setShowProcessedImage(true);
+      } else {
+        semitransparencyResultRef.current = null;
+        setRemoveSemitransparencies(false);
       }
       return;
     }
@@ -1331,6 +1404,7 @@ export function DesignerEasyModePage() {
     if (!selectedImage || isProcessing || isRemovingBg) return;
     const sourceUrl = selectedImage;
     const requestId = ++processingRequestId.current;
+    const previousState = captureImageSnapshot();
     setIsProcessing(true);
     setProcessingError(null);
     try {
@@ -1344,7 +1418,7 @@ export function DesignerEasyModePage() {
         return;
       }
       ownedProcessedImageUrlsRef.current.add(resultUrl);
-      setHistoryStack((current) => [...current, sourceUrl]);
+      recordImageChange(previousState);
       semitransparencyResultRef.current = {
         resultUrl,
         previousUrl: sourceUrl,
@@ -1494,7 +1568,7 @@ export function DesignerEasyModePage() {
               aria-label="Deshacer"
               title="Deshacer"
               onClick={handleUndo}
-              disabled={historyStack.length === 0}
+              disabled={imageHistory.undo.length === 0}
               className="rounded-lg p-1.5 text-[#94a3b8] transition-colors hover:bg-[#f1f5f9] disabled:cursor-not-allowed disabled:opacity-45"
             >
               <Undo2 className="h-4 w-4" />
@@ -1502,8 +1576,9 @@ export function DesignerEasyModePage() {
             <button
               type="button"
               aria-label="Rehacer"
-              title="Rehacer no disponible en Modo Básico."
-              disabled
+              title="Rehacer"
+              onClick={handleRedo}
+              disabled={imageHistory.redo.length === 0}
               className="rounded-lg p-1.5 text-[#94a3b8] transition-colors disabled:cursor-not-allowed disabled:opacity-45"
             >
               <Redo2 className="h-4 w-4" />
@@ -1898,7 +1973,7 @@ export function DesignerEasyModePage() {
                   <button
                     type="button"
                     onClick={handleUndo}
-                    disabled={historyStack.length === 0}
+                    disabled={imageHistory.undo.length === 0}
                     className="flex h-9 items-center justify-center gap-1 rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <RotateCcw className="h-3 w-3" />
