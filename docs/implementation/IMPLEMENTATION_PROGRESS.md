@@ -22,7 +22,7 @@
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
 | BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Geometría 2D compartida, flips, bounds de drag y resize de Konva conectados al engine; la integración global sigue parcial porque `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles y no se reinterpretan como herramientas. |
 | BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
-| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; presets y exportación de producción siguen pendientes. El algoritmo local no sustituye un provider externo de background removal. |
+| BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; exporta PNG según tamaño físico/DPI y tiene zoom de canvas. Presets, PDF, capas múltiples y providers externos siguen pendientes. |
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
 | BLOCK 16 — Production Engine | BLOCKED | Depende de BLOCK 15 y requiere APIs de producción no encontradas en el backend actual. |
 | BLOCK 17 — Persistence / Autosave | BLOCKED | La API de documentos requerida no existe; el ciclo de identidad/restauración local tampoco está especificado para evitar mezclar borradores. |
@@ -395,3 +395,11 @@
 - `DONE`: `InteractiveCanvas` aplica document rotation y flip X/Y a todas las capas usando `createCenteredTransform`, igual que export; cada layer usa la misma convención para su transform local. Zoom/pan continúan siendo solo viewport.
 - `DONE`: tests comparan orientaciones raster de flip X, flip Y, flip X+rotación y flip Y+rotación; además verifican que preview/export a escalas distintas mantengan coordenadas normalizadas equivalentes.
 - `PARTIAL`: la UI D3 Easy cargó en navegador, pero no hay un artwork de prueba en el estado local para verificar visualmente una sesión transformada; no se afirma paridad visual de ese flujo.
+
+## Designer 3 Easy — export PNG y zoom del canvas
+
+- `DONE`: Descargar PNG compone el fondo seleccionado y la imagen actualmente visible en el lienzo usando `widthCm`, `heightCm` y DPI; conserva alpha cuando el fondo es transparente y contiene la imagen proporcionalmente como el preview.
+- `DONE`: el export valida dimensiones y limita la rasterización a 40 MP/16.000 px por lado para evitar asignaciones descontroladas. Errores de carga/canvas/encoder se notifican explícitamente; el asset original no se modifica.
+- `NOT_CONFIGURED`: PDF permanece disabled con explicación visible porque no hay encoder PDF integrado; no se simula salida PDF.
+- `DONE`: Acercar/Alejar aplican zoom propio al workspace sin modificar escala raster ni dimensiones físicas; centrar/ajustar restablece el encuadre base.
+- `PARTIAL`: export validado por TypeScript/build y smoke de ruta. El navegador local tiene superpuesto el diálogo global del carrito, y no hay imagen de prueba accesible para validar visualmente export con artwork; no se marca paridad visual de capas porque Easy aún renderiza una sola imagen.

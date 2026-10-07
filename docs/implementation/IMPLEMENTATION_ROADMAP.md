@@ -2,8 +2,8 @@
 # PrintShop — Roadmap de Implementación de la Design Platform
 
 **Versión:** 0.1.0  
-**Última actualización:** 2026-10-06
-**Estado actual**: BLOCK 07 sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 están completados dentro de sus límites. BLOCK 12 está parcialmente integrado pero bloqueado por la falta de un contrato seguro entre el Tool Registry y las interacciones existentes de D2. El análisis de dependencias posteriores está en [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md).
+**Última actualización:** 2026-10-07
+**Estado actual**: BLOCK 07 sigue bloqueado por falta de calibración 3D verificable; BLOCK 08–11 están completados dentro de sus límites. BLOCK 12 está parcialmente integrado y continúa bloqueado en la integración de Tool Registry. D3 Easy tiene export PNG de canvas a dimensión/DPI configurados y zoom de workspace operativo; sus capas y transforms aún son parciales. Designer 3 Advanced sigue sin capacidades verificadas. El análisis de dependencias posteriores está en [IMPLEMENTATION_PROGRESS.md](./IMPLEMENTATION_PROGRESS.md).
 
 ---
 
@@ -379,7 +379,7 @@
 
 **Subalcances independientes completados**: "Eliminar fondo" usa el algoritmo local portable del Image Engine a través del Worker; el switch de semitransparencia aplica cleanup real y se puede revertir mientras siga siendo la última salida activa. Se corrigió la conexión anterior que hacía que el switch de semitransparencia aplicara contraste en vez de limpiar alpha. El algoritmo local no equivale a un modelo/servicio externo de background removal. Los presets continúan pendientes hasta definir transformaciones reales; la exportación de producción depende de BLOCK 16.
 
-**Estado actual**: `PARTIAL / BLOCKED`. Eliminación local de fondo y cleanup de semitransparencia están integrados en Designer 3 Easy por el Worker compartido. No hay provider externo/Python, los perfiles no tienen transformaciones reales definidas y no existe exportación de producción.
+**Estado actual**: `PARTIAL / BLOCKED`. Eliminación local de fondo y cleanup de semitransparencia están integrados en Designer 3 Easy por el Worker compartido. El canvas exporta PNG con dimensiones físicas/DPI solicitados y zoom de workspace no altera la resolución raster. No hay provider externo/Python, los perfiles no tienen transformaciones reales definidas, PDF no está configurado y la experiencia aún opera sobre una imagen activa en vez de capas múltiples.
 
 **Resultado esperado**:
 - El botón "Eliminar fondo" llama a un servicio real

@@ -554,6 +554,7 @@ export function DesignerEasyModePage() {
   const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(
     null,
   );
+  const [canvasZoom, setCanvasZoom] = useState(1);
   const [activeSidebarTool, setActiveSidebarTool] =
     useState<SidebarToolId>("archivo");
   const [keepRatio, setKeepRatio] = useState(false);
@@ -592,6 +593,7 @@ export function DesignerEasyModePage() {
     useState(false);
   const [historyStack, setHistoryStack] = useState<string[]>([]);
   const [isRemovingBg, setIsRemovingBg] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
   const processingRequestId = useRef(0);
   const ownedProcessedImageUrlsRef = useRef(new Set<string>());
@@ -817,10 +819,113 @@ export function DesignerEasyModePage() {
     setCanvasViewport(
       calculateCanvasViewport(width, height, safeWidthCm, safeHeightCm),
     );
+    setCanvasZoom(1);
   };
 
   const centerCanvasInWorkspace = () => {
-    fitCanvasToWorkspace();
+    setCanvasZoom(1);
+    const el = workspaceRef.current;
+    if (!el) return;
+    const { width, height } = el.getBoundingClientRect();
+    setCanvasViewport(
+      calculateCanvasViewport(width, height, safeWidthCm, safeHeightCm),
+    );
+  };
+
+  const changeCanvasZoom = (direction: 1 | -1) => {
+    setCanvasZoom((current) =>
+      Math.min(4, Math.max(0.25, Number((current * (direction > 0 ? 1.15 : 0.87)).toFixed(3)))),
+    );
+  };
+
+  const handleExportPng = async () => {
+    if (isExporting) return;
+    const rasterWidth = Math.round((safeWidthCm / 2.54) * canvasSettings.dpi);
+    const rasterHeight = Math.round((safeHeightCm / 2.54) * canvasSettings.dpi);
+    if (
+      rasterWidth <= 0 ||
+      rasterHeight <= 0 ||
+      rasterWidth > 16000 ||
+      rasterHeight > 16000 ||
+      rasterWidth * rasterHeight > 40_000_000
+    ) {
+      showToast({
+        type: "error",
+        title: "No se pudo exportar",
+        message: "Reduce las dimensiones o el DPI para exportar un PNG de hasta 40 megapíxeles.",
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    try {
+      const output = document.createElement("canvas");
+      output.width = rasterWidth;
+      output.height = rasterHeight;
+      const context = output.getContext("2d", { alpha: true });
+      if (!context) {
+        throw new Error("El navegador no pudo preparar el lienzo de exportación.");
+      }
+
+      if (canvasSettings.background !== "transparent") {
+        context.fillStyle = getCanvasColor(canvasSettings);
+        context.fillRect(0, 0, rasterWidth, rasterHeight);
+      }
+
+      if (selectedImage) {
+        const image = new Image();
+        image.crossOrigin = "anonymous";
+        await new Promise<void>((resolve, reject) => {
+          image.onload = () => resolve();
+          image.onerror = () => reject(new Error("No se pudo leer la imagen activa para exportarla."));
+          image.src = selectedImage;
+        });
+
+        const scale = Math.min(
+          rasterWidth / image.naturalWidth,
+          rasterHeight / image.naturalHeight,
+        );
+        const width = image.naturalWidth * scale;
+        const height = image.naturalHeight * scale;
+        context.imageSmoothingEnabled = true;
+        context.imageSmoothingQuality = "high";
+        context.drawImage(
+          image,
+          (rasterWidth - width) / 2,
+          (rasterHeight - height) / 2,
+          width,
+          height,
+        );
+      }
+
+      const blob = await new Promise<Blob>((resolve, reject) => {
+        output.toBlob(
+          (result) => result
+            ? resolve(result)
+            : reject(new Error("El navegador no pudo codificar el PNG.")),
+          "image/png",
+        );
+      });
+      const downloadUrl = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = downloadUrl;
+      anchor.download = `printshop-${rasterWidth}x${rasterHeight}.png`;
+      anchor.click();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
+      showToast({
+        type: "success",
+        title: "PNG exportado",
+        message: `Lienzo de ${rasterWidth} × ${rasterHeight} px a ${canvasSettings.dpi} DPI.`,
+      });
+    } catch (error) {
+      showToast({
+        type: "error",
+        title: "No se pudo exportar",
+        message: error instanceof Error ? error.message : "Error desconocido al exportar PNG.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   useLayoutEffect(() => {
@@ -1351,22 +1456,25 @@ export function DesignerEasyModePage() {
           {/* Zoom pill */}
           <div className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-[5px] border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs">
             <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
-            <span>{canvasViewport?.zoomPercent ?? 0}%</span>
+            <span>{Math.round((canvasViewport?.zoomPercent ?? 0) * canvasZoom)}%</span>
             <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
           </div>
 
           {/* Descargar PNG */}
           <button
             type="button"
-            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-[#f1f3f6] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors"
+            onClick={handleExportPng}
+            disabled={isExporting}
+            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-[#f1f3f6] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-[#1e293b] hover:bg-[#e2e8f0] transition-colors disabled:cursor-wait disabled:opacity-60"
           >
-            Descargar PNG
+            {isExporting ? "Exportando…" : "Descargar PNG"}
           </button>
 
-          {/* Descargar PDF */}
           <button
             type="button"
-            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 items-center justify-center rounded-[5px] bg-[#4f46e5] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-white shadow-xs hover:bg-[#4338ca] transition-colors"
+            disabled
+            title="PDF no configurado: todavía no hay un encoder PDF integrado."
+            className="flex h-[clamp(38px,2.87vw,48px)] shrink-0 cursor-not-allowed items-center justify-center rounded-[5px] bg-[#4f46e5] px-[clamp(10px,1.2vw,20px)] text-[clamp(12px,0.9vw,15px)] font-semibold text-white shadow-xs opacity-55"
           >
             Descargar PDF
           </button>
@@ -2266,6 +2374,8 @@ export function DesignerEasyModePage() {
               style={{
                 left: `${canvasViewport.leftPx}px`,
                 top: `${canvasViewport.topPx}px`,
+                transform: `scale(${canvasZoom})`,
+                transformOrigin: "top left",
               }}
             >
               {/* Fila superior: esquina (cm) + regla horizontal */}
@@ -2343,6 +2453,7 @@ export function DesignerEasyModePage() {
               type="button"
               aria-label="Acercar"
               title="Acercar"
+              onClick={() => changeCanvasZoom(1)}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <ZoomIn className="h-4 w-4" strokeWidth={1.8} />
@@ -2351,6 +2462,7 @@ export function DesignerEasyModePage() {
               type="button"
               aria-label="Alejar"
               title="Alejar"
+              onClick={() => changeCanvasZoom(-1)}
               className="flex h-8 w-8 items-center justify-center rounded-lg text-[#475569] hover:bg-[#f1f5f9] transition-colors"
             >
               <ZoomOut className="h-4 w-4" strokeWidth={1.8} />
