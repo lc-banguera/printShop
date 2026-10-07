@@ -6,6 +6,7 @@ export {
 } from './filters';
 export {
   processArtworkImage,
+  processArtworkImageUrl,
   processRasterImage,
   processRasterImageUrl,
   type ProcessedArtworkImage,

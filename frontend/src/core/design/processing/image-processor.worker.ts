@@ -22,14 +22,16 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
     try {
       let width = bitmap.width;
       let height = bitmap.height;
-      if (
-        request.kind === 'raster-operation' &&
-        request.operation.kind === 'halftone' &&
-        request.operation.previewMaxDimension !== undefined
-      ) {
-        const maxDimension = request.operation.previewMaxDimension;
+      const previewMaxDimension =
+        request.kind === 'filters'
+          ? request.previewMaxDimension
+          : request.operation.kind === 'halftone'
+            ? request.operation.previewMaxDimension
+            : undefined;
+      if (previewMaxDimension !== undefined) {
+        const maxDimension = previewMaxDimension;
         if (!Number.isFinite(maxDimension) || maxDimension <= 0) {
-          throw new RangeError('Halftone preview dimension must be positive.');
+          throw new RangeError('Preview dimension must be positive.');
         }
         const scale = Math.min(1, maxDimension / Math.max(width, height));
         width = Math.max(1, Math.round(width * scale));
@@ -48,7 +50,7 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
           throw new Error('Canvas filters are not supported in this worker context.');
         }
         context.filter = buildCanvasFilterString(normalizeArtworkFilters(request.filters));
-        context.drawImage(bitmap, 0, 0);
+        context.drawImage(bitmap, 0, 0, width, height);
         blob = await canvas.convertToBlob({ type: 'image/png' });
       } else {
         context.drawImage(bitmap, 0, 0, width, height);

@@ -1,6 +1,6 @@
 # PrintShop — Progreso de la Design Platform
 
-**Última actualización:** 2026-10-06
+**Última actualización:** 2026-10-07
 **Rama de trabajo:** `feat/design-platform-implementation`
 **Fuente de secuencia:** [IMPLEMENTATION_ROADMAP.md](./IMPLEMENTATION_ROADMAP.md)
 
@@ -306,3 +306,11 @@
 - Runtime smoke en `/store/designer`: se cargó una imagen, se abrió “Semitono / Halftone”, se generó preview y Aplicar produjo `lastOp: halftone`; la UI confirmó “Original conservado”.
 - Validación: `npm --prefix engine test` **PASS** (12/12); TypeScript de frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**. ESLint de `ImageTools.tsx` conserva tres errores no relacionados y preexistentes (`FilterValues`, `RemoveBgOptions` y `previewCanvasRef` sin uso); no se modificaron.
 - Estado: integración específica de Halftone en `ImageTools` **DONE**; BLOCK 12 completo continúa `BLOCKED (PARTIAL)` por su alcance de Tool Registry y otras capacidades no verificadas.
+
+## Integración incremental — filtros de imagen en la textura 3D de Designer 2
+
+- `DONE`: los filtros no destructivos existentes de artwork en `/designer/new` ahora se procesan por el Worker compartido y alimentan la textura 3D mediante `CanvasTexture`; la imagen original y los controles existentes se preservan. La preview conserva el límite de 1024 px.
+- `DONE`: cambios de imagen/filtros abortan el trabajo anterior, cierran bitmaps temporales y descartan texturas obsoletas; los fallos no-abortados se reportan explícitamente.
+- Runtime smoke en `/designer/new`: se abrió Camisetas, se seleccionó un diseño, se llevó Brillo a 200% y se verificó que el decal procesado se renderizara en el canvas 3D.
+- Validación: TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; ESLint focalizado en los cinco archivos de procesamiento/render **PASS**; `npm --prefix engine test` **PASS** (12/12); `git diff --check` **PASS**.
+- Alcance: este sub-bloque no completa BLOCK 12; Designer 2 sigue `BLOCKED (PARTIAL)` hasta resolver Tool Registry e integración restante sin alterar la semántica de los tabs.

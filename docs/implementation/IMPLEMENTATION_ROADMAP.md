@@ -488,11 +488,11 @@ Este track convierte el Design Core existente en una fuente canónica portable e
 | Bloque | Estado | Resultado / siguiente acción |
 |---|---|---|
 | Engine Bootstrap + extracción de bloques 01–06 | DONE | Paquete TypeScript aislado, modelos y managers existentes migrados, fachada frontend compatible y prueba vertical de documento/capas/selección/transformación/undo/redo. |
-| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Contrato y Worker del frontend despachan las operaciones raster; Halftone está integrado en `ImageTools` y Remove Background/cleanup en D3 Easy. Upscale/JPEG requieren provider/encoder. |
+| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Contrato y Worker del frontend despachan operaciones raster y filtros no destructivos; filtros de artwork se reflejan en la textura 3D de D2, Halftone está integrado en `ImageTools` y Remove Background/cleanup en D3 Easy. Upscale/JPEG requieren provider/encoder. |
 | Designer 3 Easy — `/designer/easy` | PARTIAL / BLOCKED | Eliminación local de fondo y cleanup de semitransparencia integrados por Worker. Falta provider externo, reglas verificables de presets y exportación de producción; JPEG/upscale siguen no configurados. |
 | Designer 3 Advanced | PENDING | Integrar capacidades comunes una vez verificados sus flujos y contratos. |
 | Designer 1 — `/designer/personalize` | PENDING | Integrar capacidades comunes verificadas, sin inventar funcionalidades específicas del flujo. |
-| Designer 2 — `/designer/new` | PENDING | Integrar document, commands/history, selection, transform y layers del engine en el runtime existente preservando la interfaz y su API; luego conectar export/procesamiento disponibles. |
+| Designer 2 — `/designer/new` | PARTIAL / BLOCKED | Los filtros de artwork se procesan en el Worker y actualizan la textura 3D con preview limitada. Sigue pendiente integrar/verificar el resto de document, commands/history, selection, transform y layers; el workspace no consume Tool Registry y sus tabs conservan semántica de navegación. |
 | AI Provider + Command Bridge | PENDING | Definir providers/request/response/context/tool/bridge server-side; traducir intenciones a comandos del engine sin acceso a UI/Zustand. |
 | BLOCK 07 — calibración/proyección 3D | DEFERRED | No implementar sin datos de calibración verificables por superficie. |
 

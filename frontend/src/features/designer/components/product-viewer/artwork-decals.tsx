@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import type { CanvasElement } from '@/types/canvas';
 import type { PrintableZoneConfig } from '@/types/product';
-import { buildCanvasFilterString } from '@/core/design/processing';
+import { processArtworkImageUrl } from '@/core/design/processing';
 import { threeJsRenderer } from '../../renderer/threejs-renderer';
 
 // The GLB currently has a verified physical calibration for its front fabric only.
@@ -195,28 +195,46 @@ function ArtworkDecal({
   }, [element.x, element.y]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
     const canvas = document.createElement('canvas');
-    const imageElement = new Image();
-    imageElement.onload = () => {
-      const width = Math.max(1, Math.min(1024, imageElement.naturalWidth || imageElement.width || 1024));
-      const height = Math.max(1, Math.min(1024, imageElement.naturalHeight || imageElement.height || 1024));
-      canvas.width = width;
-      canvas.height = height;
-      const context = canvas.getContext('2d');
-      if (!context) return;
+    void processArtworkImageUrl(
+      image,
+      element.filters,
+      1024,
+      controller.signal,
+    )
+      .then(async (processedImage) => {
+        if (!active) return;
+        const bitmap = await createImageBitmap(processedImage.blob);
+        try {
+          if (!active) return;
+          canvas.width = processedImage.width;
+          canvas.height = processedImage.height;
+          const context = canvas.getContext('2d');
+          if (!context) {
+            throw new Error('Could not create a 2D context for the processed artwork.');
+          }
+          context.drawImage(bitmap, 0, 0);
 
-      context.filter = buildCanvasFilterString(element.filters);
-      context.drawImage(imageElement, 0, 0, width, height);
-
-      const nextTexture = new THREE.CanvasTexture(canvas);
-      nextTexture.colorSpace = THREE.SRGBColorSpace;
-      nextTexture.needsUpdate = true;
-      setProcessedTexture(nextTexture);
-    };
-
-    imageElement.src = image;
+          const nextTexture = new THREE.CanvasTexture(canvas);
+          nextTexture.colorSpace = THREE.SRGBColorSpace;
+          nextTexture.needsUpdate = true;
+          if (active) setProcessedTexture(nextTexture);
+          else nextTexture.dispose();
+        } finally {
+          bitmap.close();
+        }
+      })
+      .catch((error: unknown) => {
+        if (active && !(error instanceof Error && error.name === 'AbortError')) {
+          console.error('Could not process the artwork texture.', error);
+        }
+      });
 
     return () => {
+      active = false;
+      controller.abort();
       setProcessedTexture((currentTexture) => {
         currentTexture?.dispose();
         return null;

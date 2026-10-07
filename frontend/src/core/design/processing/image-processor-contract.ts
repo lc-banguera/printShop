@@ -16,6 +16,7 @@ export type ImageProcessingRequest =
       kind: 'filters';
       source: Blob;
       filters: ArtworkFilters;
+      previewMaxDimension?: number;
     }
   | {
       kind: 'raster-operation';

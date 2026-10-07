@@ -12,6 +12,8 @@ export type { ProcessedArtworkImage };
 export async function processArtworkImage(
   source: Blob,
   filters: Partial<ArtworkFilters> = {},
+  previewMaxDimension?: number,
+  signal?: AbortSignal,
 ): Promise<ProcessedArtworkImage> {
   if (source.size === 0) {
     throw new Error('Cannot process an empty image asset.');
@@ -21,9 +23,28 @@ export async function processArtworkImage(
     kind: 'filters',
     source,
     filters: normalizeArtworkFilters(filters),
+    ...(previewMaxDimension === undefined ? {} : { previewMaxDimension }),
   };
 
-  return runWorkerRequest(request);
+  return runWorkerRequest(request, signal);
+}
+
+export async function processArtworkImageUrl(
+  sourceUrl: string,
+  filters: Partial<ArtworkFilters> = {},
+  previewMaxDimension?: number,
+  signal?: AbortSignal,
+): Promise<ProcessedArtworkImage> {
+  const response = await fetch(sourceUrl, { signal });
+  if (!response.ok) {
+    throw new Error(`Could not load image asset (${response.status}).`);
+  }
+  return processArtworkImage(
+    await response.blob(),
+    filters,
+    previewMaxDimension,
+    signal,
+  );
 }
 
 export async function processRasterImage(
