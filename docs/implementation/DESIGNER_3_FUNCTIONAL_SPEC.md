@@ -29,7 +29,7 @@ El modal "Nuevo lienzo" actualmente solo tiene como punto de montaje verificado 
 | Descargar PDF | `NOT CONFIGURED`; permanece disabled porque no hay encoder PDF integrado |
 | Duplicar imagen / capas múltiples | `NOT CONFIGURED`; duplicar permanece disabled porque Easy actualmente representa una sola imagen activa |
 | Guardar / persistencia | `BLOCKED`; no existe persistencia verificada |
-| Transformar artwork | `PARTIAL`; escala uniforme (10–400%), rotación en pasos de 90° y flips X/Y usan una matriz canónica del engine tanto en preview como en PNG export. No hay posición por arrastre ni documento multicapa |
+| Transformar artwork | `PARTIAL`; posición por arrastre o flechas (Shift mueve 5%), escala uniforme (10–400%), rotación en pasos de 90° y flips X/Y usan una matriz canónica del engine tanto en preview como en PNG export. Undo/Redo conserva los transforms. No hay documento multicapa |
 
 La eliminación de fondo y el cleanup actúan sobre una copia raster local; no deben presentarse como servicio externo. El PNG exportado no afirma aplicar perfiles de impresión ni verificación de preflight.
 
@@ -49,7 +49,7 @@ No se deben derivar requisitos para Advanced a partir de la interfaz Easy, Desig
 1. Inspeccionar el layout compartido y verificar sus interacciones antes de atribuir capacidades específicas a Advanced.
 2. Confirmar en código los controles y estados de Easy antes de cualquier cambio en su comportamiento.
 3. Definir transformaciones específicas de producción para cada perfil antes de habilitarlas; los transforms geométricos generales no aplican un perfil DTF.
-4. Ampliar la integración geométrica a posición interactiva y capas cuando exista un modelo verificable; los transforms de Easy implementados ya comparten matriz entre preview y export, separados de zoom/pan del viewport.
+4. Ampliar la integración geométrica a documento multicapa cuando exista un modelo verificable; los transforms de Easy implementados ya comparten matriz entre preview y export, separados de zoom/pan del viewport.
 5. Conectar un proveedor externo solo si se requiere background removal con IA; mantener distinto el algoritmo local ya disponible.
 6. Integrar PDF, perfiles de producción y preflight solo cuando exista un pipeline verificable.
 7. Actualizar este documento y la matriz con evidencia real antes de atribuir capacidades a Advanced.

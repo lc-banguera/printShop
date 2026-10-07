@@ -650,6 +650,12 @@ export function DesignerEasyModePage() {
     startPanX: number;
     startPanY: number;
   } | null>(null);
+  const artworkDragRef = useRef<{
+    pointerId: number;
+    lastX: number;
+    lastY: number;
+    hasChanged: boolean;
+  } | null>(null);
   const ownedProcessedImageUrlsRef = useRef(new Set<string>());
   const uploadedAssetIdsRef = useRef(new Set<string>());
   const semitransparencyResultRef = useRef<SemitransparencyResult | null>(
@@ -935,6 +941,65 @@ export function DesignerEasyModePage() {
     const workspace = workspaceRef.current;
     if (workspace?.hasPointerCapture(event.pointerId)) {
       workspace.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handleArtworkPointerDown = (
+    event: ReactPointerEvent<HTMLImageElement>,
+  ) => {
+    if (
+      isHandToolActive ||
+      event.button !== 0 ||
+      !selectedImage ||
+      !canvasViewport
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    artworkDragRef.current = {
+      pointerId: event.pointerId,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      hasChanged: false,
+    };
+  };
+
+  const handleArtworkPointerMove = (
+    event: ReactPointerEvent<HTMLImageElement>,
+  ) => {
+    const drag = artworkDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId || !canvasViewport) return;
+
+    const deltaX = event.clientX - drag.lastX;
+    const deltaY = event.clientY - drag.lastY;
+    if (deltaX === 0 && deltaY === 0) return;
+
+    if (!drag.hasChanged) {
+      recordImageChange();
+      drag.hasChanged = true;
+    }
+
+    const canvasWidth = Math.max(1, canvasViewport.widthPx - 2);
+    const canvasHeight = Math.max(1, canvasViewport.heightPx - 2);
+    setArtworkTransform((current) => ({
+      ...current,
+      offsetX: current.offsetX + deltaX / (canvasWidth * canvasZoom),
+      offsetY: current.offsetY + deltaY / (canvasHeight * canvasZoom),
+    }));
+    drag.lastX = event.clientX;
+    drag.lastY = event.clientY;
+  };
+
+  const finishArtworkDrag = (event: ReactPointerEvent<HTMLImageElement>) => {
+    const drag = artworkDragRef.current;
+    if (!drag || drag.pointerId !== event.pointerId) return;
+
+    artworkDragRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
     }
   };
 
@@ -1414,6 +1479,37 @@ export function DesignerEasyModePage() {
     if (!selectedImage || next === artworkTransform) return;
     recordImageChange();
     setArtworkTransform(next);
+  };
+
+  const handleArtworkKeyDown = (
+    event: ReactKeyboardEvent<HTMLImageElement>,
+  ) => {
+    const movement = event.shiftKey ? 0.05 : 0.01;
+    let offset: { x: number; y: number };
+    switch (event.key) {
+      case "ArrowLeft":
+        offset = { x: -movement, y: 0 };
+        break;
+      case "ArrowRight":
+        offset = { x: movement, y: 0 };
+        break;
+      case "ArrowUp":
+        offset = { x: 0, y: -movement };
+        break;
+      case "ArrowDown":
+        offset = { x: 0, y: movement };
+        break;
+      default:
+        return;
+    }
+    if (!selectedImage) return;
+
+    event.preventDefault();
+    commitArtworkTransform({
+      ...artworkTransform,
+      offsetX: artworkTransform.offsetX + offset.x,
+      offsetY: artworkTransform.offsetY + offset.y,
+    });
   };
 
   const handleRotateArtwork = () => {
@@ -2708,8 +2804,22 @@ export function DesignerEasyModePage() {
                           ? "Imagen procesada"
                           : "Imagen subida al lienzo"
                       }
-                      className="h-full w-full select-none object-contain"
+                      className={`h-full w-full select-none object-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
+                        isHandToolActive ? "" : "cursor-move touch-none"
+                      }`}
                       draggable={false}
+                      tabIndex={0}
+                      aria-label="Diseño activo. Arrastra para moverlo o usa las flechas."
+                      title={
+                        isHandToolActive
+                          ? "Lienzo"
+                          : "Arrastra para mover el diseño"
+                      }
+                      onPointerDown={handleArtworkPointerDown}
+                      onPointerMove={handleArtworkPointerMove}
+                      onPointerUp={finishArtworkDrag}
+                      onPointerCancel={finishArtworkDrag}
+                      onKeyDown={handleArtworkKeyDown}
                       style={{
                         transform: previewTransform
                           ? `matrix(${previewTransform.a}, ${previewTransform.b}, ${previewTransform.c}, ${previewTransform.d}, ${previewTransform.e}, ${previewTransform.f})`

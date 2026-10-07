@@ -145,7 +145,7 @@ El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se
 ✅ Campos de ancho/alto/DPI y selección del fondo del canvas<br>
 ✅ Descargar PNG compone la imagen activa sobre el fondo configurado a la resolución física solicitada; límite 40 MP / 16.000 px por lado<br>
 ✅ Zoom, pan de viewport y centrado; no cambian dimensiones físicas ni exportación<br>
-✅ Escala uniforme, rotación de 90° y flips X/Y del artwork; preview y PNG usan la misma matriz canónica del engine<br>
+✅ Posición del artwork por arrastre/flechas, escala uniforme, rotación de 90° y flips X/Y; preview y PNG usan la misma matriz canónica del engine<br>
 ✅ Undo/Redo de snapshots de imagen/procesamiento, transform y canvas image clear<br>
 🟡 Selección visible de técnica DTF; no aplica transformaciones al asset
 
@@ -155,7 +155,7 @@ El modal "Nuevo lienzo" solo se monta actualmente desde `/store/designer`; no se
 🟡 Descargar PDF permanece disabled: no hay encoder PDF integrado<br>
 🟡 "Guardar" permanece disabled porque no hay persistencia<br>
 🟡 DTF no aplica un perfil de producción; no se afirma preflight ni salida de fabricación verificada<br>
-🟡 No hay posición por arrastre ni documento multicapa; los controles geométricos actuales transforman una sola imagen activa
+🟡 No hay documento multicapa; los controles geométricos actuales transforman una sola imagen activa
 
 ### 2.5 Funcionalidad ausente
 
