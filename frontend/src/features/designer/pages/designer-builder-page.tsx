@@ -66,7 +66,7 @@ export function DesignerBuilderPage() {
   return (
     <div className="min-h-screen bg-[#F4F5FB] text-foreground">
       <div className="flex">
-        <aside className="hidden w-[266px] shrink-0 border-r border-border bg-[#F4F5FB] p-5 lg:sticky lg:top-0 lg:block lg:h-screen">
+        <aside className="hidden w-[266px] shrink-0 border-r border-border bg-[#F4F5FB] p-5 lg:sticky lg:top-0 lg:flex lg:h-screen lg:flex-col">
           <nav
             aria-label="Navegación del creador"
             className="space-y-1"
@@ -95,7 +95,7 @@ export function DesignerBuilderPage() {
             ))}
           </nav>
 
-          <div className="mt-10 hidden rounded-card border border-border bg-surfaceMuted p-4 lg:block">
+          <div className="mt-auto hidden rounded-card border border-border bg-surfaceMuted p-4 lg:block">
             <CircleHelp className="mb-3 h-7 w-7 text-foregroundMuted" />
 
             <p className="text-sm font-bold text-foreground">
@@ -118,7 +118,7 @@ export function DesignerBuilderPage() {
 
         <main className="min-w-0 flex-1 bg-[#F4F5FB] px-4 pb-4 pt-4 sm:px-6 lg:px-7 xl:px-8">
           <section aria-label="Seleccionar producto">
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,260px),300px))] justify-center gap-3">
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(min(100%,200px),1fr))] gap-3">
               {filteredCategories.map((category) => {
                 const selected = category.id === selectedCategoryId;
 
