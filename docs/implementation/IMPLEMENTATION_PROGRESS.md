@@ -378,3 +378,10 @@
 - Tests cubren cálculo/aspect ratio, conversiones de impresión, DPI efectivo, resize bilinear y transparencia del original.
 - Validación: `npm --prefix engine test` **PASS** (26/26); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
 - Alcance: estas utilidades portables no se conectan todavía a controles de impresión ni cambian zoom/transform de los designers.
+
+## Image Engine — composición raster source-over
+
+- `DONE`: `compositeImageBuffer` compone una imagen RGBA sobre otra con source-over alpha correcto, opacidad, offsets enteros y clipping al canvas.
+- `DONE`: modos normal, multiply y screen aplican el blend en la región de solapamiento; el fondo y la fuente permanecen inmutables y errores de entrada se reportan explícitamente.
+- Tests cubren transparencia parcial, colores de mezcla, offsets negativos/clipping, inmutabilidad y opciones inválidas.
+- `PARTIAL`: helper portable aún no integrado al render de capas, preview ni export; el orden/visibilidad de capas queda a cargo de los adapters existentes.

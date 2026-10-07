@@ -90,6 +90,8 @@ export { recolorImage } from './recolor';
 export type { RecolorOptions, RecolorResult } from './recolor';
 export { upscaleImage } from './upscaling';
 export type { UpscalingProcessor, UpscalingResult } from './upscaling';
+export { compositeImageBuffer } from './image-compositing';
+export type { ImageBlendMode, ImageCompositeOptions } from './image-compositing';
 export { exportRaster } from './export';
 export type {
   JpegEncoder,

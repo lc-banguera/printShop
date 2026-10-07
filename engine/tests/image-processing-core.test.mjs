@@ -42,6 +42,47 @@ test('image buffer pixel access requires integral in-bounds coordinates and clam
   assert.deepEqual(engine.getPixel(source, 0, 0), [0, 12, 255, 128]);
 });
 
+test('image compositing source-over handles partial alpha without mutating either input', () => {
+  const backdrop = engine.createImageBuffer(1, 1, new Uint8Array([0, 0, 255, 128]));
+  const source = engine.createImageBuffer(1, 1, new Uint8Array([255, 0, 0, 128]));
+
+  const output = engine.compositeImageBuffer(backdrop, source);
+
+  assert.deepEqual(engine.getPixel(output, 0, 0), [170, 0, 85, 192]);
+  assert.deepEqual([...backdrop.data], [0, 0, 255, 128]);
+  assert.deepEqual([...source.data], [255, 0, 0, 128]);
+});
+
+test('image compositing supports offsets, opacity, blend modes and clipped edges', () => {
+  const backdrop = engine.createImageBuffer(2, 1, new Uint8Array([
+    0, 0, 255, 255, 255, 255, 255, 255,
+  ]));
+  const source = engine.createImageBuffer(2, 1, new Uint8Array([
+    255, 0, 0, 255, 0, 255, 0, 255,
+  ]));
+
+  const multiplied = engine.compositeImageBuffer(backdrop, source, {
+    x: -1,
+    opacity: 0.5,
+    blendMode: 'multiply',
+  });
+  assert.deepEqual(engine.getPixel(multiplied, 0, 0), [0, 0, 128, 255]);
+  assert.deepEqual(engine.getPixel(multiplied, 1, 0), [255, 255, 255, 255]);
+
+  const screened = engine.compositeImageBuffer(
+    engine.createImageBuffer(1, 1, new Uint8Array([0, 0, 255, 255])),
+    engine.createImageBuffer(1, 1, new Uint8Array([255, 0, 0, 255])),
+    { blendMode: 'screen' }
+  );
+  assert.deepEqual(engine.getPixel(screened, 0, 0), [255, 0, 255, 255]);
+});
+
+test('image compositing rejects invalid placement and opacity', () => {
+  const pixel = engine.createImageBuffer(1, 1);
+  assert.throws(() => engine.compositeImageBuffer(pixel, pixel, { x: 0.5 }), RangeError);
+  assert.throws(() => engine.compositeImageBuffer(pixel, pixel, { opacity: 1.1 }), RangeError);
+});
+
 test('effect stack is stable, composable, and non-destructive', () => {
   const source = engine.createImageBuffer(1, 1, new Uint8Array([10, 20, 30, 255]));
   const stack = {
