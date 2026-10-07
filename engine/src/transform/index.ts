@@ -1,4 +1,10 @@
 export { TransformSystem } from './transform-system';
+export { getElementGeometry, resizeElementGeometry } from './element-geometry';
+export type {
+  ElementGeometry,
+  ElementResizeInput,
+  ResizedElementGeometry,
+} from './element-geometry';
 export {
   composeAffineTransforms,
   createAffineTransform,
