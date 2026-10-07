@@ -371,9 +371,10 @@
 - `DONE`: preview del Designer clásico y su export raster usan las matrices del engine para rotación, flips y orden de aplicación por capa.
 - `DONE`: `getElementGeometry` calcula centro, matriz afín y bounds rotados con flips; `resizeElementGeometry` normaliza dimensiones, centro, aspect ratio, dimensiones mínimas y signos de flip sin depender del renderer.
 - `DONE`: el adapter Konva proyecta la geometría compartida al centro/offset/rotación/signos de escala de los nodos. El Transformer conserva ratio y persiste resize/rotación usando la geometría canónica; drag/clamping usa bounds transformados, no una fórmula de caja sin rotación.
+- `DONE`: el resize manual del diseñador `/designer/personalize` conserva su ancla y UX actual, pero normaliza dimensiones y proporción bloqueada con `resizeElementGeometry`.
 - Tests de engine cubren bounds rotados con flip, resize con ratio/centro/rotación/flip, tamaño mínimo y rechazo de valores inválidos.
 - Validación de este sub-bloque: `npm --prefix engine test` **PASS** (42/42); typecheck frontend **PASS**; Vite production build **PASS**.
-- `PARTIAL`: falta smoke visual con artwork real cargado en D2 y la geometría aún no se ha integrado en D1/D3 Easy/D3 Advanced; no se afirma paridad runtime/browser de esos flujos.
+- `PARTIAL`: falta smoke visual con artwork real cargado en D2. Designer Easy usa un canvas de imagen única distinto, sin el modelo de capas/resize integrado en este cambio; no se introdujo un adapter artificial. D3 Advanced y la paridad runtime/browser de esos flujos siguen sin verificarse.
 
 ## Image Engine — resolución raster y escala física
 

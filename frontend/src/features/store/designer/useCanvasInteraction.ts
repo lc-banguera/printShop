@@ -18,6 +18,7 @@ import {
   getLayersIntersectingRect,
 } from "./hitTest";
 import { computeSnap } from "./snap";
+import { resizeElementGeometry } from "@/core/design/transform";
 
 interface UseCanvasInteractionProps {
   canvasDomRef: React.RefObject<HTMLDivElement | null>;
@@ -506,14 +507,30 @@ export function useCanvasInteraction({
           x: anchor.x + rotatedMid.x,
           y: anchor.y + rotatedMid.y,
         };
+        const normalizedGeometry = resizeElementGeometry(
+          {
+            x: initial.x - initial.width / 2,
+            y: initial.y - initial.height / 2,
+            width: initial.width,
+            height: initial.height,
+            rotation: rot,
+          },
+          {
+            width: newW,
+            height: newH,
+            center: newCenter,
+            preserveAspectRatio: e.shiftKey && handle.length === 2,
+            minDimension: 20,
+          }
+        );
 
         const nextTransforms = new Map<string, LiveTransformState>();
         nextTransforms.set(layerId, {
           layerId,
-          x: Math.round(newCenter.x),
-          y: Math.round(newCenter.y),
-          width: Math.round(newW),
-          height: Math.round(newH),
+          x: Math.round(normalizedGeometry.x + normalizedGeometry.width / 2),
+          y: Math.round(normalizedGeometry.y + normalizedGeometry.height / 2),
+          width: Math.round(normalizedGeometry.width),
+          height: Math.round(normalizedGeometry.height),
           rotation: rot,
         });
 
