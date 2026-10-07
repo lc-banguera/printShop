@@ -488,11 +488,11 @@ Este track convierte el Design Core existente en una fuente canónica portable e
 | Bloque | Estado | Resultado / siguiente acción |
 |---|---|---|
 | Engine Bootstrap + extracción de bloques 01–06 | DONE | Paquete TypeScript aislado, modelos y managers existentes migrados, fachada frontend compatible y prueba vertical de documento/capas/selección/transformación/undo/redo. |
-| Image Engine Foundation | PENDING | Definir contratos portables para assets originales/derivados, operaciones, efectos, alpha, máscaras, regiones, resultados y providers. Sin algoritmos simulados ni dependencia de proveedor. |
-| Designer 2 — `/designer/new` | PENDING | Integrar document, commands/history, selection, transform y layers del engine en el runtime existente preservando la interfaz y su API. |
-| Designer 3 Easy — `/designer/easy` | PENDING | Consumir contratos/operaciones reales del engine; mantener cualquier procesamiento no implementado explícitamente como pendiente. |
+| Image Processing Engine | PARTIAL | Operaciones puras reales para alpha/masks, effect stack, Remove Background, Halftone, cleanup semitransparencia, análisis/recolor, PNG y DTF preflight. Upscale/JPEG requieren provider/encoder. Pendiente adapter canónico y Worker; no habilitar capacidades de UI sin integración verificada. |
+| Designer 3 Easy — `/designer/easy` | PENDING | Conectar operaciones canónicas verificadas mediante adapter/Worker; preservar honestidad de estados y no habilitar export JPEG/upscale sin configuración real. |
 | Designer 3 Advanced | PENDING | Integrar capacidades comunes una vez verificados sus flujos y contratos. |
 | Designer 1 — `/designer/personalize` | PENDING | Integrar capacidades comunes verificadas, sin inventar funcionalidades específicas del flujo. |
+| Designer 2 — `/designer/new` | PENDING | Integrar document, commands/history, selection, transform y layers del engine en el runtime existente preservando la interfaz y su API; luego conectar export/procesamiento disponibles. |
 | AI Provider + Command Bridge | PENDING | Definir providers/request/response/context/tool/bridge server-side; traducir intenciones a comandos del engine sin acceso a UI/Zustand. |
 | BLOCK 07 — calibración/proyección 3D | DEFERRED | No implementar sin datos de calibración verificables por superficie. |
 

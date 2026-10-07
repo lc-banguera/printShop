@@ -62,3 +62,12 @@ export { recolorImage } from './recolor';
 export type { RecolorOptions, RecolorResult } from './recolor';
 export { upscaleImage } from './upscaling';
 export type { UpscalingProcessor, UpscalingResult } from './upscaling';
+export { exportRaster } from './export';
+export type {
+  JpegEncoder,
+  RasterExportFormat,
+  RasterExportOptions,
+  RasterExportResult,
+} from './export';
+export { runDtfPreflight } from './dtf-preflight';
+export type { DtfPreflightOptions, DtfPreflightResult, PreflightIssue } from './dtf-preflight';

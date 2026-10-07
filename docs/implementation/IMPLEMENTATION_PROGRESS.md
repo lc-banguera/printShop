@@ -276,3 +276,15 @@
 - Validación: `npm test` de `engine` **PASS** (TypeScript build y 1 test). `git diff --check` **PASS**. El build frontend estándar quedó impedido por `frontend/tsconfig.json` usando `ignoreDeprecations: "6.0"` con TypeScript 5.9.3; sin alterar ese cambio externo, `tsc --ignoreDeprecations 5.0` y Vite build pasaron.
 - Estado del commit: `feat(engine): bootstrap portable design engine`.
 - Siguiente bloque: Image Engine Foundation.
+
+## IMAGE PROCESSING ENGINE — PARTIAL
+
+- `DONE`: buffer RGBA portable e independiente del DOM; extracción/aplicación/composición de alpha y masks con dimensiones verificadas; efectos serializables en orden estable, composición additive/replace y salida no destructiva.
+- `DONE`: eliminación local de fondo con muestreo de bordes, flood-fill de cuatro vecinos, distancia perceptual, tolerance, shift, feather y descontaminación; halftone conserva tamaño, ángulo de trama, forma, polaridad, intensidad/contraste, color y alpha.
+- `DONE`: cleanup configurable de semitransparencia, análisis de color/regiones con masks, recolor por tolerancia con alpha/mask, PNG RGBA portable, y DTF preflight con límites físicos explícitos y política de 300 DPI documentada.
+- `PARTIAL`: upscale requiere un `UpscalingProcessor` real y devuelve `NOT_CONFIGURED` si falta; JPEG requiere un encoder inyectado, aplana alpha sobre matte configurable y devuelve `NOT_CONFIGURED` si falta. No se simulan modelos ni codificación.
+- `PENDING`: el frontend aún no consume estos algoritmos canónicos; las funciones Canvas existentes siguen siendo la referencia visual activa hasta completar y validar el adapter. No se marca la integración de D1/D2/D3 como hecha.
+- Validación: `npm --prefix engine test` **PASS** (build TypeScript y 12 tests); PNG verificado por firma, datos zlib y píxel RGBA; operaciones verificadas con tests de comportamiento e inmutabilidad. `git diff --check` **PASS**.
+- Portabilidad: el nuevo código del engine no requiere React, Zustand, Konva, Three.js ni APIs DOM.
+- Commit: `feat(engine): add portable raster processing operations`.
+- Siguiente: adapter único para frontend y ejecución de operaciones raster pesadas en Worker; conectar primero D3 Easy.
