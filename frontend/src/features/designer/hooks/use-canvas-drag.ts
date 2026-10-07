@@ -1,6 +1,7 @@
 import Konva from 'konva';
 import { useCanvasStore } from '@/store/canvas-store';
 import { useViewerStore } from '@/store/viewer-store';
+import { getElementGeometry } from '@/core/design/transform';
 
 export function useCanvasDrag() {
   const activeProduct = useViewerStore((state) => state.activeProduct);
@@ -25,12 +26,14 @@ export function useCanvasDrag() {
     );
     if (movingElements.length === 0) return;
 
-    const left = Math.min(...movingElements.map((element) => element.x));
-    const top = Math.min(...movingElements.map((element) => element.y));
-    const right = Math.max(...movingElements.map((element) => element.x + element.width));
-    const bottom = Math.max(...movingElements.map((element) => element.y + element.height));
-    const proposedDeltaX = node.x() - draggedElement.x;
-    const proposedDeltaY = node.y() - draggedElement.y;
+    const geometries = movingElements.map(getElementGeometry);
+    const left = Math.min(...geometries.map(({ bounds }) => bounds.x));
+    const top = Math.min(...geometries.map(({ bounds }) => bounds.y));
+    const right = Math.max(...geometries.map(({ bounds }) => bounds.x + bounds.width));
+    const bottom = Math.max(...geometries.map(({ bounds }) => bounds.y + bounds.height));
+    const draggedGeometry = getElementGeometry(draggedElement);
+    const proposedDeltaX = node.x() - draggedGeometry.center.x;
+    const proposedDeltaY = node.y() - draggedGeometry.center.y;
     const deltaX = Math.round(Math.min(
       Math.max(proposedDeltaX, activeZone.x - right + 1),
       activeZone.x + activeZone.width - left - 1
@@ -40,8 +43,8 @@ export function useCanvasDrag() {
       activeZone.y + activeZone.height - top - 1
     ));
 
-    node.x(draggedElement.x + deltaX);
-    node.y(draggedElement.y + deltaY);
+    node.x(draggedGeometry.center.x + deltaX);
+    node.y(draggedGeometry.center.y + deltaY);
     if (deltaX !== 0 || deltaY !== 0) {
       state.moveElements(
         movingElements.map((element) => element.id),

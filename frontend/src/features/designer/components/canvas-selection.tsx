@@ -3,6 +3,7 @@ import { Transformer } from 'react-konva';
 import Konva from 'konva';
 import { useCanvasSelection } from '../hooks';
 import { useCanvasStore } from '@/store/canvas-store';
+import { resizeElementGeometry } from '@/core/design/transform';
 
 /**
  * CanvasSelection
@@ -44,20 +45,29 @@ export function CanvasSelection() {
     const updates = nodes.flatMap((node) => {
       if (!(node instanceof Konva.Shape)) return [];
 
-      const width = Math.round(node.width() * node.scaleX());
-      const height = Math.round(node.height() * node.scaleY());
-      const x = Math.round(node.x());
-      const y = Math.round(node.y());
-      // Capture rotation in degrees and persist it — this is DESIGN rotation, not camera
-      const rotation = node.rotation(); // degrees, kept as float for precision
-
-      // Reset scale after baking it into width/height
-      node.scaleX(1);
-      node.scaleY(1);
+      const element = elements.find((candidate) => candidate.id === node.id());
+      if (!element) return [];
+      const geometry = resizeElementGeometry(element, {
+        width: node.width() * Math.abs(node.scaleX()),
+        height: node.height() * Math.abs(node.scaleY()),
+        center: { x: node.x(), y: node.y() },
+        scaleX: node.scaleX(),
+        scaleY: node.scaleY(),
+        preserveAspectRatio: true,
+        minDimension: 1,
+      });
 
       return [{
         elementId: node.id(),
-        updates: { x, y, width, height, scaleX: 1, scaleY: 1, rotation },
+        updates: {
+          x: geometry.x,
+          y: geometry.y,
+          width: geometry.width,
+          height: geometry.height,
+          scaleX: geometry.scaleX,
+          scaleY: geometry.scaleY,
+          rotation: node.rotation(),
+        },
       }];
     });
 
@@ -80,6 +90,7 @@ export function CanvasSelection() {
       // Only corner anchors — keeps UI cleaner for image elements
       enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
       resizeEnabled={true}
+      keepRatio={true}
       // ── Rotation handle ─────────────────────────────────────────────────
       // rotateEnabled=true activates the circular handle above the element.
       // rotateAnchorOffset controls how far above the bounding box the handle appears (px).

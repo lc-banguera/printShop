@@ -345,7 +345,7 @@
 
 **Riesgos**: Alto — mayor bloque de migración. Dividir en sub-bloques si es necesario.
 
-**Estado actual**: `BLOCKED (PARTIAL)`. Las mutaciones principales de D2 usan el Design Core y el Command System; el workspace no consume el Tool Registry. Sus tabs actuales son navegación de paneles y no equivalen a herramientas de puntero. Ver ADR-019.
+**Estado actual**: `BLOCKED (PARTIAL)`. Las mutaciones principales de D2 usan el Design Core y el Command System; Konva comparte geometría afín, bounds de drag y normalización de resize con el engine. La integración global sigue bloqueada parcialmente porque el workspace no consume el Tool Registry. Sus tabs actuales son navegación de paneles y no equivalen a herramientas de puntero. Ver ADR-019.
 
 **Siguiente bloque**: BLOCK 13
 

@@ -13,14 +13,14 @@
 | BLOCK 02 — Document Model | DONE | Creación/versionado, validación, JSON serializer y adaptador de canvas; build, lint focalizado y pruebas runtime pasan. Commit independiente. |
 | BLOCK 03 — Command System + History | DONE | CommandSystem y comandos add/update/remove/reorder integrados al store; undo/redo y ramificación verificados. Build/lint/runtime pasan. Commit independiente. |
 | BLOCK 04 — Layers | DONE | LayerManager y comandos undoables de reorder/lock/visibility conectados al canvasStore y a las acciones de capas de Designer 2. |
-| BLOCK 05 — Selection + Transform | DONE | SelectionManager y TransformSystem integrados al store, Designer 2 y bridge Konva; operaciones múltiples atómicas y undoables. |
+| BLOCK 05 — Selection + Transform | DONE | SelectionManager y TransformSystem integrados al store; Designer 2 adapta geometría, flips, bounds y resize de Konva al engine, con operaciones undoables preservadas. |
 | BLOCK 06 — Tool Registry + Tool Context | DONE | Registry del Design Core, filtrado explícito por capabilities y transición de ciclo de vida conectada al hook; configuración y Zustand legacy preservados. |
 | BLOCK 07 — Product Surface | BLOCKED | Límites y operaciones 2D leen la superficie/zona del producto activo; el decal frontal toma el printable area del producto. El GLB solo ofrece calibración física etiquetada `FRONT`; no hay evidencia para proyectar con fidelidad los decals en espalda, mangas o etiqueta. |
 | BLOCK 08 — 2D Renderer Adapter | DONE | Contrato 2D independiente de Konva y adapter Konva integrado al canvas; filtra elementos por la superficie activa. No realiza proyección 3D ni cambia el estado de BLOCK 07. |
 | BLOCK 09 — 3D Renderer Adapter | DONE | Contrato 3D neutral al framework y adapter Three.js integrado al flujo de decals. Emite descriptores únicamente para `front`; las zonas no calibradas siguen excluidas y BLOCK 07 continúa `BLOCKED`. |
 | BLOCK 10 — Asset System | DONE | AssetManager compartido registra la biblioteca local y uploads temporales de D2/D3 Easy con IDs únicos y URLs inmutables; cleanup revoca object URLs. No se añade persistencia ni caché binaria. |
 | BLOCK 11 — Image Processing Foundation | DONE | API compartida procesa los siete `ArtworkFilters` con `OffscreenCanvas` en Web Worker y devuelve PNG sin alterar el Blob original. La integración de UI no está incluida en este bloque. |
-| BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Las mutaciones principales de D2 ya pasan por managers/comandos del Core, pero `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles; mapearlos a tools alteraría su semántica y los descriptores registrados no tienen handlers de interacción. |
+| BLOCK 12 — Designer 2 Integration | BLOCKED (PARTIAL) | Geometría 2D compartida, flips, bounds de drag y resize de Konva conectados al engine; la integración global sigue parcial porque `Designer2Workspace` no consume `useActiveTool`/Tool Registry. Sus tabs son navegación de paneles y no se reinterpretan como herramientas. |
 | BLOCK 13 — Designer 1 Integration | BLOCKED | Depende de BLOCK 12 y su funcionalidad específica sigue `UNKNOWN`; `/designer/personalize` monta un layout compartido. |
 | BLOCK 14 — Designer 3 Easy | PARTIAL / BLOCKED | Eliminación local de fondo y limpieza de semitransparencia usan el Worker; presets y exportación de producción siguen pendientes. El algoritmo local no sustituye un provider externo de background removal. |
 | BLOCK 15 — Designer 3 Advanced | BLOCKED | Depende de BLOCK 14; las capacidades específicas son `UNKNOWN` y la ruta comparte `DesignerLayout` con Personalizer. |
@@ -369,7 +369,11 @@
 - `DONE`: `frontend/src/features/store/designer/coordinates.ts` conserva sus APIs existentes y delega rotación y bounds al engine; hit-testing y handles mantienen consumidores y contratos.
 - Tests cubren rotación y sentido de coordenadas, orden de composición, round-trip inverso, bounds rotados y rechazo explícito de valores/singularidades inválidos.
 - `DONE`: preview del Designer clásico y su export raster usan las matrices del engine para rotación, flips y orden de aplicación por capa.
-- `PARTIAL`: rendering Konva/D2 y gestos de resize aún no consumen la misma matriz; verificar también la paridad visual de flip global entre preview y export antes de extender a otros designers.
+- `DONE`: `getElementGeometry` calcula centro, matriz afín y bounds rotados con flips; `resizeElementGeometry` normaliza dimensiones, centro, aspect ratio, dimensiones mínimas y signos de flip sin depender del renderer.
+- `DONE`: el adapter Konva proyecta la geometría compartida al centro/offset/rotación/signos de escala de los nodos. El Transformer conserva ratio y persiste resize/rotación usando la geometría canónica; drag/clamping usa bounds transformados, no una fórmula de caja sin rotación.
+- Tests de engine cubren bounds rotados con flip, resize con ratio/centro/rotación/flip, tamaño mínimo y rechazo de valores inválidos.
+- Validación de este sub-bloque: `npm --prefix engine test` **PASS** (42/42); typecheck frontend **PASS**; Vite production build **PASS**.
+- `PARTIAL`: falta smoke visual con artwork real cargado en D2 y la geometría aún no se ha integrado en D1/D3 Easy/D3 Advanced; no se afirma paridad runtime/browser de esos flujos.
 
 ## Image Engine — resolución raster y escala física
 

@@ -1,4 +1,5 @@
 import type { Renderer2DAdapter } from '@/core/design/renderer';
+import { getElementGeometry } from '@/core/design/transform';
 
 export const konvaRenderer: Renderer2DAdapter = {
   renderElement(element, surface) {
@@ -8,6 +9,7 @@ export const konvaRenderer: Renderer2DAdapter = {
 
     const source = element.originalImageSrc ?? element.image;
     if (!source) return null;
+    const { center } = getElementGeometry(element);
 
     return {
       kind: 'image',
@@ -17,6 +19,12 @@ export const konvaRenderer: Renderer2DAdapter = {
       y: element.y,
       width: element.width,
       height: element.height,
+      centerX: center.x,
+      centerY: center.y,
+      offsetX: element.width / 2,
+      offsetY: element.height / 2,
+      scaleX: Math.sign(element.scaleX ?? 1),
+      scaleY: Math.sign(element.scaleY ?? 1),
       rotation: element.rotation ?? 0,
       opacity: element.opacity ?? 1,
       visible: element.visible ?? true,

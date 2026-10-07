@@ -8,6 +8,12 @@ export interface RenderableImage {
   y: number;
   width: number;
   height: number;
+  centerX: number;
+  centerY: number;
+  offsetX: number;
+  offsetY: number;
+  scaleX: number;
+  scaleY: number;
   rotation: number;
   opacity: number;
   visible: boolean;
