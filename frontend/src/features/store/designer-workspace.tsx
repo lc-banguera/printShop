@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {
-  AlignCenter, AlignHorizontalDistributeCenter, AlignLeft, AlignRight, AlignVerticalDistributeCenter, ArrowLeft, ArrowDown, ArrowUp, BringToFront, Check, ChevronDown, ChevronUp, Circle, Contrast, Crop, Download, Eraser, Eye, EyeOff, FlipHorizontal, FlipVertical, Frame, Grid2X2, Group, Hand, History, Image as ImageIcon, ImageMinus, Lock, Minus, Move, MousePointer2, Palette, PenTool, Pipette, Plus, Redo2, RotateCw, Save, ScanLine, Shapes, SlidersHorizontal, Sparkles, Square, Star, Triangle as TriangleIcon, Type, Undo2, Ungroup, Unlock, Wand2, X, ZoomIn, ZoomOut,
+  AlignCenter, AlignHorizontalDistributeCenter, AlignLeft, AlignRight, AlignVerticalDistributeCenter, ArrowLeft, ArrowDown, ArrowUp, BringToFront, ChevronDown, ChevronUp, Circle, Contrast, Crop, Download, Eraser, Eye, EyeOff, FlipHorizontal, FlipVertical, Frame, Grid2X2, Group, Hand, History, Image as ImageIcon, ImageMinus, Lock, Minus, Move, MousePointer2, Palette, PenTool, Pipette, Plus, Redo2, RotateCw, Save, ScanLine, Shapes, SlidersHorizontal, Sparkles, Square, Star, Triangle as TriangleIcon, Type, Undo2, Ungroup, Unlock, Wand2, X, ZoomIn, ZoomOut,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { InteractiveCanvas } from './designer/InteractiveCanvas';
@@ -21,7 +21,7 @@ type Panel = 'select' | 'crop' | 'draw' | 'image' | 'text' | 'shape' | 'color' |
 export type DesignerWorkspaceLayer = DesignerLayer;
 interface FilterValues { brightness: number; contrast: number; saturation: number; grayscale: number; sepia: number; invert: number; blur: number; }
 const DEFAULT_FILTERS: FilterValues = { brightness: 100, contrast: 100, saturation: 100, grayscale: 0, sepia: 0, invert: 0, blur: 0 };
-interface Tool { id: string; label: string; shortcut?: string; icon: React.ElementType; panel: Panel; prepared?: boolean; }
+interface Tool { id: string; label: string; shortcut?: string; icon: React.ElementType; panel: Panel; hasPanel?: boolean; disabled?: boolean; unavailableReason?: string; }
 
 const MENU_CONFIG = [
   { label: 'Archivo', items: ['Nuevo', 'Abrir', 'Recientes', '—', 'Guardar', 'Guardar como', 'Exportar', 'Cerrar'] },
@@ -36,15 +36,30 @@ const MENU_CONFIG = [
   { label: 'Ayuda', items: ['Atajos de teclado', 'Ayuda', 'Centro de ayuda', 'Acerca de PrintShop Designer'] },
 ] as const;
 
-/** Centralized tool model. Phase 2 can bind each id to a canvas action independently. */
+const MENU_UNAVAILABLE_REASONS: Record<string, Record<string, string>> = {
+  Seleccionar: {
+    Rectangular: 'Las selecciones geométricas no están conectadas al modelo de selección Advanced.',
+    Elíptica: 'Las selecciones geométricas no están conectadas al modelo de selección Advanced.',
+    'Varita mágica': 'La selección por máscara no está integrada en Advanced.',
+    'Por color': 'La selección por color no está integrada en Advanced.',
+    Libre: 'La selección libre no está conectada al modelo de selección Advanced.',
+  },
+  Ver: {
+    'Ajustar a cuadrícula': 'El ajuste a cuadrícula no está conectado a las transformaciones del canvas.',
+    'Ajustar a guías': 'El ajuste a guías no está conectado a las transformaciones del canvas.',
+    'Ajustar a objetos': 'El ajuste a objetos no está conectado a las transformaciones del canvas.',
+  },
+};
+
+/** Centralized tool model; unavailable actions stay visible with an explicit reason. */
 const TOOL_GROUPS: { label: string; tools: Tool[] }[] = [
-  { label: 'Selección', tools: [{ id: 'select', label: 'Seleccionar', shortcut: 'V', icon: MousePointer2, panel: 'select' }, { id: 'move', label: 'Mover', shortcut: 'M', icon: Move, panel: 'select' }, { id: 'transform', label: 'Transformar', icon: Frame, panel: 'select', prepared: true }, { id: 'crop', label: 'Recortar', shortcut: 'C', icon: Crop, panel: 'crop', prepared: true }] },
-  { label: 'Dibujo', tools: [{ id: 'brush', label: 'Pincel', shortcut: 'B', icon: Palette, panel: 'draw', prepared: true }, { id: 'pen', label: 'Pluma', icon: PenTool, panel: 'draw', prepared: true }, { id: 'eraser', label: 'Borrador', icon: Eraser, panel: 'draw', prepared: true }] },
-  { label: 'Selección avanzada', tools: [{ id: 'magic', label: 'Varita mágica', icon: Wand2, panel: 'image', prepared: true }, { id: 'color-select', label: 'Selección por color', icon: Pipette, panel: 'image', prepared: true }] },
-  { label: 'Imagen', tools: [{ id: 'background', label: 'Quitar fondo', icon: ImageMinus, panel: 'image', prepared: true }, { id: 'vectorize', label: 'Vectorizar', icon: Wand2, panel: 'image', prepared: true }, { id: 'adjustments', label: 'Ajustes', icon: SlidersHorizontal, panel: 'image', prepared: true }, { id: 'filters', label: 'Filtros', icon: Contrast, panel: 'image', prepared: true }, { id: 'effects', label: 'Efectos', icon: Sparkles, panel: 'image', prepared: true }] },
-  { label: 'Crear', tools: [{ id: 'text', label: 'Texto', shortcut: 'T', icon: Type, panel: 'text', prepared: true }, { id: 'shapes', label: 'Formas', shortcut: 'U', icon: Shapes, panel: 'shape', prepared: true }, { id: 'picker', label: 'Cuentagotas', icon: Pipette, panel: 'color', prepared: true }] },
-  { label: 'Orden', tools: [{ id: 'arrange', label: 'Alinear y distribuir', icon: AlignCenter, panel: 'arrange', prepared: true }, { id: 'group', label: 'Agrupar elementos', icon: Group, panel: 'arrange', prepared: true }] },
-  { label: 'Vista', tools: [{ id: 'hand', label: 'Mano', shortcut: 'H', icon: Hand, panel: 'view' }, { id: 'zoom', label: 'Zoom', shortcut: 'Z', icon: ZoomIn, panel: 'view' }, { id: 'guides', label: 'Guías y cuadrícula', icon: Grid2X2, panel: 'view', prepared: true }] },
+  { label: 'Selección', tools: [{ id: 'select', label: 'Seleccionar', shortcut: 'V', icon: MousePointer2, panel: 'select' }, { id: 'move', label: 'Mover', shortcut: 'M', icon: Move, panel: 'select' }, { id: 'transform', label: 'Transformar', icon: Frame, panel: 'select', hasPanel: true }, { id: 'crop', label: 'Recortar', shortcut: 'C', icon: Crop, panel: 'crop', hasPanel: true }] },
+  { label: 'Dibujo', tools: [{ id: 'brush', label: 'Pincel', shortcut: 'B', icon: Palette, panel: 'draw', disabled: true, unavailableReason: 'El trazo raster no está conectado al canvas ni al documento.' }, { id: 'pen', label: 'Pluma', icon: PenTool, panel: 'draw', disabled: true, unavailableReason: 'La edición de trazados vectoriales no está configurada.' }, { id: 'eraser', label: 'Borrador', icon: Eraser, panel: 'draw', disabled: true, unavailableReason: 'El borrado directo sobre el canvas no está configurado.' }] },
+  { label: 'Selección avanzada', tools: [{ id: 'magic', label: 'Varita mágica', icon: Wand2, panel: 'image', disabled: true, unavailableReason: 'La máscara local aún no está integrada como selección en Advanced.' }, { id: 'color-select', label: 'Selección por color', icon: Pipette, panel: 'image', disabled: true, unavailableReason: 'La selección por color aún no está integrada en Advanced.' }] },
+  { label: 'Imagen', tools: [{ id: 'background', label: 'Quitar fondo', icon: ImageMinus, panel: 'image', hasPanel: true }, { id: 'vectorize', label: 'Vectorizar', icon: Wand2, panel: 'image', disabled: true, unavailableReason: 'No hay un vectorizador local o provider conectado a Advanced.' }, { id: 'adjustments', label: 'Ajustes', icon: SlidersHorizontal, panel: 'image' }, { id: 'filters', label: 'Filtros', icon: Contrast, panel: 'image' }, { id: 'effects', label: 'Efectos', icon: Sparkles, panel: 'image', disabled: true, unavailableReason: 'Sombras, resplandor y borde no tienen un modelo de capa/export configurado.' }] },
+  { label: 'Crear', tools: [{ id: 'text', label: 'Texto', shortcut: 'T', icon: Type, panel: 'text', hasPanel: true }, { id: 'shapes', label: 'Formas', shortcut: 'U', icon: Shapes, panel: 'shape', hasPanel: true }, { id: 'picker', label: 'Cuentagotas', icon: Pipette, panel: 'color', disabled: true, unavailableReason: 'La lectura de color desde el canvas no está conectada.' }] },
+  { label: 'Orden', tools: [{ id: 'arrange', label: 'Alinear y distribuir', icon: AlignCenter, panel: 'arrange', hasPanel: true }, { id: 'group', label: 'Agrupar elementos', icon: Group, panel: 'arrange', disabled: true, unavailableReason: 'La estructura de grupos no está configurada en el documento.' }] },
+  { label: 'Vista', tools: [{ id: 'hand', label: 'Mano', shortcut: 'H', icon: Hand, panel: 'view' }, { id: 'zoom', label: 'Zoom', shortcut: 'Z', icon: ZoomIn, panel: 'view' }, { id: 'guides', label: 'Guías y cuadrícula', icon: Grid2X2, panel: 'view', hasPanel: true }] },
 ];
 
 export function DesignerWorkspace({
@@ -199,8 +214,6 @@ export function DesignerWorkspace({
   const [showRulers, setShowRulers] = React.useState(false);
   const [showGuides, setShowGuides] = React.useState(false);
   const [showSafeArea, setShowSafeArea] = React.useState(true);
-  const [blendMode, setBlendMode] = React.useState('Normal');
-  const [opacity, setOpacity] = React.useState(100);
   const [tab, setTab] = React.useState<'properties' | 'layers' | 'history'>('properties');
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const [openToolGroup, setOpenToolGroup] = React.useState<string | null>(null);
@@ -332,31 +345,58 @@ export function DesignerWorkspace({
     'Alinear centro': () => onUpdateSelectedText({ textAlign: 'center' }),
     'Alinear derecha': () => onUpdateSelectedText({ textAlign: 'right' }),
   };
+  const windowActions: Record<string, () => void> = {
+    Capas: () => setTab('layers'),
+    Propiedades: () => setTab('properties'),
+    Historial: () => setTab('history'),
+  };
+  const menuActions: Record<string, Record<string, () => void>> = {
+    Archivo: fileActions,
+    Editar: editActions,
+    Imagen: imageActions,
+    Capa: layerActions,
+    Texto: textActions,
+    Seleccionar: selectionActions,
+    Filtro: filterActions,
+    Ver: viewActions,
+    Ventana: windowActions,
+  };
 
   return <div className="flex h-[calc(100vh-64px)] min-h-[620px] flex-col overflow-hidden bg-[#FBFBFD] font-sans text-[#111827] select-none">
     <header className="relative z-40 shrink-0 border-b border-[#E5E7EB] bg-white">
       <div className="flex h-8 items-center border-b border-[#E5E7EB] px-3">
         <nav className="flex h-full items-stretch gap-0.5">
-          {MENU_CONFIG.map((menu) => (
-            <div key={menu.label} className="relative">
-              <button
-                type="button"
-                onClick={() => setOpenMenu((current) => current === menu.label ? null : menu.label)}
-                className={cn('h-full px-2 text-[11px] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#111827]', openMenu === menu.label && 'bg-[#EFF6FF] text-[#2563EB]')}
-              >
-                {menu.label}
-              </button>
-              {openMenu === menu.label && (
-                <MenuDropdown
-                  items={menu.items}
-                  onClose={() => setOpenMenu(null)}
-                  onSelect={(item) => {
-                    (menu.label === 'Archivo' ? fileActions : menu.label === 'Editar' ? editActions : menu.label === 'Imagen' ? imageActions : menu.label === 'Capa' ? layerActions : menu.label === 'Texto' ? textActions : menu.label === 'Seleccionar' ? selectionActions : menu.label === 'Filtro' ? filterActions : menu.label === 'Ver' ? viewActions : {})[item]?.();
-                  }}
-                />
-              )}
-            </div>
-          ))}
+          {MENU_CONFIG.map((menu) => {
+            const actions = menuActions[menu.label] ?? {};
+            const unavailableReasons = Object.fromEntries(
+              menu.items
+                .filter((item) => item !== '—' && !actions[item])
+                .map((item) => [
+                  item,
+                  MENU_UNAVAILABLE_REASONS[menu.label]?.[item]
+                    ?? 'Esta acción no está configurada en Designer 3 Advanced.',
+                ]),
+            );
+            return (
+              <div key={menu.label} className="relative">
+                <button
+                  type="button"
+                  onClick={() => setOpenMenu((current) => current === menu.label ? null : menu.label)}
+                  className={cn('h-full px-2 text-[11px] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#111827]', openMenu === menu.label && 'bg-[#EFF6FF] text-[#2563EB]')}
+                >
+                  {menu.label}
+                </button>
+                {openMenu === menu.label && (
+                  <MenuDropdown
+                    items={menu.items}
+                    unavailableReasons={unavailableReasons}
+                    onClose={() => setOpenMenu(null)}
+                    onSelect={(item) => actions[item]?.()}
+                  />
+                )}
+              </div>
+            );
+          })}
         </nav>
       </div>
       <div className="flex h-11 items-center justify-between px-3 sm:px-4">
@@ -417,6 +457,16 @@ export function DesignerWorkspace({
           group={TOOL_GROUPS.find((group) => group.label === openToolGroup)!}
           activeTool={activeTool}
           onSelect={(id) => {
+            if (id === 'adjustments') {
+              setOpenToolGroup(null);
+              onAdjustments();
+              return;
+            }
+            if (id === 'filters') {
+              setOpenToolGroup(null);
+              setFilterDialog(true);
+              return;
+            }
             setActiveTool(id);
             setOpenToolGroup(null);
             setTab('properties');
@@ -496,10 +546,12 @@ export function DesignerWorkspace({
             <Properties
               kind={kind}
               activeTool={active}
-              opacity={opacity}
-              setOpacity={setOpacity}
-              blendMode={blendMode}
-              setBlendMode={setBlendMode}
+              opacity={selected?.opacity ?? 100}
+              setOpacity={(value) => {
+                if (selected && !selected.locked && selectedLayerIds.length <= 1) {
+                  onUpdateLayer?.(selected.id, { opacity: value });
+                }
+              }}
               textLayer={selectedTextLayer}
               selectedLayer={selected}
               selectedLayerCount={selectedLayerIds.length}
@@ -524,6 +576,7 @@ export function DesignerWorkspace({
               onMoveLayerDown={onMoveLayerDown}
               onBringLayerToFront={onBringLayerToFront}
               onSendLayerToBack={onSendLayerToBack}
+              onDuplicateLayer={onDuplicateLayer}
             />
           )}
           {tab === 'history' && <HistoryPanel/>}
@@ -532,7 +585,7 @@ export function DesignerWorkspace({
     </div>
 
     <footer className="flex h-7 shrink-0 items-center justify-between border-t border-[#E5E7EB] bg-white px-3 text-[10px] text-[#64748B]">
-      <span>{active.label}{active.shortcut ? ` · ${active.shortcut}` : ''}{active.prepared ? ' · Interfaz preparada' : ''}</span>
+      <span>{active.label}{active.shortcut ? ` · ${active.shortcut}` : ''}</span>
       <span>RGB · 300 DPI · {zoom}% · Pan ({pan.x}, {pan.y})</span>
     </footer>
 
@@ -599,22 +652,53 @@ export function DesignerWorkspace({
   </div>;
 }
 
-function MenuDropdown({ items, onClose, onSelect }: { items: readonly string[]; onClose: () => void; onSelect: (item: string) => void }) {
+function MenuDropdown({
+  items,
+  unavailableReasons,
+  onClose,
+  onSelect,
+}: {
+  items: readonly string[];
+  unavailableReasons: Record<string, string>;
+  onClose: () => void;
+  onSelect: (item: string) => void;
+}) {
   return (
     <div className="absolute left-0 top-full z-50 mt-px w-52 border border-[#E2E8F0] bg-white py-1 shadow-md">
-      {items.map((item, index) => item === '—' ? (
-        <span key={`${item}-${index}`} className="my-1 block h-px bg-[#F1F5F9]"/>
-      ) : (
-        <button
-          key={item}
-          type="button"
-          onClick={() => { onClose(); onSelect(item); }}
-          className="flex w-full items-center justify-between px-3 py-1.5 text-left text-[11px] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#111827]"
-        >
-          <span>{item.replace(' ›', '')}</span>
-          {item.endsWith('›') && <ChevronDown className="h-3 w-3 -rotate-90"/>}
-        </button>
-      ))}
+      {items.map((item, index) => {
+        if (item === '—') {
+          return <span key={`${item}-${index}`} className="my-1 block h-px bg-[#F1F5F9]"/>;
+        }
+
+        const unavailableReason = unavailableReasons[item];
+        const reasonId = `menu-unavailable-${item.toLowerCase().replace(/\s+/g, '-')}`;
+        return (
+          <div key={item}>
+            <button
+              type="button"
+              aria-disabled={Boolean(unavailableReason)}
+              aria-describedby={unavailableReason ? reasonId : undefined}
+              title={unavailableReason}
+              onClick={() => {
+                if (unavailableReason) return;
+                onClose();
+                onSelect(item);
+              }}
+              className={cn('flex w-full items-center justify-between px-3 py-1.5 text-left text-[11px] text-[#475569]', unavailableReason ? 'cursor-not-allowed opacity-60' : 'hover:bg-[#F8FAFC] hover:text-[#111827]')}
+            >
+              <span className="flex-1">{item.replace(' ›', '')}</span>
+              {unavailableReason ? (
+                <span className="ml-2 text-[9px] text-[#64748B]">No configurado</span>
+              ) : item.endsWith('›') ? (
+                <ChevronDown className="h-3 w-3 -rotate-90"/>
+              ) : null}
+            </button>
+            {unavailableReason && (
+              <p id={reasonId} className="px-3 pb-1.5 text-[9px] leading-snug text-[#64748B]">{unavailableReason}</p>
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -735,17 +819,26 @@ function ToolFlyout({ group, activeTool, onSelect }: { group: { label: string; t
       {group.tools.map((tool) => {
         const Icon = tool.icon;
         return (
-          <button
-            key={tool.id}
-            type="button"
-            onClick={() => onSelect(tool.id)}
-            className={cn('flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] text-[#475569] hover:bg-[#F8FAFC] hover:text-[#111827]', activeTool === tool.id && 'bg-[#EFF6FF] text-[#2563EB]')}
-          >
-            <Icon className="h-3.5 w-3.5" strokeWidth={1.75}/>
-            <span className="flex-1">{tool.label}</span>
-            {tool.shortcut && <span className="font-mono text-[10px] text-[#94A3B8]">{tool.shortcut}</span>}
-            {tool.prepared && <span className="h-1.5 w-1.5 rounded-full bg-[#2563EB]"/>}
-          </button>
+          <div key={tool.id}>
+            <button
+              type="button"
+              aria-disabled={tool.disabled || undefined}
+              aria-describedby={tool.disabled ? `tool-unavailable-${tool.id}` : undefined}
+              title={tool.unavailableReason}
+              onClick={() => {
+                if (!tool.disabled) onSelect(tool.id);
+              }}
+              className={cn('flex w-full items-center gap-2 px-3 py-2 text-left text-[11px] text-[#475569]', !tool.disabled && 'hover:bg-[#F8FAFC] hover:text-[#111827]', tool.disabled && 'cursor-not-allowed opacity-50', activeTool === tool.id && 'bg-[#EFF6FF] text-[#2563EB]')}
+            >
+              <Icon className="h-3.5 w-3.5" strokeWidth={1.75}/>
+              <span className="flex-1">{tool.label}</span>
+              {tool.disabled && <span className="text-[9px] text-[#64748B]">No configurado</span>}
+              {tool.shortcut && <span className="font-mono text-[10px] text-[#94A3B8]">{tool.shortcut}</span>}
+            </button>
+            {tool.disabled && tool.unavailableReason && (
+              <p id={`tool-unavailable-${tool.id}`} className="px-8 pb-1.5 text-[9px] leading-snug text-[#64748B]">{tool.unavailableReason}</p>
+            )}
+          </div>
         );
       })}
     </div>
@@ -1132,15 +1225,11 @@ function ToolContent({
           Elimina el fondo de una imagen seleccionada mediante detección inteligente de bordes y flood-fill.
         </p>
         <p className="text-[10px] text-[#2563EB] bg-[#EFF6FF] p-2 rounded border border-[#BFDBFE]">
-          Selecciona una única capa de imagen y abre "Eliminar fondo" en el panel de propiedades.
+          Selecciona una única capa de imagen y abre Eliminar fondo en el panel de propiedades.
         </p>
       </Panel>
     );
   }
-  if (id === 'vectorize') return <Panel title="Vectorizar imagen"><Range label="Umbral" value="128"/><Range label="Número de colores" value="4"/><Range label="Suavizado" value="60"/><Range label="Detalle" value="60"/><CheckRow label="Eliminar ruido"/><Actions primary="Convertir"/></Panel>;
-  if (id === 'adjustments') return <Adjustments/>;
-  if (id === 'filters') return <Filters/>;
-  if (id === 'effects') return <Effects/>;
   if (id === 'crop') return (
     <Panel title="Recortar Imagen">
       <p className="text-[11px] text-[#64748B]">Selecciona una capa de imagen y abre el modal de recorte interactivo con proporciones fijas o libres.</p>
@@ -1154,7 +1243,7 @@ function ToolContent({
       </button>
     </Panel>
   );
-  if (id === 'text') return <Panel title="Tipografía"><Select label="Fuente" values={['Inter', 'Montserrat', 'Poppins']}/><div className="grid grid-cols-2 gap-2"><Field label="Tamaño" value="48 px"/><Field label="Interlineado" value="1.2"/></div><div className="flex gap-1"><ActionIcon icon={AlignLeft} label="Alinear izquierda"/><ActionIcon icon={AlignCenter} label="Alinear centro"/><ActionIcon icon={AlignRight} label="Alinear derecha"/></div><CheckRow label="Mayúsculas"/><CheckRow label="Subrayado"/></Panel>;
+  if (id === 'text') return <Panel title="Texto"><p className="text-[11px] leading-relaxed text-[#64748B]">La capa de texto ya está en el lienzo. Edita contenido, fuente, tamaño, alineación y color en las propiedades de la capa.</p></Panel>;
   if (id === 'shapes') return (
     <Panel title="Insertar Formas">
       <p className="text-[10px] text-[#64748B] mb-2">Haz clic para añadir una forma al lienzo como nueva capa:</p>
@@ -1194,9 +1283,8 @@ function ToolContent({
       </div>
     </Panel>
   );
-  if (id === 'guides') return <Panel title="Visualización"><CheckRow label="Mostrar cuadrícula" defaultChecked/><CheckRow label="Mostrar reglas"/><CheckRow label="Ajustar a cuadrícula"/><CheckRow label="Ajustar a guías"/><CheckRow label="Ajustar a objetos"/></Panel>;
-  if (id === 'arrange' || id === 'group') return <AlignDistributePanel onAlign={onAlign} onDistribute={onDistribute} />;
-  if (id === 'magic' || id === 'color-select') return <Panel title={id === 'magic' ? 'Selección inteligente' : 'Selección por color'}><Range label="Tolerancia" value="35"/><CheckRow label="Contiguo"/><CheckRow label="Suavizar bordes"/></Panel>;
+  if (id === 'guides') return <Panel title="Visualización"><p className="text-[11px] leading-relaxed text-[#64748B]">Cuadrícula, reglas y área segura se controlan desde los botones de la barra inferior o el menú Ver.</p></Panel>;
+  if (id === 'arrange') return <AlignDistributePanel onAlign={onAlign} onDistribute={onDistribute} />;
   return null;
 }
 
@@ -1205,8 +1293,6 @@ function Properties({
   activeTool,
   opacity,
   setOpacity,
-  blendMode,
-  setBlendMode,
   textLayer,
   selectedLayer,
   selectedLayerCount,
@@ -1221,8 +1307,6 @@ function Properties({
   activeTool: Tool;
   opacity: number;
   setOpacity: (value: number) => void;
-  blendMode: string;
-  setBlendMode: (value: string) => void;
   textLayer?: DesignerWorkspaceLayer;
   selectedLayer?: DesignerWorkspaceLayer;
   selectedLayerCount?: number;
@@ -1233,7 +1317,16 @@ function Properties({
   onDistribute?: (type: DistributionType) => void;
   onOpenCrop?: () => void;
 }) {
-  const showToolPanel = activeTool.prepared && !['select', 'move', 'transform', 'hand', 'zoom'].includes(activeTool.id);
+  const showToolPanel = activeTool.hasPanel && !['select', 'move', 'transform', 'hand', 'zoom'].includes(activeTool.id);
+  const opacityUnavailableReason = !onUpdateLayer
+    ? 'La actualización de capas no está disponible.'
+    : !selectedLayer
+      ? 'Selecciona una capa para editar su opacidad.'
+      : selectedLayer.locked
+        ? 'Desbloquea la capa para editar su opacidad.'
+        : (selectedLayerCount ?? 0) > 1
+          ? 'Selecciona una sola capa para editar la opacidad.'
+          : undefined;
   return (
     <div className="space-y-4 p-3">
       {showToolPanel && (
@@ -1361,12 +1454,9 @@ function Properties({
       )}
 
       <Panel title="Apariencia">
-        <Select
-          label="Modo de fusión"
-          values={['Normal', 'Oscurecer', 'Multiplicar', 'Aclarar', 'Trama', 'Superponer', 'Luz suave', 'Luz fuerte', 'Diferencia', 'Exclusión']}
-          value={blendMode}
-          onChange={setBlendMode}
-        />
+        <p role="status" className="rounded border border-[#E2E8F0] bg-[#F8FAFC] p-2 text-[10px] leading-relaxed text-[#64748B]">
+          Solo está configurado el modo de fusión Normal. Los modos alternativos no se aplican al renderizado ni a la exportación.
+        </p>
         <label className="block">
           <span className="mb-1 flex justify-between text-[10px] text-[#64748B]">
             <span>Opacidad del elemento</span>
@@ -1377,9 +1467,12 @@ function Properties({
             min="0"
             max="100"
             value={opacity}
+            disabled={Boolean(opacityUnavailableReason)}
+            aria-describedby={opacityUnavailableReason ? 'opacity-unavailable-reason' : undefined}
             onChange={(event) => setOpacity(Number(event.target.value))}
-            className="h-1.5 w-full accent-[#2563EB]"
+            className="h-1.5 w-full accent-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50"
           />
+          {opacityUnavailableReason && <span id="opacity-unavailable-reason" role="status" className="mt-1 block text-[9px] text-[#64748B]">{opacityUnavailableReason}</span>}
         </label>
       </Panel>
       <Effects/>
@@ -1399,6 +1492,7 @@ function LayersPanel({
   onMoveLayerDown,
   onBringLayerToFront,
   onSendLayerToBack,
+  onDuplicateLayer,
 }: {
   layers: DesignerWorkspaceLayer[];
   selectedLayers: string[];
@@ -1411,9 +1505,65 @@ function LayersPanel({
   onMoveLayerDown?: () => void;
   onBringLayerToFront?: () => void;
   onSendLayerToBack?: () => void;
+  onDuplicateLayer: () => void;
 }) {
+  const [contextMenu, setContextMenu] = React.useState<{
+    x: number;
+    y: number;
+    layerId: string;
+  } | null>(null);
+  const contextMenuRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (!contextMenu) return;
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        event.target instanceof Node &&
+        !contextMenuRef.current?.contains(event.target)
+      ) {
+        setContextMenu(null);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setContextMenu(null);
+    };
+    window.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [contextMenu]);
+
+  const showLayerContextMenu = (
+    event: React.MouseEvent<HTMLDivElement>,
+    layer: DesignerWorkspaceLayer,
+  ) => {
+    event.preventDefault();
+    if (!selectedLayers.includes(layer.id)) onSelect(layer.id);
+    const menuWidth = 196;
+    const menuHeight = 284;
+    setContextMenu({
+      x: Math.max(8, Math.min(event.clientX, window.innerWidth - menuWidth - 8)),
+      y: Math.max(8, Math.min(event.clientY, window.innerHeight - menuHeight - 8)),
+      layerId: layer.id,
+    });
+  };
+
+  const contextLayer = contextMenu
+    ? layers.find((layer) => layer.id === contextMenu.layerId)
+    : undefined;
+  const canEditContextLayer =
+    contextLayer &&
+    contextLayer.type !== "background" &&
+    !contextLayer.locked;
+  const runContextAction = (action: () => void) => {
+    action();
+    setContextMenu(null);
+  };
+
   return (
-    <div className="p-3">
+    <div className="relative p-3">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-[10px] font-semibold uppercase tracking-wide text-[#64748B]">Orden de impresión</p>
         <div className="flex gap-1">
@@ -1428,6 +1578,7 @@ function LayersPanel({
           <div
             key={layer.id}
             onClick={(event) => onSelect(layer.id, event.shiftKey)}
+            onContextMenu={(event) => showLayerContextMenu(event, layer)}
             className={cn(
               'group flex cursor-pointer items-center gap-2 rounded-[4px] border border-transparent px-2 py-2 hover:border-[#E2E8F0] hover:bg-[#F8FAFC]',
               selectedLayers.includes(layer.id) && 'border-[#BFDBFE] bg-[#EFF6FF]'
@@ -1463,6 +1614,92 @@ function LayersPanel({
       <p className="mt-5 border-t border-[#E5E7EB] pt-3 text-[9px] leading-relaxed text-[#94A3B8]">
         Selecciona o interactúa directamente sobre el lienzo con el mouse. La selección y orden de impresión se sincronizan automáticamente.
       </p>
+      {contextMenu && contextLayer && (
+        <div
+          ref={contextMenuRef}
+          role="menu"
+          aria-label={`Acciones de ${contextLayer.name}`}
+          className="fixed z-50 min-w-48 rounded-lg border border-[#E2E8F0] bg-white p-1 shadow-lg"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+        >
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!canEditContextLayer}
+            onClick={() => runContextAction(onDuplicateLayer)}
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Duplicar capa
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={!canEditContextLayer}
+            onClick={() => runContextAction(() => onDeleteLayer(contextLayer.id))}
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Eliminar capa
+          </button>
+          <div role="separator" className="my-1 border-t border-[#E2E8F0]" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => runContextAction(() => onMoveLayerUp?.())}
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC]"
+          >
+            Traer adelante
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => runContextAction(() => onMoveLayerDown?.())}
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC]"
+          >
+            Enviar atrás
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() =>
+              runContextAction(() => onBringLayerToFront?.())
+            }
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC]"
+          >
+            Traer al frente
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() =>
+              runContextAction(() => onSendLayerToBack?.())
+            }
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC]"
+          >
+            Enviar al fondo
+          </button>
+          <div role="separator" className="my-1 border-t border-[#E2E8F0]" />
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() =>
+              runContextAction(() => onToggleLock(contextLayer.id))
+            }
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC]"
+          >
+            {contextLayer.locked ? "Desbloquear capa" : "Bloquear capa"}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() =>
+              runContextAction(() => onToggleLayer(contextLayer.id))
+            }
+            className="flex w-full items-center rounded-md px-3 py-2 text-left text-xs text-[#334155] hover:bg-[#F8FAFC]"
+          >
+            {contextLayer.visible ? "Ocultar capa" : "Mostrar capa"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -1498,29 +1735,17 @@ function LayerThumb({ layer }: { layer: DesignerWorkspaceLayer }) {
   return <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[#E2E8F0] bg-[#F8FAFC]"><Icon className="h-3.5 w-3.5 text-[#64748B]"/></span>;
 }
 
-function Adjustments({ compact = false }: { compact?: boolean }) {
-  const controls = compact ? ['Brillo', 'Contraste', 'Saturación'] : ['Brillo', 'Contraste', 'Exposición', 'Saturación', 'Temperatura', 'Matiz', 'Sombras', 'Iluminaciones', 'Claridad', 'Desvanecer'];
-  return <Panel title="Ajustes">{controls.map((label) => <Range key={label} label={label} value="0" reset/>)}</Panel>;
-}
-
-function Filters({ compact = false }: { compact?: boolean }) {
-  const filters = compact ? ['Original', 'B&N', 'Vintage'] : ['Original', 'Blanco y negro', 'Grises', 'Vintage', 'Contraste', 'Suave', 'Alta nitidez'];
+function Effects() {
   return (
-    <Panel title="Filtros">
-      <div className="grid grid-cols-3 gap-1.5">
-        {filters.map((filter, index) => (
-          <button type="button" key={filter} className={cn('rounded-[3px] border border-[#E2E8F0] bg-white p-1 text-left hover:border-[#93C5FD] hover:bg-[#F8FAFC]', index === 0 && 'border-[#2563EB]')}>
-            <span className={cn('mb-1 block h-7 bg-gradient-to-br from-[#CBD5E1] to-[#64748B]', index === 1 && 'grayscale', index === 2 && 'sepia')}/>
-            <span className="block truncate text-[9px] text-[#475569]">{filter}</span>
-          </button>
-        ))}
-      </div>
+    <Panel title="Efectos">
+      <p role="status" className="rounded border border-[#E2E8F0] bg-[#F8FAFC] p-2 text-[10px] leading-relaxed text-[#64748B]">
+        Sombras, resplandor y borde no están configurados para guardarse y exportarse en el documento. No se aplican efectos simulados aquí.
+      </p>
+      <p className="text-[10px] leading-relaxed text-[#64748B]">
+        El desenfoque de imagen está disponible en el menú Filtro.
+      </p>
     </Panel>
   );
-}
-
-function Effects() {
-  return <Panel title="Efectos"><CheckRow label="Sombra"/><CheckRow label="Resplandor"/><CheckRow label="Borde"/><CheckRow label="Desenfoque"/></Panel>;
 }
 
 function Panel({ title, children }: { title: string; children: React.ReactNode }) {
@@ -1538,23 +1763,6 @@ function Field({ label, value }: { label: string; value: string }) {
       <span className="mb-1 block text-[10px] text-[#64748B]">{label}</span>
       <span className="flex h-7 items-center rounded-[4px] border border-[#E2E8F0] bg-white px-2 text-[11px] text-[#111827]">{value}</span>
     </label>
-  );
-}
-
-function Range({ label, value, reset = false }: { label: string; value: string; reset?: boolean }) {
-  return (
-    <div>
-      <div className="mb-1 flex justify-between text-[10px]">
-        <span className="text-[#64748B]">{label}</span>
-        <span className="flex items-center gap-1 text-[#111827]">
-          {value}
-          {reset && <button type="button" title={`Restablecer ${label}`} className="text-[#2563EB] hover:text-[#1D4ED8]">↺</button>}
-        </span>
-      </div>
-      <div className="h-1.5 rounded-full bg-[#E2E8F0]">
-        <div className="h-full w-1/2 rounded-full bg-[#2563EB]"/>
-      </div>
-    </div>
   );
 }
 
@@ -1576,27 +1784,6 @@ function Select({ label, values, value, onChange }: { label: string; values: str
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function CheckRow({ label, defaultChecked = false }: { label: string; defaultChecked?: boolean }) {
-  const [checked, setChecked] = React.useState(defaultChecked);
-  return (
-    <button type="button" onClick={() => setChecked(!checked)} className="flex items-center gap-2 text-[11px] text-[#475569]">
-      <span className={cn('flex h-3.5 w-3.5 items-center justify-center rounded-[3px] border border-[#CBD5E1]', checked && 'border-[#2563EB] bg-[#2563EB]')}>
-        {checked && <Check className="h-3 w-3 text-white"/>}
-      </span>
-      {label}
-    </button>
-  );
-}
-
-function Actions({ primary = 'Aplicar' }: { primary?: string }) {
-  return (
-    <div className="flex justify-end gap-2 pt-1">
-      <button type="button" className="px-2 py-1.5 text-[10px] font-semibold text-[#64748B] hover:text-[#111827]">Cancelar</button>
-      <button type="button" className="rounded-[4px] bg-[#2563EB] px-2 py-1.5 text-[10px] font-bold text-white hover:bg-[#1D4ED8]">{primary}</button>
     </div>
   );
 }

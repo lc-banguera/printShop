@@ -48,6 +48,8 @@
 - Validación del panel Advanced: Vectorizar, Varita mágica, Selección por color y Efectos aparecen `NOT_CONFIGURED` con razones visibles y sin acciones disponibles; Ajustes y Filtros abren los diálogos existentes. Las selecciones geométricas y opciones de snap sin implementación aparecen deshabilitadas con razón. Ventana > Capas/Propiedades/Historial usa los tabs existentes; Herramientas y Navegador siguen sin panel implementado. La opacidad de una capa bloqueada informa por qué está disabled; al desbloquearla, el slider cambió 100 → 99 → 100 y se volvió a bloquear la capa. Los modos de fusión alternativos no se ofrecen como controles funcionales.
 - Bloqueo explícito de Agrupar elementos: el modelo actual no guarda miembros/estructura agrupada; el control queda visible, deshabilitado y con razón accesible. El workaround actual es multiselección para mover/alinear/distribuir; se desbloquea cuando el contrato de documento soporte grupos y su serialización/render/historial.
 - Export Advanced en navegador descargó PNG del documento completo y notificó `960 × 1655 px` para el aspect ratio 58 × 100; es resolución de vista previa, no exportación de producción/DPI.
+- ImageTools Advanced ahora ofrece “Eliminar semitransparencias”: preview reducida a 500 px, aplicación a resolución completa, cancelación sin cambios y errores visibles; aplicar actualiza artwork, thumbnail y `lastOp` con un único snapshot de historial. El original se mantiene disponible.
+- Se corrigió la disponibilidad visual de Undo/Redo Advanced: React deriva ambos estados de `CommandSystem` después de ejecutar, deshacer, rehacer o cambiar el documento. Browser smoke confirmó preview, aplicar, Undo a `halftone`, Redo a `cleanup-semitransparency`, y cancelar sin alterar el resultado; los botones actualizaron inmediatamente. `npm --prefix engine test` PASS (55/55), `npm --prefix frontend run build` PASS y `git diff --check` PASS.
 
 ## Registro de BLOCK 00
 
@@ -379,6 +381,15 @@
 - `DONE`: cada punto calcula luminancia, alpha y color con 16 muestras estratificadas sobre toda la celda de trama, en vez de concentrar nueve muestras alrededor del centro. Esto conserva detalles descentrados y representa mejor el tono medio de la celda.
 - Test: un detalle oscuro fuera del centro de una celda genera cobertura en la trama; se comprueba que el buffer de origen permanece intacto.
 - Validación: `npm --prefix engine test` **PASS** (55/55), `npm --prefix frontend run build` **PASS**, smoke en navegador de aplicación y undo/redo de Semitonos **PASS**.
+
+## Designer 3 — selección poligonal raster en Advanced
+
+- `DONE`: Easy envía el contorno cerrado al Worker, que rasteriza la máscara a las dimensiones naturales del artwork. Browser smoke en `/store/designer/easy` confirmó preview de máscara, aplicación, Undo al asset anterior y Redo al resultado.
+- `DONE`: Advanced ImageTools ofrece Recorte poligonal para una capa de imagen seleccionada. El modal reutiliza `create-path-selection` y `erase-mask` del Worker, conserva el interior del contorno, elimina el exterior de forma no destructiva sobre `processedSrc` y registra una sola operación `path-erase` en el historial compartido.
+- Validación browser en `/store/designer/advanced?document=<id>`: contorno cerrado, aplicar con salida distinta, Undo restauró exactamente el asset previo y Redo restauró exactamente el resultado. Escape cerró el modal sin deseleccionar la capa. El documento y el ID se conservaron durante el handoff Easy → Advanced.
+- Responsive: modal verificado a 390 × 844 px, con foco recibido y sin overflow horizontal.
+- Validación técnica: `npm test --prefix engine` **PASS** (55/55); `npm run build --prefix frontend` **PASS** (`tsc` + Vite; warning existente de chunk >500 kB); `git diff --check` **PASS**.
+- Límite: el path es una selección raster temporal, no una capa vectorial del documento. Edición persistente de paths/anchors, selección geométrica general, historial serializado, PDF y export de producción/DPI Advanced siguen pendientes o bloqueados por sus contratos.
 
 ## Image Engine — operaciones seguras de regiones raster
 

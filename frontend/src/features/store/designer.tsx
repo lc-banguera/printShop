@@ -52,6 +52,12 @@ import { DesignerWorkspace } from "./designer-workspace";
 import { exportComposite } from "./designer/imageProcessor";
 import type { DesignElement, Layer } from "@/core/design/types";
 import {
+  CommandSystem,
+  type Command,
+} from "@/core/design/commands";
+import { createCommandId } from "@/core/design/commands/command";
+import { SelectionManager } from "@/core/design/selection";
+import {
   alignLayers,
   distributeLayers,
   repositionLayersForCanvasAnchor,
@@ -71,6 +77,11 @@ import {
   updateDesigner3DocumentModel,
   type Designer3CanvasConfig,
 } from "../designer/services/designer3-document-session";
+import { getEasyModeSession } from "../designer/services/designer-mode-session";
+import {
+  resolveDesignerKeyboardCommand,
+  type DesignerKeyboardCommand,
+} from "./designer/keyboard-command-registry";
 
 /* ── Interfaces ─────────────────────────────────────────────────────────── */
 interface DesignItem {
@@ -168,6 +179,34 @@ interface EditorDocumentState {
   saturation: number;
 }
 
+interface EditorDocumentCommandContext {
+  state: EditorDocumentState | null;
+}
+
+class EditorDocumentStateCommand
+  implements Command<EditorDocumentCommandContext>
+{
+  readonly id = createCommandId("designer3-state");
+  readonly name = "Update Designer 3 document";
+
+  constructor(
+    private readonly previous: EditorDocumentState,
+    private readonly next: EditorDocumentState,
+  ) {}
+
+  execute(context: EditorDocumentCommandContext): void {
+    context.state = this.next;
+  }
+
+  undo(context: EditorDocumentCommandContext): void {
+    context.state = this.previous;
+  }
+
+  redo(context: EditorDocumentCommandContext): void {
+    context.state = this.next;
+  }
+}
+
 function isEditorDocumentState(value: unknown): value is EditorDocumentState {
   if (typeof value !== "object" || value === null) return false;
   const state = value as Record<string, unknown>;
@@ -212,7 +251,23 @@ function readNewCanvasConfig(value: unknown): NewCanvasConfig | null {
   };
 }
 
-function toDocumentLayers(layers: EditorLayer[]): Layer[] {
+const ADVANCED_CANVAS_BASE_WIDTH = 480;
+
+function advancedCanvasHeight(documentWidth: number, documentHeight: number) {
+  return Math.round(
+    ADVANCED_CANVAS_BASE_WIDTH * (documentHeight / documentWidth),
+  );
+}
+
+function toDocumentLayers(
+  layers: EditorLayer[],
+  documentWidth: number,
+  documentHeight: number,
+): Layer[] {
+  const baseHeight = advancedCanvasHeight(documentWidth, documentHeight);
+  const scaleX = documentWidth / ADVANCED_CANVAS_BASE_WIDTH;
+  const scaleY = documentHeight / baseHeight;
+
   return layers.map((layer, order) => {
     const source = layer.processedSrc ?? layer.src ?? layer.preview;
     const elementType: DesignElement["type"] =
@@ -228,10 +283,16 @@ function toDocumentLayers(layers: EditorLayer[]): Layer[] {
       type: elementType,
       layer: "user",
       zoneId: "front",
-      x: layer.x ?? 0,
-      y: layer.y ?? 0,
-      width: Math.max(1, layer.width ?? 1),
-      height: Math.max(1, layer.height ?? 1),
+      x:
+        (ADVANCED_CANVAS_BASE_WIDTH / 2 +
+          (layer.x ?? 0) -
+          (layer.width ?? 1) / 2) *
+        scaleX,
+      y:
+        (baseHeight / 2 + (layer.y ?? 0) - (layer.height ?? 1) / 2) *
+        scaleY,
+      width: Math.max(1, (layer.width ?? 1) * scaleX),
+      height: Math.max(1, (layer.height ?? 1) * scaleY),
       ...(layer.type === "image" && source ? { image: source, originalImageSrc: layer.src ?? source } : {}),
       rotation: layer.rotation ?? 0,
       scaleX: layer.flipX ? -1 : 1,
@@ -266,7 +327,12 @@ function toDocumentLayers(layers: EditorLayer[]): Layer[] {
 function fromDocumentLayers(
   layers: Layer[],
   previousLayers: EditorLayer[] = [],
+  documentWidth = ADVANCED_CANVAS_BASE_WIDTH,
+  documentHeight = ADVANCED_CANVAS_BASE_WIDTH,
 ): EditorLayer[] {
+  const baseHeight = advancedCanvasHeight(documentWidth, documentHeight);
+  const scaleX = ADVANCED_CANVAS_BASE_WIDTH / documentWidth;
+  const scaleY = baseHeight / documentHeight;
   const previousById = new Map(previousLayers.map((layer) => [layer.id, layer]));
   return [...layers]
     .sort((left, right) => left.order - right.order)
@@ -292,10 +358,11 @@ function fromDocumentLayers(
         locked: layer.locked || element.locked === true,
         opacity: Math.round((element.opacity ?? 1) * 100),
         preview: element.image ?? previous?.preview ?? "",
-        x: element.x,
-        y: element.y,
-        width: element.width,
-        height: element.height,
+        x: (element.x + element.width / 2) * scaleX -
+          ADVANCED_CANVAS_BASE_WIDTH / 2,
+        y: (element.y + element.height / 2) * scaleY - baseHeight / 2,
+        width: element.width * scaleX,
+        height: element.height * scaleY,
         rotation: element.rotation ?? 0,
         fill: element.fill,
         color: element.fill,
@@ -322,6 +389,81 @@ function fromDocumentLayers(
       };
       return [mapped];
     });
+}
+
+function normalizePersistedAdvancedState(
+  state: EditorDocumentState,
+): EditorDocumentState {
+  const baseHeight = advancedCanvasHeight(
+    state.documentWidth,
+    state.documentHeight,
+  );
+  const needsPixelConversion = state.layers.some(
+    (layer) =>
+      Math.abs(layer.x ?? 0) > ADVANCED_CANVAS_BASE_WIDTH * 2 ||
+      Math.abs(layer.y ?? 0) > baseHeight * 2 ||
+      (layer.width ?? 0) > ADVANCED_CANVAS_BASE_WIDTH * 2 ||
+      (layer.height ?? 0) > baseHeight * 2,
+  );
+  if (!needsPixelConversion) return state;
+
+  const scaleX = ADVANCED_CANVAS_BASE_WIDTH / state.documentWidth;
+  const scaleY = baseHeight / state.documentHeight;
+  return {
+    ...state,
+    layers: state.layers.map((layer) => ({
+      ...layer,
+      x:
+        ((layer.x ?? 0) + (layer.width ?? 0) / 2) * scaleX -
+        ADVANCED_CANVAS_BASE_WIDTH / 2,
+      y: ((layer.y ?? 0) + (layer.height ?? 0) / 2) * scaleY - baseHeight / 2,
+      width: (layer.width ?? 1) * scaleX,
+      height: (layer.height ?? 1) * scaleY,
+    })),
+  };
+}
+
+async function persistAdvancedDocumentSnapshot(
+  documentId: string,
+  title: string,
+  editorState: EditorDocumentState,
+): Promise<void> {
+  const persisted = await loadDesigner3Document(documentId);
+  if (!persisted) {
+    throw new Error(`No existe el documento Designer 3 "${documentId}".`);
+  }
+  const background =
+    persisted.document.metadata.background === "transparent" ||
+    persisted.document.metadata.background === "white" ||
+    persisted.document.metadata.background === "color"
+      ? persisted.document.metadata.background
+      : "white";
+  const backgroundColor =
+    typeof persisted.document.metadata.backgroundColor === "string"
+      ? persisted.document.metadata.backgroundColor
+      : "#ffffff";
+  const document = updateDesigner3DocumentModel(
+    persisted.document,
+    {
+      widthPx: editorState.documentWidth,
+      heightPx: editorState.documentHeight,
+      dpi: editorState.dpi,
+      background,
+      backgroundColor,
+    },
+    toDocumentLayers(
+      editorState.layers,
+      editorState.documentWidth,
+      editorState.documentHeight,
+    ),
+    { title },
+  );
+  await saveDesigner3Snapshot(
+    documentId,
+    "advanced",
+    { title, editorState },
+    document,
+  );
 }
 
 /* ── Mock Data: Diseños del Usuario ─────────────────────────────────────── */
@@ -496,11 +638,14 @@ const mockLinkableProducts = [
 export default function StoreDesigner() {
   const navigate = useNavigate();
   const location = useLocation();
+  const selectionManager = React.useMemo(() => new SelectionManager(), []);
   const isAdvancedRoute = location.pathname.endsWith("/advanced");
   const documentId = new URLSearchParams(location.search).get("document");
   const [advancedDocumentLoaded, setAdvancedDocumentLoaded] = React.useState(
     !isAdvancedRoute,
   );
+  const [loadedAdvancedDocumentId, setLoadedAdvancedDocumentId] =
+    React.useState<string | null>(null);
   // Estado principal: 'hub' (Pantalla inicial) o 'editor' (Área de trabajo)
   const [viewState, setViewState] = React.useState<"hub" | "editor">(
     isAdvancedRoute ? "editor" : "hub",
@@ -524,6 +669,9 @@ export default function StoreDesigner() {
   // Estado del Drag & Drop en el Hub
   const [isDraggingOver, setIsDraggingOver] = React.useState(false);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const keyboardActionsRef = React.useRef<
+    Partial<Record<DesignerKeyboardCommand, (event: KeyboardEvent) => void>>
+  >({});
   React.useEffect(() => {
     try {
       const saved = window.localStorage.getItem(
@@ -619,10 +767,23 @@ export default function StoreDesigner() {
       preview: "",
     },
   ]);
-  const historyRef = React.useRef<{
-    past: EditorDocumentState[];
-    future: EditorDocumentState[];
-  }>({ past: [], future: [] });
+  const historyRef =
+    React.useRef<CommandSystem<EditorDocumentCommandContext> | null>(null);
+  const historyContextRef = React.useRef<EditorDocumentCommandContext>({
+    state: null,
+  });
+  const historyDocumentIdRef = React.useRef<string | null>(null);
+  const [historyAvailability, setHistoryAvailability] = React.useState({
+    canUndo: false,
+    canRedo: false,
+  });
+  const refreshHistoryAvailability = React.useCallback(() => {
+    const history = historyRef.current;
+    setHistoryAvailability({
+      canUndo: history?.canUndo() ?? false,
+      canRedo: history?.canRedo() ?? false,
+    });
+  }, []);
   const clipboardRef = React.useRef<EditorLayer[]>([]);
   const applyingHistoryRef = React.useRef(false);
   const lastSnapshotRef = React.useRef<EditorDocumentState | null>(null);
@@ -759,27 +920,37 @@ export default function StoreDesigner() {
           isRecord(snapshot) && isEditorDocumentState(snapshot.editorState)
             ? snapshot.editorState
             : null;
+        const restorableState = savedState
+          ? normalizePersistedAdvancedState(savedState)
+          : null;
+        const inMemoryEasySession = getEasyModeSession();
+        const hasCurrentEasySession =
+          inMemoryEasySession?.documentId === documentId;
         const easyIsNewer =
           Boolean(persisted.easySnapshot) &&
           (!persisted.advancedUpdatedAt ||
             (persisted.easyUpdatedAt ?? "") > persisted.advancedUpdatedAt);
 
-        if (savedState && !easyIsNewer) {
-          restoreEditorDocumentState(savedState);
+        if (restorableState && !easyIsNewer && !hasCurrentEasySession) {
+          restoreEditorDocumentState(restorableState);
           const title =
             isRecord(snapshot) && typeof snapshot.title === "string"
               ? snapshot.title
               : "Mi diseño";
+          const artworkLayer = restorableState.layers.find(
+            (layer) => layer.type === "image" && layer.visible,
+          );
+          const previewUrl = artworkLayer?.preview ?? artworkLayer?.src ?? "";
           setDesignTitle(title);
           setActiveDesign({
             id: documentId,
             title,
-            previewUrl: "",
+            previewUrl,
             lastModified: "Guardado automáticamente",
             productType: "Personalizado",
-            dimensions: `${savedState.documentWidth} × ${savedState.documentHeight} px`,
+            dimensions: `${restorableState.documentWidth} × ${restorableState.documentHeight} px`,
             fileSize: "",
-            editorState: savedState,
+            editorState: restorableState,
           });
         } else {
           const { metadata } = persisted.document;
@@ -789,7 +960,9 @@ export default function StoreDesigner() {
           setDocumentWidth(width);
           setDocumentHeight(height);
           setDpi(savedDpi);
-          const easySnapshot = persisted.easySnapshot;
+          const easySnapshot = hasCurrentEasySession
+            ? inMemoryEasySession
+            : persisted.easySnapshot;
           const imageUrl =
             isRecord(easySnapshot) && typeof easySnapshot.imageUrl === "string"
               ? easySnapshot.imageUrl
@@ -814,6 +987,8 @@ export default function StoreDesigner() {
           const restoredLayers = fromDocumentLayers(
             documentLayers,
             previousAdvancedState?.layers ?? [],
+            width,
+            height,
           );
           const imageWidth =
             artworkDimensions && typeof artworkDimensions.width === "number"
@@ -823,7 +998,11 @@ export default function StoreDesigner() {
             artworkDimensions && typeof artworkDimensions.height === "number"
               ? artworkDimensions.height
               : 480;
-          const fittedScale = Math.min(width / imageWidth, height / imageHeight);
+          const baseHeight = advancedCanvasHeight(width, height);
+          const fittedScale = Math.min(
+            ADVANCED_CANVAS_BASE_WIDTH / imageWidth,
+            baseHeight / imageHeight,
+          );
           const scale =
             artworkTransform && typeof artworkTransform.scale === "number"
               ? artworkTransform.scale
@@ -848,8 +1027,8 @@ export default function StoreDesigner() {
                 opacity: 100,
                 preview: imageUrl,
                 src: imageUrl,
-                x: width / 2 + offsetX * width - (imageWidth * fittedScale * scale) / 2,
-                y: height / 2 + offsetY * height - (imageHeight * fittedScale * scale) / 2,
+                x: offsetX * ADVANCED_CANVAS_BASE_WIDTH,
+                y: offsetY * baseHeight,
                 width: imageWidth * fittedScale * scale,
                 height: imageHeight * fittedScale * scale,
                 naturalWidth: imageWidth,
@@ -936,6 +1115,7 @@ export default function StoreDesigner() {
           });
         }
         setViewState("editor");
+        setLoadedAdvancedDocumentId(documentId);
         setAdvancedDocumentLoaded(true);
       } catch (error) {
         if (cancelled) return;
@@ -944,6 +1124,7 @@ export default function StoreDesigner() {
             ? `No se pudo recuperar el documento: ${error.message}`
             : "No se pudo recuperar el documento Designer 3.",
         );
+        setLoadedAdvancedDocumentId(null);
         setAdvancedDocumentLoaded(true);
       }
     };
@@ -964,6 +1145,98 @@ export default function StoreDesigner() {
   ]);
 
   React.useEffect(() => {
+    if (!isAdvancedRoute || !documentId || !advancedDocumentLoaded) return;
+
+    const handleSwitchToEasy = () => {
+      const snapshot = {
+        title: designTitle || activeDesign?.title || "Mi diseño",
+        editorState: getEditorDocumentState(),
+      };
+      const easySession = getEasyModeSession();
+      if (easySession?.documentId === documentId) {
+        const imageLayer = snapshot.editorState.layers.find(
+          (layer) => layer.type === "image" && layer.visible,
+        );
+        if (imageLayer) {
+          const baseHeight = advancedCanvasHeight(
+            snapshot.editorState.documentWidth,
+            snapshot.editorState.documentHeight,
+          );
+          const naturalWidth =
+            imageLayer.naturalWidth ?? easySession.artworkDimensions?.width ?? imageLayer.width ?? 1;
+          const naturalHeight =
+            imageLayer.naturalHeight ?? easySession.artworkDimensions?.height ?? imageLayer.height ?? 1;
+          const fitScale = Math.min(
+            ADVANCED_CANVAS_BASE_WIDTH / naturalWidth,
+            baseHeight / naturalHeight,
+          );
+          const scaleX =
+            fitScale > 0 ? (imageLayer.width ?? 0) / (naturalWidth * fitScale) : 1;
+          const scaleY =
+            fitScale > 0 ? (imageLayer.height ?? 0) / (naturalHeight * fitScale) : 1;
+          easySession.artworkDimensions = {
+            width: naturalWidth,
+            height: naturalHeight,
+          };
+          easySession.artworkTransform = {
+            ...easySession.artworkTransform,
+            scale: Math.max(0.1, Math.min(4, (scaleX + scaleY) / 2)),
+            rotationDegrees: imageLayer.rotation ?? 0,
+            flipX: imageLayer.flipX ?? false,
+            flipY: imageLayer.flipY ?? false,
+            offsetX:
+              (imageLayer.x ?? 0) / ADVANCED_CANVAS_BASE_WIDTH,
+            offsetY: (imageLayer.y ?? 0) / baseHeight,
+          };
+          const imageUrl =
+            imageLayer.processedSrc ?? imageLayer.src ?? imageLayer.preview ?? null;
+          easySession.imageUrl = imageUrl;
+          easySession.processedImageUrl = imageLayer.processedSrc ?? null;
+          easySession.showProcessedImage = true;
+          if (easySession.activeUploadedAssetId && imageUrl) {
+            easySession.uploadedAssets = easySession.uploadedAssets.map((asset) =>
+              asset.id === easySession.activeUploadedAssetId
+                ? { ...asset, image: imageUrl }
+                : asset,
+            );
+          }
+        } else {
+          easySession.imageUrl = null;
+          easySession.processedImageUrl = null;
+          easySession.activeUploadedAssetId = null;
+          easySession.artworkDimensions = null;
+        }
+      }
+      void (async () => {
+        await persistAdvancedDocumentSnapshot(
+          documentId,
+          snapshot.title,
+          snapshot.editorState,
+        );
+      })().catch((error: unknown) => {
+        showToast(
+          error instanceof Error
+            ? `No se pudo guardar el documento: ${error.message}`
+            : "No se pudo guardar el documento Designer 3.",
+        );
+      });
+      navigate(`/store/designer/easy?document=${encodeURIComponent(documentId)}`);
+    };
+
+    window.addEventListener("designer3:switch-to-easy", handleSwitchToEasy);
+    return () =>
+      window.removeEventListener("designer3:switch-to-easy", handleSwitchToEasy);
+  }, [
+    activeDesign?.title,
+    advancedDocumentLoaded,
+    designTitle,
+    documentId,
+    getEditorDocumentState,
+    isAdvancedRoute,
+    navigate,
+  ]);
+
+  React.useEffect(() => {
     if (
       !isAdvancedRoute ||
       !documentId ||
@@ -977,37 +1250,11 @@ export default function StoreDesigner() {
       editorState: getEditorDocumentState(),
     };
     const timeout = window.setTimeout(() => {
-      void loadDesigner3Document(documentId)
-        .then((persisted) => {
-          if (!persisted) {
-            throw new Error(`No existe el documento Designer 3 "${documentId}".`);
-          }
-          const background =
-            persisted.document.metadata.background === "transparent" ||
-            persisted.document.metadata.background === "white" ||
-            persisted.document.metadata.background === "color"
-              ? persisted.document.metadata.background
-              : "white";
-          const backgroundColor =
-            typeof persisted.document.metadata.backgroundColor === "string"
-              ? persisted.document.metadata.backgroundColor
-              : "#ffffff";
-          const document = updateDesigner3DocumentModel(
-            persisted.document,
-            {
-              widthPx: snapshot.editorState.documentWidth,
-              heightPx: snapshot.editorState.documentHeight,
-              dpi: snapshot.editorState.dpi,
-              background,
-              backgroundColor,
-            },
-            toDocumentLayers(snapshot.editorState.layers),
-            {
-              title: snapshot.title,
-            },
-          );
-          return saveDesigner3Snapshot(documentId, "advanced", snapshot, document);
-        })
+      void persistAdvancedDocumentSnapshot(
+        documentId,
+        snapshot.title,
+        snapshot.editorState,
+      )
         .catch((error: unknown) => {
           showToast(
             error instanceof Error
@@ -1028,42 +1275,74 @@ export default function StoreDesigner() {
   ]);
 
   React.useEffect(() => {
+    if (
+      isAdvancedRoute &&
+      (!advancedDocumentLoaded ||
+        loadedAdvancedDocumentId !== documentId)
+    ) {
+      return;
+    }
     const current = getEditorDocumentState();
+    if (historyDocumentIdRef.current !== documentId) {
+      historyDocumentIdRef.current = documentId;
+      historyRef.current = new CommandSystem<EditorDocumentCommandContext>();
+      historyContextRef.current.state = current;
+      lastSnapshotRef.current = current;
+      applyingHistoryRef.current = false;
+      refreshHistoryAvailability();
+      return;
+    }
     const previous = lastSnapshotRef.current;
     if (!previous) {
+      historyContextRef.current.state = current;
       lastSnapshotRef.current = current;
+      refreshHistoryAvailability();
       return;
     }
     if (applyingHistoryRef.current) {
       applyingHistoryRef.current = false;
+      historyContextRef.current.state = current;
       lastSnapshotRef.current = current;
       return;
     }
     if (JSON.stringify(previous) !== JSON.stringify(current)) {
-      historyRef.current.past.push(previous);
-      historyRef.current.future = [];
+      historyRef.current ??=
+        new CommandSystem<EditorDocumentCommandContext>();
+      historyContextRef.current.state = previous;
+      historyRef.current.execute(
+        new EditorDocumentStateCommand(previous, current),
+        historyContextRef.current,
+      );
       lastSnapshotRef.current = current;
+      refreshHistoryAvailability();
       setIsDirty(true);
     }
-  }, [getEditorDocumentState]);
+  }, [
+    advancedDocumentLoaded,
+    documentId,
+    getEditorDocumentState,
+    isAdvancedRoute,
+    loadedAdvancedDocumentId,
+    refreshHistoryAvailability,
+  ]);
 
   const undo = React.useCallback(() => {
     const history = historyRef.current;
-    const previous = history.past.pop();
-    if (!previous) return;
-    history.future.push(getEditorDocumentState());
-    restoreEditorDocumentState(previous);
+    const context = historyContextRef.current;
+    if (!history?.undo(context) || !context.state) return;
+    restoreEditorDocumentState(context.state);
+    refreshHistoryAvailability();
     setIsDirty(true);
-  }, [getEditorDocumentState, restoreEditorDocumentState]);
+  }, [refreshHistoryAvailability, restoreEditorDocumentState]);
 
   const redo = React.useCallback(() => {
     const history = historyRef.current;
-    const next = history.future.pop();
-    if (!next) return;
-    history.past.push(getEditorDocumentState());
-    restoreEditorDocumentState(next);
+    const context = historyContextRef.current;
+    if (!history?.redo(context) || !context.state) return;
+    restoreEditorDocumentState(context.state);
+    refreshHistoryAvailability();
     setIsDirty(true);
-  }, [getEditorDocumentState, restoreEditorDocumentState]);
+  }, [refreshHistoryAvailability, restoreEditorDocumentState]);
 
   // Modal para vincular a producto
   const [isLinkProductModalOpen, setIsLinkProductModalOpen] =
@@ -1643,30 +1922,29 @@ export default function StoreDesigner() {
           layer.visible && layer.type !== "background" && !layer.locked,
       )
       .map((layer) => layer.id);
-    setSelectedLayerIds(ids);
-    setSelectedLayerId(ids[0] ?? "");
+    const next = selectionManager.selectMany(ids);
+    setSelectedLayerIds(next.selectedElementIds);
+    setSelectedLayerId(next.selectedElementId ?? "");
   };
 
   const selectLayer = (layerId: string, additive = false) => {
     const layer = layers.find((item) => item.id === layerId);
     if (!layer || !layer.visible) return;
-    if (!additive) {
-      setSelectedLayerId(layerId);
-      setSelectedLayerIds([layerId]);
-      return;
-    }
-    setSelectedLayerIds((current) => {
-      const next = current.includes(layerId)
-        ? current.filter((id) => id !== layerId)
-        : [...current, layerId];
-      setSelectedLayerId(next[0] ?? "");
-      return next;
-    });
+    const current = {
+      selectedElementId: selectedLayerId || null,
+      selectedElementIds: selectedLayerIds,
+    };
+    const next = additive
+      ? selectionManager.toggle(current, layerId)
+      : selectionManager.select(layerId);
+    setSelectedLayerId(next.selectedElementId ?? "");
+    setSelectedLayerIds(next.selectedElementIds);
   };
 
   const deselectLayers = () => {
-    setSelectedLayerId("");
-    setSelectedLayerIds([]);
+    const next = selectionManager.select(null);
+    setSelectedLayerId(next.selectedElementId ?? "");
+    setSelectedLayerIds(next.selectedElementIds);
   };
 
   const invertSelection = () => {
@@ -1678,8 +1956,17 @@ export default function StoreDesigner() {
       )
       .map((layer) => layer.id)
       .filter((id) => !selected.has(id));
-    setSelectedLayerIds(ids);
-    setSelectedLayerId(ids[0] ?? "");
+    const next = selectionManager.selectMany(ids);
+    setSelectedLayerIds(next.selectedElementIds);
+    setSelectedLayerId(next.selectedElementId ?? "");
+  };
+
+  const selectMultipleLayers = (ids: string[]) => {
+    const next = selectionManager.selectMany(ids);
+    setSelectedLayerIds(next.selectedElementIds);
+    if (next.selectedElementId) {
+      setSelectedLayerId(next.selectedElementId);
+    }
   };
 
   const rotateAction = (degrees: number) => {
@@ -1883,6 +2170,22 @@ export default function StoreDesigner() {
   const handleExport = async (format: string) => {
     showToast("Generando exportación…");
     try {
+      const baseWidth = 480;
+      const exportScale = 2;
+      const exportDocumentWidth =
+        Number.isFinite(documentWidth) && documentWidth > 0
+          ? documentWidth
+          : baseWidth;
+      const exportDocumentHeight =
+        Number.isFinite(documentHeight) && documentHeight > 0
+          ? documentHeight
+          : exportDocumentWidth;
+      const outputWidth = Math.round(baseWidth * exportScale);
+      const outputHeight = Math.round(
+        baseWidth *
+          (exportDocumentHeight / exportDocumentWidth) *
+          exportScale,
+      );
       const exportLayers = layers.map((layer) => ({
         src: layer.processedSrc ?? layer.src ?? layer.preview ?? "",
         x: layer.x ?? 0,
@@ -1915,9 +2218,9 @@ export default function StoreDesigner() {
         format.toLowerCase().includes("jpg") ||
         format.toLowerCase().includes("jpeg");
       const dataUrl = await exportComposite(exportLayers, {
-        docWidth: documentWidth || 480,
-        docHeight: documentHeight || 480,
-        scale: 2, // 2× = 960px output
+        docWidth: exportDocumentWidth,
+        docHeight: exportDocumentHeight,
+        scale: exportScale,
         format: isJpeg ? "jpeg" : "png",
         quality: 0.92,
         flipHorizontal,
@@ -1929,12 +2232,127 @@ export default function StoreDesigner() {
       link.href = dataUrl;
       link.download = `${designTitle || "diseno"}.${isJpeg ? "jpg" : "png"}`;
       link.click();
-      showToast(`Exportado como ${format} (960×960px)`);
-    } catch (err) {
-      console.error("Export failed:", err);
-      showToast("Error al exportar. Intenta de nuevo.");
+      showToast(
+        `Exportado como ${format} (${outputWidth} × ${outputHeight} px, resolución de vista previa)`,
+      );
+    } catch (error) {
+      console.error("Export failed:", error);
+      showToast(
+        error instanceof Error
+          ? `Error al exportar: ${error.message}`
+          : "No se pudo completar la exportación.",
+      );
     }
   };
+
+  React.useEffect(() => {
+    const moveSelection = (deltaX: number, deltaY: number) => {
+      const selectedIds = new Set(
+        selectedLayerIds.length ? selectedLayerIds : [selectedLayerId],
+      );
+      const hasMovableLayer = layers.some(
+        (layer) =>
+          selectedIds.has(layer.id) &&
+          layer.type !== "background" &&
+          !layer.locked,
+      );
+      if (!hasMovableLayer) return;
+      setLayers((current) =>
+        current.map((layer) =>
+          selectedIds.has(layer.id) &&
+          layer.type !== "background" &&
+          !layer.locked
+            ? {
+                ...layer,
+                x: (layer.x ?? 0) + deltaX,
+                y: (layer.y ?? 0) + deltaY,
+              }
+            : layer,
+        ),
+      );
+      setIsDirty(true);
+    };
+
+    keyboardActionsRef.current = {
+      undo: () => undo(),
+      redo: () => redo(),
+      copy: () => copySelected(),
+      cut: () => cutSelected(),
+      paste: () => pasteClipboard(),
+      duplicate: () => duplicateSelected(),
+      delete: () => deleteSelected(),
+      deselect: () => {
+        if (imageDialog) setImageDialog(null);
+        else deselectLayers();
+      },
+      "move-left": (event) => {
+        const step = event.shiftKey ? 10 : 1;
+        moveSelection(-step, 0);
+      },
+      "move-right": (event) => {
+        const step = event.shiftKey ? 10 : 1;
+        moveSelection(step, 0);
+      },
+      "move-up": (event) => {
+        const step = event.shiftKey ? 10 : 1;
+        moveSelection(0, -step);
+      },
+      "move-down": (event) => {
+        const step = event.shiftKey ? 10 : 1;
+        moveSelection(0, step);
+      },
+      "select-all": () => selectAll(),
+      save: () => {
+        if (!documentId) {
+          showToast("No hay un documento activo para guardar.");
+          return;
+        }
+        void persistAdvancedDocumentSnapshot(
+          documentId,
+          designTitle || activeDesign?.title || "Mi diseño",
+          getEditorDocumentState(),
+        )
+          .then(() => {
+            setIsDirty(false);
+            showToast("Diseño guardado localmente");
+          })
+          .catch((error: unknown) => {
+            showToast(
+              error instanceof Error
+                ? `No se pudo guardar el documento: ${error.message}`
+                : "No se pudo guardar el documento Designer 3.",
+            );
+          });
+      },
+    };
+  });
+
+  React.useEffect(() => {
+    if (
+      !isAdvancedRoute ||
+      !advancedDocumentLoaded ||
+      viewState !== "editor"
+    ) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.isContentEditable ||
+          target.matches("input, textarea, select, [role='textbox']"))
+      ) {
+        return;
+      }
+
+      const command = resolveDesignerKeyboardCommand(event);
+      if (!command) return;
+      event.preventDefault();
+      keyboardActionsRef.current[command]?.(event);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [advancedDocumentLoaded, isAdvancedRoute, viewState]);
 
   const requestAction = (action: () => void) => {
     if (isDirty) setPendingAction(() => action);
@@ -2040,13 +2458,8 @@ export default function StoreDesigner() {
           {/* ── Encabezado Principal ───────────────────────────────────── */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-                <span>Tienda</span>
-                <span>/</span>
-                <span className="text-[#2563EB] font-medium">Diseñador</span>
-              </div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-[#111827] tracking-tight flex items-center gap-2.5">
-                <span>PrintShop Designer</span>
+              <h1 className="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight flex items-center gap-2.5">
+                <span> Diseñador PrintShop</span>
               </h1>
               <p className="text-sm text-[#64748B] mt-1">
                 Crea, edita y prepara diseños de alta resolución optimizados
@@ -2133,8 +2546,7 @@ export default function StoreDesigner() {
                   isDraggingOver ? "text-[#64748B]" : "text-[#64748B]",
                 )}
               >
-                Formatos recomendados: PNG transparente, JPG, SVG, PSD (hasta
-                50MB)
+                Formatos recomendados: PNG, JPG, SVG, PSD (Máximo 50 MB)
               </span>
             </div>
 
@@ -2369,10 +2781,7 @@ export default function StoreDesigner() {
             selectedLayerId={selectedLayerId}
             selectedLayerIds={selectedLayerIds}
             onSelectLayer={selectLayer}
-            onSelectMultipleLayers={(ids) => {
-              setSelectedLayerIds(ids);
-              if (ids.length > 0) setSelectedLayerId(ids[0]);
-            }}
+            onSelectMultipleLayers={selectMultipleLayers}
             onDeselect={deselectLayers}
             onInvertSelection={invertSelection}
             onBack={closeEditor}
@@ -2398,8 +2807,8 @@ export default function StoreDesigner() {
             onAddLayer={addEmptyLayer}
             onUndo={undo}
             onRedo={redo}
-            canUndo={historyRef.current.past.length > 0}
-            canRedo={historyRef.current.future.length > 0}
+            canUndo={historyAvailability.canUndo}
+            canRedo={historyAvailability.canRedo}
             onCut={cutSelected}
             onCopy={copySelected}
             onPaste={pasteClipboard}

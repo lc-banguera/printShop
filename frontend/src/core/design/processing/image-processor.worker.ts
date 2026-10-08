@@ -31,7 +31,8 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
       const previewMaxDimension =
         request.kind === 'filters'
           ? request.previewMaxDimension
-          : request.operation.kind === 'halftone'
+          : request.operation.kind === 'halftone' ||
+              request.operation.kind === 'cleanup-semitransparency'
             ? request.operation.previewMaxDimension
             : undefined;
       if (previewMaxDimension !== undefined) {

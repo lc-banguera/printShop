@@ -93,22 +93,34 @@ function mmToPx(mm: number, dpi: number): number {
 export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps) {
   const [name, setName] = React.useState("Mi nuevo diseño");
   const [isAdvancedMode, setIsAdvancedMode] = React.useState(false);
-  const [unit, setUnit] = React.useState<CanvasUnit>("px");
+  const [unit, setUnit] = React.useState<CanvasUnit>("cm");
   const [dpi, setDpi] = React.useState(300);
-  const [widthPx, setWidthPx] = React.useState(3000);
-  const [heightPx, setHeightPx] = React.useState(3000);
+  const [widthPx, setWidthPx] = React.useState(mmToPx(580, 300));
+  const [heightPx, setHeightPx] = React.useState(mmToPx(1000, 300));
   const [background, setBackground] = React.useState<CanvasBackground>("white");
   const [backgroundColor, setBackgroundColor] = React.useState("#ffffff");
   const [selectedPreset, setSelectedPreset] = React.useState("custom");
   const [keepRatio, setKeepRatio] = React.useState(false);
 
   React.useEffect(() => {
-    if (isOpen) setIsAdvancedMode(false);
+    if (isOpen) {
+      setIsAdvancedMode(false);
+      setUnit("cm");
+      setDpi(300);
+      setWidthPx(mmToPx(580, 300));
+      setHeightPx(mmToPx(1000, 300));
+      setBackground("white");
+      setBackgroundColor("#ffffff");
+      setSelectedPreset("custom");
+      setKeepRatio(false);
+    }
   }, [isOpen]);
 
   // Derived display values in current unit
-  const displayW = pxToUnit(widthPx, dpi, unit);
-  const displayH = pxToUnit(heightPx, dpi, unit);
+  const displayW =
+    unit === "cm" ? Math.round(pxToUnit(widthPx, dpi, unit)) : pxToUnit(widthPx, dpi, unit);
+  const displayH =
+    unit === "cm" ? Math.round(pxToUnit(heightPx, dpi, unit)) : pxToUnit(heightPx, dpi, unit);
   const ratio = widthPx / Math.max(1, heightPx);
 
   const applyPreset = (preset: Preset) => {
@@ -271,7 +283,7 @@ export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps
                   <input
                     type="number"
                     min="1"
-                    step={unit === "px" ? "1" : "0.1"}
+                    step={unit === "px" || unit === "cm" ? "1" : "0.1"}
                     value={displayW}
                     onChange={(e) => handleWidthChange(e.target.value)}
                     className="w-full rounded-[4px] border border-[#E2E8F0] px-2.5 py-1.5 text-right text-[12px] text-[#111827] outline-none focus:border-[#2563EB]"
@@ -283,7 +295,7 @@ export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps
                   <input
                     type="number"
                     min="1"
-                    step={unit === "px" ? "1" : "0.1"}
+                    step={unit === "px" || unit === "cm" ? "1" : "0.1"}
                     value={displayH}
                     onChange={(e) => handleHeightChange(e.target.value)}
                     className="w-full rounded-[4px] border border-[#E2E8F0] px-2.5 py-1.5 text-right text-[12px] text-[#111827] outline-none focus:border-[#2563EB]"

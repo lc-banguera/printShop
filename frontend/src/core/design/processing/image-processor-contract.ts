@@ -19,7 +19,11 @@ export type RasterImageOperation =
   | { kind: 'create-path-selection'; path: VectorPath }
   | { kind: 'erase-mask'; mask: Blob }
   | { kind: 'halftone'; options: HalftoneOptions; previewMaxDimension?: number }
-  | { kind: 'cleanup-semitransparency'; options: SemitransparencyCleanupOptions }
+  | {
+      kind: 'cleanup-semitransparency';
+      options: SemitransparencyCleanupOptions;
+      previewMaxDimension?: number;
+    }
   | { kind: 'export-png'; dpi?: number };
 
 export type ImageProcessingRequest =

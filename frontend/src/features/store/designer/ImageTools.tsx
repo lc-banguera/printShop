@@ -21,6 +21,7 @@ import {
   Loader2,
   Crop,
   Paintbrush,
+  PenTool,
   RotateCcw,
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
@@ -29,6 +30,7 @@ import {
   type HalftoneOptions,
 } from "@/core/design/processing";
 import { DesignerLayer } from "./types";
+import { PathEraserModal } from "./PathEraserModal";
 import {
   applyGrayscale,
   applyInvert,
@@ -42,7 +44,12 @@ import {
 // Types
 // ─────────────────────────────────────────────────────────────────────────────
 
-type ActiveTool = "none" | "remove-bg" | "halftone" | "adjustments";
+type ActiveTool =
+  | "none"
+  | "remove-bg"
+  | "halftone"
+  | "semitransparency"
+  | "adjustments";
 
 interface ImageToolsProps {
   layer: DesignerLayer;
@@ -73,6 +80,36 @@ function blobToDataUrl(blob: Blob): Promise<string> {
       reject(reader.error ?? new Error("Could not encode the processed image preview."));
     }, { once: true });
     reader.readAsDataURL(blob);
+  });
+}
+
+function createThumbnailDataUrl(src: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 56;
+      canvas.height = 56;
+      const context = canvas.getContext("2d");
+      if (!context) {
+        reject(new Error("Could not create the processed image thumbnail."));
+        return;
+      }
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      try {
+        resolve(canvas.toDataURL("image/png"));
+      } catch (error) {
+        reject(
+          error instanceof Error
+            ? error
+            : new Error("Could not encode the processed image thumbnail."),
+        );
+      }
+    };
+    image.onerror = () =>
+      reject(new Error("Could not decode the processed image thumbnail."));
+    image.src = src;
   });
 }
 
@@ -118,26 +155,44 @@ function Commit({
   onCancel,
   disabled,
 }: {
-  onApply: () => void;
+  onApply: () => void | Promise<void>;
   onCancel: () => void;
   disabled?: boolean;
 }) {
+  const [isApplying, setIsApplying] = React.useState(false);
+
+  const handleApply = async () => {
+    if (disabled || isApplying) return;
+    setIsApplying(true);
+    try {
+      await onApply();
+    } finally {
+      setIsApplying(false);
+    }
+  };
+
   return (
     <div className="flex gap-1.5 pt-1">
       <button
         type="button"
         onClick={onCancel}
+        disabled={isApplying}
         className="flex flex-1 items-center justify-center gap-1 rounded-[4px] border border-[#E2E8F0] py-1.5 text-[10px] font-medium text-[#64748B] hover:bg-[#F8FAFC]"
       >
         <X className="h-3 w-3" /> Cancelar
       </button>
       <button
         type="button"
-        disabled={disabled}
-        onClick={onApply}
+        disabled={disabled || isApplying}
+        onClick={() => void handleApply()}
         className="flex flex-1 items-center justify-center gap-1 rounded-[4px] bg-[#2563EB] py-1.5 text-[10px] font-bold text-white hover:bg-[#1D4ED8] disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <Check className="h-3 w-3" /> Aplicar
+        {isApplying ? (
+          <Loader2 className="h-3 w-3 animate-spin" />
+        ) : (
+          <Check className="h-3 w-3" />
+        )}
+        {isApplying ? "Aplicando…" : "Aplicar"}
       </button>
     </div>
   );
@@ -153,7 +208,7 @@ function RemoveBgTool({
   onCancel,
 }: {
   layer: DesignerLayer;
-  onApply: (processedSrc: string) => void;
+  onApply: (processedSrc: string) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [tolerance, setTolerance] = React.useState(40);
@@ -459,7 +514,9 @@ function RemoveBgTool({
 
       <Commit
         disabled={processing || !previewSrc}
-        onApply={() => previewSrc && onApply(previewSrc)}
+        onApply={async () => {
+          if (previewSrc) await onApply(previewSrc);
+        }}
         onCancel={handleCancel}
       />
     </div>
@@ -476,7 +533,7 @@ function HalftoneTool({
   onCancel,
 }: {
   layer: DesignerLayer;
-  onApply: (processedSrc: string) => void;
+  onApply: (processedSrc: string) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [cellSize, setCellSize] = React.useState(8);
@@ -704,7 +761,7 @@ function HalftoneTool({
         controller.signal,
       );
       if (currentGen !== generationRef.current) return;
-      onApply(await blobToDataUrl(finalResult.blob));
+      await onApply(await blobToDataUrl(finalResult.blob));
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         console.error("Failed to apply halftone:", err);
@@ -916,6 +973,130 @@ function HalftoneTool({
   );
 }
 
+function SemitransparencyTool({
+  layer,
+  onApply,
+  onCancel,
+}: {
+  layer: DesignerLayer;
+  onApply: (processedSrc: string) => void | Promise<void>;
+  onCancel: () => void;
+}) {
+  const [processing, setProcessing] = React.useState(true);
+  const [previewSrc, setPreviewSrc] = React.useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
+  const processingAbortRef = React.useRef<AbortController | null>(null);
+  const src = layer.processedSrc ?? layer.src ?? layer.preview;
+
+  React.useEffect(() => {
+    if (!src) {
+      setProcessing(false);
+      setErrorMessage("No hay una imagen disponible para procesar.");
+      return;
+    }
+
+    const controller = new AbortController();
+    processingAbortRef.current = controller;
+    setProcessing(true);
+    setErrorMessage(null);
+    void processRasterImageUrl(
+      src,
+      {
+        kind: "cleanup-semitransparency",
+        options: { strategy: "remove" },
+        previewMaxDimension: 500,
+      },
+      controller.signal,
+    )
+      .then((result) => blobToDataUrl(result.blob))
+      .then((preview) => {
+        if (!controller.signal.aborted) setPreviewSrc(preview);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof Error && error.name === "AbortError") return;
+        setErrorMessage(
+          error instanceof Error
+            ? error.message
+            : "No se pudieron limpiar las semitransparencias.",
+        );
+      })
+      .finally(() => {
+        if (processingAbortRef.current === controller) {
+          processingAbortRef.current = null;
+          setProcessing(false);
+        }
+      });
+
+    return () => {
+      controller.abort();
+      if (processingAbortRef.current === controller) {
+        processingAbortRef.current = null;
+      }
+    };
+  }, [src]);
+
+  const handleApply = async () => {
+    if (!src || processing) return;
+    const controller = new AbortController();
+    processingAbortRef.current = controller;
+    setProcessing(true);
+    setErrorMessage(null);
+    try {
+      const result = await processRasterImageUrl(
+        src,
+        {
+          kind: "cleanup-semitransparency",
+          options: { strategy: "remove" },
+        },
+        controller.signal,
+      );
+      if (controller.signal.aborted) return;
+      await onApply(await blobToDataUrl(result.blob));
+    } catch (error) {
+      if (error instanceof Error && error.name !== "AbortError") {
+        setErrorMessage(error.message);
+      }
+    } finally {
+      if (processingAbortRef.current === controller) {
+        processingAbortRef.current = null;
+        setProcessing(false);
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-[10px] leading-relaxed text-[#64748B]">
+        Elimina píxeles con alpha parcial y conserva el original para poder
+        restaurarlo.
+      </p>
+      {processing && (
+        <div className="flex items-center gap-1 text-[10px] text-[#64748B]">
+          <Loader2 className="h-3 w-3 animate-spin text-[#2563EB]" />
+          Procesando…
+        </div>
+      )}
+      {previewSrc && (
+        <img
+          src={previewSrc}
+          alt="Preview sin semitransparencias"
+          className="h-28 w-full rounded-[4px] border border-[#E2E8F0] object-contain"
+        />
+      )}
+      {errorMessage && (
+        <p role="alert" className="text-[10px] text-[#B91C1C]">
+          {errorMessage}
+        </p>
+      )}
+      <Commit
+        disabled={processing || !previewSrc}
+        onApply={handleApply}
+        onCancel={onCancel}
+      />
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Adjustments Tool (real pixel processing with preview)
 // ─────────────────────────────────────────────────────────────────────────────
@@ -926,7 +1107,10 @@ function AdjustmentsTool({
   onCancel,
 }: {
   layer: DesignerLayer;
-  onApply: (processedSrc: string, adj: AdjustmentValues) => void;
+  onApply: (
+    processedSrc: string,
+    adj: AdjustmentValues,
+  ) => void | Promise<void>;
   onCancel: () => void;
 }) {
   const [brightness, setBrightness] = React.useState(100);
@@ -1075,9 +1259,11 @@ function AdjustmentsTool({
 
       <Commit
         disabled={!previewSrc || processing}
-        onApply={() =>
-          previewSrc && onApply(previewSrc, { brightness, contrast, saturation })
-        }
+        onApply={async () => {
+          if (previewSrc) {
+            await onApply(previewSrc, { brightness, contrast, saturation });
+          }
+        }}
         onCancel={() => {
           handleCancel();
         }}
@@ -1092,7 +1278,11 @@ function AdjustmentsTool({
 
 export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps) {
   const [activeTool, setActiveTool] = React.useState<ActiveTool>("none");
+  const [isPathEraserOpen, setIsPathEraserOpen] = React.useState(false);
   const [processing, setProcessing] = React.useState(false);
+  const [processingError, setProcessingError] = React.useState<string | null>(
+    null,
+  );
   const simpleProcessingAbortRef = React.useRef<AbortController | null>(null);
 
   const src = layer.processedSrc ?? layer.src ?? layer.preview;
@@ -1106,30 +1296,23 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
   /** Commit a processed image to the layer (creates processedSrc, updates preview thumbnail).
    *  This is the ONLY place a history entry is generated for image tools. */
   const commitProcessed = React.useCallback(
-    (processedSrc: string, opLabel: string) => {
-      // Optimistic update
-      onUpdateLayer(layer.id, {
-        processedSrc,
-        lastOp: opLabel as DesignerLayer["lastOp"],
-      });
-
-      // Async thumbnail generation
-      const img = new Image();
-      img.crossOrigin = "anonymous";
-      img.onload = () => {
-        const thumb = document.createElement("canvas");
-        thumb.width = 56;
-        thumb.height = 56;
-        const tCtx = thumb.getContext("2d")!;
-        // Draw with checkerboard for transparent images
-        tCtx.clearRect(0, 0, 56, 56);
-        tCtx.drawImage(img, 0, 0, 56, 56);
-        const thumbUrl = thumb.toDataURL("image/png");
-        onUpdateLayer(layer.id, { preview: thumbUrl });
-      };
-      img.src = processedSrc;
-
-      setActiveTool("none");
+    async (processedSrc: string, opLabel: string) => {
+      setProcessingError(null);
+      try {
+        const preview = await createThumbnailDataUrl(processedSrc);
+        onUpdateLayer(layer.id, {
+          processedSrc,
+          lastOp: opLabel as DesignerLayer["lastOp"],
+          preview,
+        });
+        setActiveTool("none");
+      } catch (error) {
+        setProcessingError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo guardar el resultado de imagen.",
+        );
+      }
     },
     [layer.id, onUpdateLayer]
   );
@@ -1169,7 +1352,7 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
     setProcessing(true);
     try {
       const result = await fn(controller.signal);
-      if (!controller.signal.aborted) commitProcessed(result, opLabel);
+      if (!controller.signal.aborted) await commitProcessed(result, opLabel);
     } catch (error) {
       if (!(error instanceof Error && error.name === "AbortError")) {
         console.error(`${opLabel} failed:`, error);
@@ -1216,6 +1399,11 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
         {onOpenCrop && (
           <ToolBtn icon={Crop} label="Recortar imagen…" onClick={onOpenCrop} />
         )}
+        <ToolBtn
+          icon={PenTool}
+          label="Recorte poligonal…"
+          onClick={() => setIsPathEraserOpen(true)}
+        />
 
         <ToolBtn
           icon={ImageMinus}
@@ -1254,6 +1442,28 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
         )}
 
         <ToolBtn
+          icon={RefreshCw}
+          label="Eliminar semitransparencias"
+          active={activeTool === "semitransparency"}
+          onClick={() =>
+            setActiveTool(
+              activeTool === "semitransparency" ? "none" : "semitransparency",
+            )
+          }
+        />
+        {activeTool === "semitransparency" && (
+          <div className="ml-1 border-l-2 border-[#2563EB]/30 pl-2">
+            <SemitransparencyTool
+              layer={layer}
+              onApply={(result) =>
+                commitProcessed(result, "cleanup-semitransparency")
+              }
+              onCancel={() => setActiveTool("none")}
+            />
+          </div>
+        )}
+
+        <ToolBtn
           icon={SlidersHorizontal}
           label="Ajustes"
           active={activeTool === "adjustments"}
@@ -1271,6 +1481,20 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
           </div>
         )}
       </Section>
+
+      {processingError && (
+        <p role="alert" className="text-[10px] text-[#B91C1C]">
+          {processingError}
+        </p>
+      )}
+
+      {isPathEraserOpen && (
+        <PathEraserModal
+          layer={layer}
+          onApply={(result) => commitProcessed(result, "path-erase")}
+          onClose={() => setIsPathEraserOpen(false)}
+        />
+      )}
 
       {layer.lastOp && layer.lastOp !== "none" && (
         <p className="text-[9px] text-[#94A3B8]">

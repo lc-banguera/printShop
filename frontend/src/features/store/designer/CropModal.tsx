@@ -26,6 +26,7 @@ export function CropModal({
   const [cropW, setCropW] = React.useState(80);
   const [cropH, setCropH] = React.useState(80);
   const [isProcessing, setIsProcessing] = React.useState(false);
+  const [errorMessage, setErrorMessage] = React.useState<string | null>(null);
   const previewCanvasRef = React.useRef<HTMLCanvasElement>(null);
 
   const imgSrc = layer?.processedSrc ?? layer?.src ?? layer?.preview ?? "";
@@ -43,7 +44,7 @@ export function CropModal({
       const h = Math.round((cropW * 9) / 16);
       setCropH(Math.min(100 - cropY, Math.max(10, h)));
     }
-  }, [ratio]);
+  }, [cropH, cropW, cropY, ratio]);
 
   // Update live preview canvas
   React.useEffect(() => {
@@ -78,12 +79,14 @@ export function CropModal({
   const handleApply = async () => {
     if (!imgSrc) return;
     setIsProcessing(true);
+    setErrorMessage(null);
     try {
       const img = new Image();
       img.crossOrigin = "anonymous";
       await new Promise<void>((resolve, reject) => {
         img.onload = () => resolve();
-        img.onerror = () => reject();
+        img.onerror = () =>
+          reject(new Error("No se pudo cargar la imagen para recortarla."));
         img.src = imgSrc;
       });
 
@@ -100,8 +103,12 @@ export function CropModal({
       const croppedUrl = await cropImage(imgSrc, rect);
       onApplyCrop(layer.id, rect, croppedUrl);
       onClose();
-    } catch (err) {
-      console.error("Failed to crop image:", err);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "No se pudo aplicar el recorte.",
+      );
     } finally {
       setIsProcessing(false);
     }
@@ -124,7 +131,7 @@ export function CropModal({
                 Recortar Imagen
               </h2>
               <p className="text-[10px] text-[#64748B]">
-                Ajusta el área visible de "{layer.name}"
+                Ajusta el área visible de &quot;{layer.name}&quot;
               </p>
             </div>
           </div>
@@ -251,6 +258,12 @@ export function CropModal({
             )}
           </div>
         </div>
+
+        {errorMessage && (
+          <p role="alert" className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+            {errorMessage}
+          </p>
+        )}
 
         {/* Modal actions */}
         <div className="flex justify-end gap-2 border-t border-[#F1F5F9] pt-3">
