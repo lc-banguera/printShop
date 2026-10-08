@@ -15,6 +15,16 @@ export { CommandHistory } from './history';
 export * from './processing';
 export { SelectionManager } from './selection';
 export type { SelectionState } from './selection';
+export { flattenPath, rasterizePathSelection } from './paths';
+export type {
+  PathAnchor,
+  PathAnchorType,
+  PathPoint,
+  PathRasterizationOptions,
+  PathSegment,
+  PathSegmentType,
+  VectorPath,
+} from './paths';
 export { TransformSystem } from './transform';
 export { createArtworkTransformMatrix } from './transform';
 export { getElementGeometry, resizeElementGeometry } from './transform';

@@ -7,17 +7,23 @@ import type {
 } from './image-processor-contract';
 import {
   applyHalftone,
+  createAlphaData,
+  createConnectedColorMask,
   cleanupSemitransparency,
   createImageBuffer,
+  eraseWithAlphaMask,
+  extractAlpha,
   exportRaster,
   removeBackgroundLocal,
 } from '../../../../../engine/src/processing';
 import type { ImageBuffer } from '../../../../../engine/src/processing';
+import { rasterizePathSelection } from '../../../../../engine/src/paths';
 
 self.addEventListener('message', async (event: MessageEvent<ImageProcessingRequest>) => {
   try {
     const request = event.data;
     const bitmap = await createImageBitmap(request.source);
+    let maskBitmap: ImageBitmap | undefined;
 
     try {
       let width = bitmap.width;
@@ -60,6 +66,59 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
           case 'remove-background':
             processed = removeBackgroundLocal(sourceBuffer, request.operation.options).image;
             break;
+          case 'select-color-region': {
+            const mask = createConnectedColorMask(sourceBuffer, {
+              x: request.operation.x,
+              y: request.operation.y,
+              tolerance: request.operation.tolerance,
+              connectivity: request.operation.connectivity ?? 8,
+              alphaTolerance: request.operation.alphaTolerance,
+            });
+            processed = createImageBuffer(width, height);
+            for (let index = 0; index < mask.values.length; index += 1) {
+              const pixelOffset = index * 4;
+              processed.data[pixelOffset] = 255;
+              processed.data[pixelOffset + 1] = 64;
+              processed.data[pixelOffset + 2] = 64;
+              processed.data[pixelOffset + 3] = mask.values[index];
+            }
+            break;
+          }
+          case 'create-path-selection': {
+            const keepMask = rasterizePathSelection(
+              request.operation.path,
+              width,
+              height,
+            );
+            processed = createImageBuffer(width, height);
+            for (let index = 0; index < keepMask.values.length; index += 1) {
+              const pixelOffset = index * 4;
+              processed.data[pixelOffset] = 239;
+              processed.data[pixelOffset + 1] = 68;
+              processed.data[pixelOffset + 2] = 68;
+              processed.data[pixelOffset + 3] = 255 - keepMask.values[index];
+            }
+            break;
+          }
+          case 'erase-mask': {
+            maskBitmap = await createImageBitmap(request.operation.mask);
+            if (maskBitmap.width !== width || maskBitmap.height !== height) {
+              throw new RangeError('Image and eraser mask dimensions must match.');
+            }
+            const maskCanvas = new OffscreenCanvas(width, height);
+            const maskContext = maskCanvas.getContext('2d');
+            if (!maskContext) {
+              throw new Error('Could not create a mask processing context.');
+            }
+            maskContext.drawImage(maskBitmap, 0, 0);
+            const maskPixels = maskContext.getImageData(0, 0, width, height);
+            const maskBuffer = createImageBuffer(width, height, maskPixels.data);
+            processed = eraseWithAlphaMask(
+              sourceBuffer,
+              createAlphaData(width, height, extractAlpha(maskBuffer).values),
+            );
+            break;
+          }
           case 'halftone':
             processed = applyHalftone(sourceBuffer, request.operation.options);
             break;
@@ -106,6 +165,7 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
       self.postMessage(response);
     } finally {
       bitmap.close();
+      maskBitmap?.close();
     }
   } catch (error) {
     const response: ImageProcessingResponse = {

@@ -75,9 +75,13 @@ export type {
   MaskConnectivity,
   MaskMorphologyOperation,
   MaskRefinementOptions,
+  MaskSelectionOperation,
 } from './mask-refinement';
+export { combineSelectionMasks, invertSelectionMask } from './mask-refinement';
 export { applyHalftone } from './halftone';
 export type { HalftoneOptions } from './halftone';
+export { createConnectedColorMask, eraseWithAlphaMask } from './magic-eraser';
+export type { ConnectedRegionOptions } from './magic-eraser';
 export { cleanupSemitransparency } from './semitransparency';
 export type {
   SemitransparencyCleanupOptions,

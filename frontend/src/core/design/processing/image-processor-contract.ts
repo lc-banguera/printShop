@@ -4,9 +4,20 @@ import type {
   RemoveBackgroundOptions,
   SemitransparencyCleanupOptions,
 } from '../../../../../engine/src/processing';
+import type { VectorPath } from '../../../../../engine/src/paths';
 
 export type RasterImageOperation =
   | { kind: 'remove-background'; options: RemoveBackgroundOptions }
+  | {
+      kind: 'select-color-region';
+      x: number;
+      y: number;
+      tolerance: number;
+      connectivity?: 4 | 8;
+      alphaTolerance?: number;
+    }
+  | { kind: 'create-path-selection'; path: VectorPath }
+  | { kind: 'erase-mask'; mask: Blob }
   | { kind: 'halftone'; options: HalftoneOptions; previewMaxDimension?: number }
   | { kind: 'cleanup-semitransparency'; options: SemitransparencyCleanupOptions }
   | { kind: 'export-png'; dpi?: number };

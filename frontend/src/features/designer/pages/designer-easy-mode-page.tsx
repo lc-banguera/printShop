@@ -5,6 +5,7 @@ import {
   useState,
   type ChangeEvent,
   type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
 } from "react";
 
@@ -93,6 +94,7 @@ import {
   type ArtworkTransform,
 } from "../../../../../engine/src/transform/artwork-transform";
 import { createPngDpiMetadataPlan } from "../../../../../engine/src/processing/export";
+import type { PathPoint, VectorPath } from "../../../../../engine/src/paths";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -155,11 +157,7 @@ interface EasyAdjustments {
   saturation: number;
 }
 
-interface MagicEraserStroke {
-  pointerId: number;
-  x: number;
-  y: number;
-}
+type MagicLassoPoint = PathPoint;
 
 interface ArtworkGesture {
   pointerId: number;
@@ -806,6 +804,22 @@ export function DesignerEasyModePage() {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === " " || e.code === "Space") {
+        const active = document.activeElement;
+        if (
+          active instanceof HTMLInputElement ||
+          active instanceof HTMLTextAreaElement ||
+          active instanceof HTMLSelectElement
+        ) {
+          return;
+        }
+        isSpacePressedRef.current = true;
+        if (workspaceRef.current) {
+          workspaceRef.current.style.cursor = "grab";
+        }
+        e.preventDefault();
+        return;
+      }
       if (e.key === "Escape") {
         if (openHeaderDropdown) {
           setOpenHeaderDropdown(null);
@@ -819,9 +833,22 @@ export function DesignerEasyModePage() {
       }
     };
 
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === " " || e.code === "Space") {
+        isSpacePressedRef.current = false;
+        if (workspaceRef.current && !isHandToolActive) {
+          workspaceRef.current.style.cursor = "";
+        }
+      }
+    };
+
     window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeSidebarTool, openToolPanel, isToolsSelectionOpen, openHeaderDropdown]);
+    window.addEventListener("keyup", handleKeyUp);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
+    };
+  }, [activeSidebarTool, openToolPanel, isToolsSelectionOpen, openHeaderDropdown, isHandToolActive]);
   const [adjustments, setAdjustments] = useState<EasyAdjustments>({
     brightness: 100,
     contrast: 100,
@@ -848,24 +875,24 @@ export function DesignerEasyModePage() {
     eraser: "AVAILABLE",
     "magic-edit": "NOT_CONFIGURED",
   });
-  const [magicEraserMode, setMagicEraserMode] = useState<"select" | "brush">(
+  const [magicEraserMode, setMagicEraserMode] = useState<"select" | "lasso">(
     "select",
   );
-  const [magicEraserBrushSize, setMagicEraserBrushSize] = useState(24);
-  const [magicBrushCursor, setMagicBrushCursor] = useState<{
+  const [magicLassoCursor, setMagicLassoCursor] = useState<{
     x: number;
     y: number;
-    size: number;
   } | null>(null);
   const [upscaleFactor, setUpscaleFactor] = useState(2);
   const [magicMaskPreviewUrl, setMagicMaskPreviewUrl] = useState<string | null>(
     null,
   );
-  const [hasMagicBrushMask, setHasMagicBrushMask] = useState(false);
+  const [hasMagicMask, setHasMagicMask] = useState(false);
+  const [magicLassoPoints, setMagicLassoPoints] = useState<MagicLassoPoint[]>([]);
+  const [isMagicLassoClosed, setIsMagicLassoClosed] = useState(false);
   const magicMaskBlobRef = useRef<Blob | null>(null);
-  const magicMaskCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const maskPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const magicEraserStrokeRef = useRef<MagicEraserStroke | null>(null);
+  const artworkImageRef = useRef<HTMLImageElement | null>(null);
+  const magicLassoGenerationRef = useRef(0);
   const [keepRatio, setKeepRatio] = useState(false);
   const [canvasRatio, setCanvasRatio] = useState(
     () =>
@@ -953,6 +980,8 @@ export function DesignerEasyModePage() {
   const semitransparencyResultRef = useRef<SemitransparencyResult | null>(
     modeSession?.semitransparencyResult ?? null,
   );
+  const isSpacePressedRef = useRef(false);
+  const [cursorCanvasPos, setCursorCanvasPos] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!isHeaderMenuOpen) return;
@@ -1254,7 +1283,12 @@ export function DesignerEasyModePage() {
   const handleWorkspacePointerDown = (
     event: ReactPointerEvent<HTMLElement>,
   ) => {
-    if (!isHandToolActive || event.button !== 0) return;
+    const isPanTrigger =
+      isHandToolActive ||
+      isSpacePressedRef.current ||
+      event.button === 1; // middle mouse
+    if (!isPanTrigger) return;
+    if (event.button === 0 && !isHandToolActive && !isSpacePressedRef.current) return;
     if (
       event.target instanceof Element &&
       event.target.closest("button, input, select, textarea, [role='button']")
@@ -1275,6 +1309,28 @@ export function DesignerEasyModePage() {
       startPanY: canvasPan.y,
     };
     setIsPanning(true);
+  };
+
+  const handleWorkspaceWheel = (event: React.WheelEvent<HTMLElement>) => {
+    event.preventDefault();
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    const rect = workspace.getBoundingClientRect();
+    const pointerX = event.clientX - rect.left;
+    const pointerY = event.clientY - rect.top;
+
+    const factor = event.deltaY < 0 ? 1.1 : 0.9;
+    setCanvasZoom((current) => {
+      const next = Math.min(10, Math.max(0.1, Number((current * factor).toFixed(4))));
+      // Anchor zoom to cursor position
+      const scale = next / current;
+      setCanvasPan((pan) => ({
+        x: pointerX - scale * (pointerX - pan.x),
+        y: pointerY - scale * (pointerY - pan.y),
+      }));
+      return next;
+    });
   };
 
   const handleWorkspacePointerMove = (
@@ -1302,22 +1358,16 @@ export function DesignerEasyModePage() {
   };
 
   const clearMagicMask = () => {
+    magicLassoGenerationRef.current += 1;
     magicMaskBlobRef.current = null;
-    setHasMagicBrushMask(false);
-    setMagicBrushCursor(null);
+    setHasMagicMask(false);
+    setMagicLassoPoints([]);
+    setIsMagicLassoClosed(false);
+    setMagicLassoCursor(null);
     setMagicMaskPreviewUrl((current) => {
       if (current) URL.revokeObjectURL(current);
       return null;
     });
-    const maskContext = magicMaskCanvasRef.current?.getContext("2d");
-    if (maskContext) {
-      maskContext.clearRect(
-        0,
-        0,
-        magicMaskCanvasRef.current?.width ?? 0,
-        magicMaskCanvasRef.current?.height ?? 0,
-      );
-    }
     const previewContext = maskPreviewCanvasRef.current?.getContext("2d");
     if (previewContext && maskPreviewCanvasRef.current) {
       previewContext.clearRect(
@@ -1326,6 +1376,118 @@ export function DesignerEasyModePage() {
         maskPreviewCanvasRef.current.width,
         maskPreviewCanvasRef.current.height,
       );
+    }
+  };
+
+  const drawMagicLassoPreview = (
+    points: MagicLassoPoint[],
+    cursor: MagicLassoPoint | null,
+    closed: boolean,
+    showEraseArea = true,
+  ) => {
+    const canvas = maskPreviewCanvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (closed && showEraseArea && points.length >= 3) {
+      context.fillStyle = "rgba(239,68,68,0.38)";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.globalCompositeOperation = "destination-out";
+      context.fillStyle = "#000000";
+      context.beginPath();
+      context.moveTo(points[0].x, points[0].y);
+      points.slice(1).forEach((point) => context.lineTo(point.x, point.y));
+      context.closePath();
+      context.fill();
+      context.globalCompositeOperation = "source-over";
+    }
+
+    if (points.length === 0) return;
+    context.beginPath();
+    context.moveTo(points[0].x, points[0].y);
+    points.slice(1).forEach((point) => context.lineTo(point.x, point.y));
+    if (closed) context.closePath();
+    else if (cursor) context.lineTo(cursor.x, cursor.y);
+    context.setLineDash(closed ? [8, 5] : []);
+    context.lineWidth = Math.max(1, canvas.width / 500);
+    context.strokeStyle = "rgba(15,23,42,0.9)";
+    context.stroke();
+    context.lineDashOffset = closed ? 6 : 0;
+    context.strokeStyle = "#ffffff";
+    context.stroke();
+    context.setLineDash([]);
+
+    context.fillStyle = "#ffffff";
+    context.strokeStyle = "rgba(15,23,42,0.9)";
+    context.lineWidth = Math.max(1, canvas.width / 700);
+    for (const point of points) {
+      context.beginPath();
+      context.arc(
+        point.x,
+        point.y,
+        Math.max(2, canvas.width / 150),
+        0,
+        Math.PI * 2,
+      );
+      context.fill();
+      context.stroke();
+    }
+  };
+
+  const finishMagicLasso = async (points: MagicLassoPoint[]) => {
+    const image = artworkImageRef.current;
+    if (!selectedImage || !image || points.length < 3 || isProcessing) return;
+    const generation = magicLassoGenerationRef.current;
+    setIsMagicLassoClosed(true);
+    drawMagicLassoPreview(points, null, true);
+    const anchors = points.map((point, index) => ({
+      id: `anchor-${index}`,
+      ...point,
+      type: "CORNER" as const,
+    }));
+    const path: VectorPath = {
+      id: `magic-lasso-${generation}`,
+      closed: true,
+      anchors,
+      segments: anchors.map((anchor, index) => ({
+        id: `segment-${index}`,
+        type: "LINE" as const,
+        startAnchorId: anchor.id,
+        endAnchorId: anchors[(index + 1) % anchors.length].id,
+      })),
+    };
+
+    setIsProcessing(true);
+    setProcessingError(null);
+    setToolStatuses((current) => ({ ...current, "magic-eraser": "PROCESSING" }));
+    try {
+      const result = await processRasterImageUrl(selectedImage, {
+        kind: "create-path-selection",
+        path,
+      });
+      if (generation !== magicLassoGenerationRef.current) return;
+      magicMaskBlobRef.current = result.blob;
+      setHasMagicMask(true);
+      const previewUrl = URL.createObjectURL(result.blob);
+      setMagicMaskPreviewUrl((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return previewUrl;
+      });
+      drawMagicLassoPreview(points, null, true, false);
+      setToolStatuses((current) => ({ ...current, "magic-eraser": "SUCCESS" }));
+    } catch (error) {
+      if (generation === magicLassoGenerationRef.current) {
+        setHasMagicMask(false);
+        setToolStatuses((current) => ({ ...current, "magic-eraser": "FAILED" }));
+        setProcessingError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo preparar la selección del contorno.",
+        );
+      }
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -1366,6 +1528,7 @@ export function DesignerEasyModePage() {
       });
       const previewUrl = URL.createObjectURL(result.blob);
       magicMaskBlobRef.current = result.blob;
+      setHasMagicMask(true);
       setMagicMaskPreviewUrl((current) => {
         if (current) URL.revokeObjectURL(current);
         return previewUrl;
@@ -1383,11 +1546,9 @@ export function DesignerEasyModePage() {
     }
   };
 
-  const handleMaskPointerDown = (
-    event: ReactPointerEvent<HTMLCanvasElement>,
-  ) => {
+  const handleLassoPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     if (
-      magicEraserMode !== "brush" ||
+      magicEraserMode !== "lasso" ||
       !selectedImage ||
       isProcessing ||
       isRemovingBg
@@ -1396,115 +1557,94 @@ export function DesignerEasyModePage() {
     }
     event.preventDefault();
     event.stopPropagation();
-    const previewCanvas = event.currentTarget;
-    const bounds = previewCanvas.getBoundingClientRect();
-    const width = artworkDimensions?.width ?? previewCanvas.width;
-    const height = artworkDimensions?.height ?? previewCanvas.height;
+    event.currentTarget.focus();
+    const canvas = event.currentTarget;
+    const bounds = canvas.getBoundingClientRect();
+    const width =
+      artworkImageRef.current?.naturalWidth ||
+      artworkDimensions?.width ||
+      canvas.width;
+    const height =
+      artworkImageRef.current?.naturalHeight ||
+      artworkDimensions?.height ||
+      canvas.height;
     if (!bounds.width || !bounds.height || !width || !height) return;
+    canvas.width = width;
+    canvas.height = height;
 
-    if (
-      !magicMaskCanvasRef.current ||
-      magicMaskCanvasRef.current.width !== width ||
-      magicMaskCanvasRef.current.height !== height
-    ) {
-      magicMaskCanvasRef.current = document.createElement("canvas");
-      magicMaskCanvasRef.current.width = width;
-      magicMaskCanvasRef.current.height = height;
-    }
-    previewCanvas.width = width;
-    previewCanvas.height = height;
-    const maskContext = magicMaskCanvasRef.current.getContext("2d");
-    const previewContext = previewCanvas.getContext("2d");
-    if (!maskContext || !previewContext) {
-      setProcessingError("No se pudo preparar la máscara del borrador.");
-      return;
-    }
-
-    const x = Math.min(
-      width,
-      Math.max(0, ((event.clientX - bounds.left) / bounds.width) * width),
-    );
-    const y = Math.min(
-      height,
-      Math.max(0, ((event.clientY - bounds.top) / bounds.height) * height),
-    );
-    const drawPoint = (context: CanvasRenderingContext2D, color: string) => {
-      context.beginPath();
-      context.fillStyle = color;
-      context.arc(x, y, magicEraserBrushSize / 2, 0, Math.PI * 2);
-      context.fill();
+    const point = {
+      x: Math.min(
+        width,
+        Math.max(0, ((event.clientX - bounds.left) / bounds.width) * width),
+      ),
+      y: Math.min(
+        height,
+        Math.max(0, ((event.clientY - bounds.top) / bounds.height) * height),
+      ),
     };
-    drawPoint(maskContext, "rgba(255,255,255,1)");
-    drawPoint(previewContext, "rgba(239,68,68,0.48)");
-    setHasMagicBrushMask(true);
-    magicEraserStrokeRef.current = { pointerId: event.pointerId, x, y };
-    previewCanvas.setPointerCapture(event.pointerId);
+    if (isMagicLassoClosed) return;
+
+    const firstPoint = magicLassoPoints[0];
+    if (firstPoint && magicLassoPoints.length >= 3) {
+      const distanceX = ((point.x - firstPoint.x) / width) * bounds.width;
+      const distanceY = ((point.y - firstPoint.y) / height) * bounds.height;
+      if (Math.hypot(distanceX, distanceY) <= 14) {
+        void finishMagicLasso(magicLassoPoints);
+        return;
+      }
+    }
+
+    const nextPoints = [...magicLassoPoints, point];
+    if (magicLassoPoints.length === 0) setProcessingError(null);
+    setMagicLassoPoints(nextPoints);
     setToolStatuses((current) => ({ ...current, "magic-eraser": "AVAILABLE" }));
+    drawMagicLassoPreview(nextPoints, null, false);
   };
 
-  const handleMaskPointerMove = (
+  const handleLassoDoubleClick = (event: ReactMouseEvent<HTMLCanvasElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (magicLassoPoints.length >= 3 && !isMagicLassoClosed) {
+      void finishMagicLasso(magicLassoPoints);
+    }
+  };
+
+  const handleLassoPointerMove = (
     event: ReactPointerEvent<HTMLCanvasElement>,
   ) => {
-    const previewCanvas = event.currentTarget;
-    const bounds = previewCanvas.getBoundingClientRect();
-    if (!bounds.width || !bounds.height) return;
-    setMagicBrushCursor({
+    const canvas = event.currentTarget;
+    const bounds = canvas.getBoundingClientRect();
+    if (!bounds.width || !bounds.height || magicLassoPoints.length === 0) return;
+    const cursor = {
+      x: ((event.clientX - bounds.left) / bounds.width) * canvas.width,
+      y: ((event.clientY - bounds.top) / bounds.height) * canvas.height,
+    };
+    setMagicLassoCursor({
       x: event.clientX - bounds.left,
       y: event.clientY - bounds.top,
-      size: (magicEraserBrushSize * bounds.width) / previewCanvas.width,
     });
-    const stroke = magicEraserStrokeRef.current;
-    if (!stroke || stroke.pointerId !== event.pointerId) return;
-    const x = Math.min(
-      previewCanvas.width,
-      Math.max(
-        0,
-        ((event.clientX - bounds.left) / bounds.width) * previewCanvas.width,
-      ),
-    );
-    const y = Math.min(
-      previewCanvas.height,
-      Math.max(
-        0,
-        ((event.clientY - bounds.top) / bounds.height) * previewCanvas.height,
-      ),
-    );
-    const drawSegment = (context: CanvasRenderingContext2D, color: string) => {
-      context.beginPath();
-      context.strokeStyle = color;
-      context.lineWidth = magicEraserBrushSize;
-      context.lineCap = "round";
-      context.lineJoin = "round";
-      context.moveTo(stroke.x, stroke.y);
-      context.lineTo(x, y);
-      context.stroke();
-    };
-    const maskContext = magicMaskCanvasRef.current?.getContext("2d");
-    const previewContext = previewCanvas.getContext("2d");
-    if (!maskContext || !previewContext) return;
-    drawSegment(maskContext, "rgba(255,255,255,1)");
-    drawSegment(previewContext, "rgba(239,68,68,0.48)");
-    stroke.x = x;
-    stroke.y = y;
+    if (!isMagicLassoClosed) {
+      drawMagicLassoPreview(magicLassoPoints, cursor, false);
+    }
   };
 
-  const finishMaskStroke = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const stroke = magicEraserStrokeRef.current;
-    if (!stroke || stroke.pointerId !== event.pointerId) return;
-    magicEraserStrokeRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
+  const handleLassoKeyDown = (
+    event: React.KeyboardEvent<HTMLCanvasElement>,
+  ) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      clearMagicMask();
+    } else if (event.key === "Backspace" && !isMagicLassoClosed) {
+      event.preventDefault();
+      const nextPoints = magicLassoPoints.slice(0, -1);
+      setMagicLassoPoints(nextPoints);
+      drawMagicLassoPreview(nextPoints, null, false);
     }
   };
 
   const applyMagicMask = async () => {
     if (!selectedImage || isProcessing || isRemovingBg) return;
-    let mask = magicMaskBlobRef.current;
-    if (!mask && magicMaskCanvasRef.current) {
-      mask = await new Promise<Blob | null>((resolve) =>
-        magicMaskCanvasRef.current?.toBlob(resolve, "image/png"),
-      );
-    }
+    const mask = magicMaskBlobRef.current;
     if (!mask) {
       setProcessingError(
         "Selecciona una región o dibuja un trazo antes de aplicar.",
@@ -1804,7 +1944,16 @@ export function DesignerEasyModePage() {
       const downloadUrl = URL.createObjectURL(downloadBlob);
       const anchor = document.createElement("a");
       anchor.href = downloadUrl;
-      anchor.download = `printshop-${rasterWidth}x${rasterHeight}.png`;
+      const techClean = technique
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toUpperCase()
+        .replace(/[^A-Z0-9]+/g, "_")
+        .replace(/^_|_$/g, "");
+      const wCm = Number(safeWidthCm);
+      const hCm = Number(safeHeightCm);
+      const exportFilename = `${techClean}_${wCm}x${hCm}cm.png`;
+      anchor.download = exportFilename;
       anchor.click();
       window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1000);
       showToast({
@@ -1847,6 +1996,37 @@ export function DesignerEasyModePage() {
     observer.observe(el);
     return () => observer.disconnect();
   }, [safeHeightCm, safeWidthCm]);
+
+  // Non-passive wheel listener: must use native addEventListener so preventDefault() works.
+  // React's synthetic onWheel is passive in some configurations and can't prevent scroll.
+
+  useEffect(() => {
+    const workspace = workspaceRef.current;
+    if (!workspace) return;
+
+    const listener = (event: WheelEvent) => {
+      event.preventDefault();
+      if (!workspaceRef.current) return;
+      const rect = workspaceRef.current.getBoundingClientRect();
+      const pointerX = event.clientX - rect.left;
+      const pointerY = event.clientY - rect.top;
+      const factor = event.deltaY < 0 ? 1.1 : 0.9;
+      setCanvasZoom((current) => {
+        const next = Math.min(10, Math.max(0.1, Number((current * factor).toFixed(4))));
+        const scale = next / current;
+        setCanvasPan((pan) => ({
+          x: pointerX - scale * (pointerX - pan.x),
+          y: pointerY - scale * (pointerY - pan.y),
+        }));
+        return next;
+      });
+    };
+
+    workspace.addEventListener("wheel", listener, { passive: false });
+    return () => workspace.removeEventListener("wheel", listener);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   useEffect(
     () => () => {
@@ -2975,7 +3155,9 @@ export function DesignerEasyModePage() {
 
   const stepDimension = (axis: "widthCm" | "heightCm", direction: 1 | -1) => {
     const current = Number(canvasSettings[axis]) || 0;
-    const next = Math.max(0.1, Number((current + direction).toFixed(1)));
+    // Integer step: add direction (±1), then round to 1 decimal to kill float noise
+    const stepped = current + direction;
+    const next = Math.max(0.1, Math.round(stepped * 10) / 10);
     handleDimensionChange(axis, next.toString());
   };
 
@@ -4993,13 +5175,13 @@ export function DesignerEasyModePage() {
                           </button>
                           <button
                             type="button"
-                            aria-pressed={magicEraserMode === "brush"}
+                            aria-pressed={magicEraserMode === "lasso"}
                             onClick={() => {
                               clearMagicMask();
-                              setMagicEraserMode("brush");
+                              setMagicEraserMode("lasso");
                             }}
                             className={`flex min-h-10 items-center justify-center gap-1.5 rounded-[5px] px-2 text-[11px] font-semibold transition-colors ${
-                              magicEraserMode === "brush"
+                              magicEraserMode === "lasso"
                                 ? "bg-[#f1f5f9] text-[#0f172a] ring-1 ring-[#cbd5e1]"
                                 : "border border-[#e2e8f0] text-[#475569] hover:bg-[#f8fafc]"
                             }`}
@@ -5008,34 +5190,11 @@ export function DesignerEasyModePage() {
                           </button>
                         </div>
                       )}
-                      {openToolPanel === "magic-eraser" &&
-                        magicEraserMode === "brush" && (
-                          <label className="block">
-                            <div className="mb-1 flex items-center justify-between">
-                              <span className="text-[12px] font-medium text-[#374151]">
-                                Tamaño del pincel
-                              </span>
-                              <span className="text-[12px] font-semibold text-[#4f46e5]">
-                                {magicEraserBrushSize}px
-                              </span>
-                            </div>
-                            <input
-                              type="range"
-                              min={4}
-                              max={120}
-                              value={magicEraserBrushSize}
-                              onChange={(e) =>
-                                setMagicEraserBrushSize(Number(e.target.value))
-                              }
-                              className="ps-slider ps-slider-blue"
-                            />
-                          </label>
-                        )}
                       <p className="text-[11px] text-[#64748b]">
-                        {magicMaskBlobRef.current || hasMagicBrushMask
+                        {magicMaskBlobRef.current || hasMagicMask
                           ? "Máscara lista. Puedes aplicarla o cancelarla."
-                          : magicEraserMode === "brush"
-                            ? "Dibuja un trazo sobre la zona que deseas eliminar."
+                          : magicEraserMode === "lasso"
+                            ? "Marca puntos alrededor del objeto que deseas conservar. Cierra el contorno para previsualizar lo que se eliminará."
                             : "Selecciona el área que deseas eliminar."}
                       </p>
                       <div className="flex gap-2">
@@ -5044,7 +5203,7 @@ export function DesignerEasyModePage() {
                           onClick={() => void applyMagicMask()}
                           disabled={
                             !selectedImage ||
-                            (!magicMaskBlobRef.current && !hasMagicBrushMask) ||
+                            (!magicMaskBlobRef.current && !hasMagicMask) ||
                             isProcessing ||
                             isRemovingBg
                           }
@@ -5056,7 +5215,9 @@ export function DesignerEasyModePage() {
                           type="button"
                           onClick={clearMagicMask}
                           disabled={
-                            !magicMaskBlobRef.current && !hasMagicBrushMask
+                            !magicMaskBlobRef.current &&
+                            magicLassoPoints.length === 0 &&
+                            !hasMagicMask
                           }
                           className="rounded-[5px] border border-[#e2e8f0] px-3 py-2 text-[12px] font-semibold text-[#475569] hover:bg-[#f8fafc] disabled:opacity-50"
                         >
@@ -5134,6 +5295,16 @@ export function DesignerEasyModePage() {
                       setIsArtworkSelected(false);
                     }
                   }}
+                  onMouseMove={(event) => {
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    const relX = (event.clientX - rect.left) / rect.width;
+                    const relY = (event.clientY - rect.top) / rect.height;
+                    setCursorCanvasPos({
+                      x: Math.max(0, Math.min(safeWidthCm, relX * safeWidthCm)),
+                      y: Math.max(0, Math.min(safeHeightCm, relY * safeHeightCm)),
+                    });
+                  }}
+                  onMouseLeave={() => setCursorCanvasPos(null)}
                   className="relative shrink-0 overflow-hidden border border-[#cbd5e1] shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
                   style={{
                     width: `${canvasViewport.widthPx}px`,
@@ -5164,6 +5335,7 @@ export function DesignerEasyModePage() {
                         }}
                       >
                         <img
+                          ref={artworkImageRef}
                           src={selectedImage}
                           alt={
                             processedImageUrl &&
@@ -5176,7 +5348,7 @@ export function DesignerEasyModePage() {
                             isHandToolActive
                               ? ""
                               : activeEasyTool === "magic-eraser" &&
-                                  magicEraserMode === "brush"
+                                  magicEraserMode === "lasso"
                                 ? "cursor-crosshair touch-none"
                                 : "cursor-move touch-none"
                           }`}
@@ -5214,7 +5386,7 @@ export function DesignerEasyModePage() {
                             pointerEvents:
                               isHandToolActive ||
                               (activeEasyTool === "magic-eraser" &&
-                                magicEraserMode === "brush")
+                                magicEraserMode === "lasso")
                                 ? "none"
                                 : "auto",
                           }}
@@ -5230,35 +5402,38 @@ export function DesignerEasyModePage() {
                             />
                           )}
                         {activeEasyTool === "magic-eraser" &&
-                          magicEraserMode === "brush" && (
+                          magicEraserMode === "lasso" && (
                             <canvas
                               ref={maskPreviewCanvasRef}
                               width={artworkDimensions?.width ?? 1}
                               height={artworkDimensions?.height ?? 1}
-                              aria-label="Máscara del borrador; dibuja sobre las zonas que quieres eliminar"
+                              aria-label="Selección poligonal; dibuja el contorno del objeto que quieres conservar"
                               className="absolute inset-0 z-20 h-full w-full cursor-crosshair touch-none"
-                              onPointerDown={handleMaskPointerDown}
-                              onPointerMove={handleMaskPointerMove}
-                              onPointerUp={finishMaskStroke}
-                              onPointerCancel={finishMaskStroke}
+                              tabIndex={0}
+                              onPointerDown={handleLassoPointerDown}
+                              onPointerMove={handleLassoPointerMove}
+                              onDoubleClick={handleLassoDoubleClick}
                               onPointerLeave={() => {
-                                if (!magicEraserStrokeRef.current) {
-                                  setMagicBrushCursor(null);
-                                }
+                                setMagicLassoCursor(null);
+                                drawMagicLassoPreview(
+                                  magicLassoPoints,
+                                  null,
+                                  isMagicLassoClosed,
+                                );
                               }}
+                              onKeyDown={handleLassoKeyDown}
                             />
                           )}
-                        {magicBrushCursor &&
+                        {magicLassoCursor &&
                           activeEasyTool === "magic-eraser" &&
-                          magicEraserMode === "brush" && (
+                          magicEraserMode === "lasso" &&
+                          !isMagicLassoClosed && (
                             <div
                               aria-hidden="true"
-                              className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-red-500/20 shadow-[0_0_0_1px_rgba(15,23,42,0.7)]"
+                              className="pointer-events-none absolute z-30 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-indigo-500 shadow-[0_0_0_1px_rgba(15,23,42,0.7)]"
                               style={{
-                                left: magicBrushCursor.x,
-                                top: magicBrushCursor.y,
-                                width: magicBrushCursor.size,
-                                height: magicBrushCursor.size,
+                                left: magicLassoCursor.x,
+                                top: magicLassoCursor.y,
                               }}
                             />
                           )}
@@ -5399,7 +5574,28 @@ export function DesignerEasyModePage() {
             >
               <Maximize2 className="h-4 w-4" strokeWidth={1.8} />
             </button>
+            <div aria-hidden="true" className="mx-0.5 h-5 w-px bg-[#e2e8f0]" />
+            <span className="min-w-[42px] px-2 text-center text-[11px] font-semibold tabular-nums text-[#475569]">
+              {Math.round(canvasZoom * 100)}%
+            </span>
           </div>
+
+          {/* Coordinate readout — shown when cursor is over the canvas */}
+          {cursorCanvasPos && (
+            <div
+              aria-live="polite"
+              aria-atomic="true"
+              className="absolute bottom-6 right-4 z-20 flex items-center gap-2 rounded-[5px] border border-[#e2e8f0] bg-white px-2.5 py-1.5 shadow-[0_4px_16px_rgba(0,0,0,0.08)]"
+            >
+              <span className="text-[11px] font-medium tabular-nums text-[#64748b]">
+                X: {cursorCanvasPos.x.toFixed(1)} cm
+              </span>
+              <span aria-hidden="true" className="h-3 w-px bg-[#e2e8f0]" />
+              <span className="text-[11px] font-medium tabular-nums text-[#64748b]">
+                Y: {cursorCanvasPos.y.toFixed(1)} cm
+              </span>
+            </div>
+          )}
         </main>
       </div>
     </div>

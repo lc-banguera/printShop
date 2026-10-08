@@ -1,7 +1,16 @@
 import { createAlphaData, type AlphaData } from './image-processing';
 
-export type MaskMorphologyOperation = 'none' | 'opening' | 'closing';
+export type MaskMorphologyOperation =
+  | 'none'
+  | 'opening'
+  | 'closing'
+  | 'dilate'
+  | 'erode'
+  | 'grow'
+  | 'shrink'
+  | 'clean';
 export type MaskConnectivity = 4 | 8;
+export type MaskSelectionOperation = 'add' | 'subtract' | 'intersect';
 
 export interface MaskRefinementOptions {
   operation?: MaskMorphologyOperation;
@@ -11,10 +20,22 @@ export interface MaskRefinementOptions {
   minimumForegroundRegionSize?: number;
 }
 
+function validateMask(source: AlphaData): void {
+  if (
+    !Number.isSafeInteger(source.width) ||
+    source.width <= 0 ||
+    !Number.isSafeInteger(source.height) ||
+    source.height <= 0 ||
+    source.values.length !== source.width * source.height
+  ) {
+    throw new TypeError('Invalid alpha mask dimensions or data length.');
+  }
+}
+
 function validateOptions(options: MaskRefinementOptions): void {
   const radius = options.radius ?? 1;
   const minimumSize = options.minimumForegroundRegionSize ?? 0;
-  if (!['none', 'opening', 'closing'].includes(options.operation ?? 'none')) {
+  if (!['none', 'opening', 'closing', 'dilate', 'erode', 'grow', 'shrink', 'clean'].includes(options.operation ?? 'none')) {
     throw new TypeError(`Unsupported mask morphology operation: ${String(options.operation)}`);
   }
   if (!Number.isSafeInteger(radius) || radius < 0 || radius > 64) {
@@ -160,22 +181,22 @@ export function refineForegroundMask(
   options: MaskRefinementOptions = {},
 ): AlphaData {
   validateOptions(options);
-  if (
-    !Number.isSafeInteger(source.width) ||
-    source.width <= 0 ||
-    !Number.isSafeInteger(source.height) ||
-    source.height <= 0 ||
-    source.values.length !== source.width * source.height
-  ) {
-    throw new TypeError('Invalid alpha mask dimensions or data length.');
-  }
+  validateMask(source);
 
   const values = new Uint8Array(source.values);
   const radius = options.radius ?? 1;
   const operation = options.operation ?? 'none';
-  if (radius > 0 && operation === 'opening') {
+  if (radius > 0 && (operation === 'dilate' || operation === 'grow')) {
+    values.set(morphology(values, source.width, source.height, radius, true));
+  } else if (radius > 0 && (operation === 'erode' || operation === 'shrink')) {
+    values.set(morphology(values, source.width, source.height, radius, false));
+  } else if (radius > 0 && (operation === 'opening' || operation === 'clean')) {
     const eroded = morphology(values, source.width, source.height, radius, false);
     values.set(morphology(eroded, source.width, source.height, radius, true));
+    if (operation === 'clean') {
+      const dilated = morphology(values, source.width, source.height, radius, true);
+      values.set(morphology(dilated, source.width, source.height, radius, false));
+    }
   } else if (radius > 0 && operation === 'closing') {
     const dilated = morphology(values, source.width, source.height, radius, true);
     values.set(morphology(dilated, source.width, source.height, radius, false));
@@ -192,4 +213,42 @@ export function refineForegroundMask(
   );
   if (options.fillHoles) fillEnclosedHoles(values, source.width, source.height, connectivity);
   return createAlphaData(source.width, source.height, values);
+}
+
+export function invertSelectionMask(source: AlphaData): AlphaData {
+  validateMask(source);
+  const values = new Uint8Array(source.values.length);
+  for (let index = 0; index < values.length; index += 1) {
+    values[index] = 255 - source.values[index];
+  }
+  return createAlphaData(source.width, source.height, values);
+}
+
+export function combineSelectionMasks(
+  base: AlphaData,
+  overlay: AlphaData,
+  operation: MaskSelectionOperation,
+): AlphaData {
+  validateMask(base);
+  validateMask(overlay);
+  if (base.width !== overlay.width || base.height !== overlay.height) {
+    throw new RangeError('Selection masks must have matching dimensions.');
+  }
+  if (operation !== 'add' && operation !== 'subtract' && operation !== 'intersect') {
+    throw new TypeError(`Unsupported selection mask operation: ${String(operation)}`);
+  }
+
+  const values = new Uint8Array(base.values.length);
+  for (let index = 0; index < values.length; index += 1) {
+    const a = base.values[index];
+    const b = overlay.values[index];
+    if (operation === 'add') {
+      values[index] = Math.round(255 - ((255 - a) * (255 - b)) / 255);
+    } else if (operation === 'subtract') {
+      values[index] = Math.round((a * (255 - b)) / 255);
+    } else {
+      values[index] = Math.round((a * b) / 255);
+    }
+  }
+  return createAlphaData(base.width, base.height, values);
 }

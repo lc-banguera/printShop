@@ -17,6 +17,66 @@ test('background removal flood-fills edge-connected background without mutating 
   assert.deepEqual([...source.data], pixels);
 });
 
+test('magic eraser creates a connected selection mask and erases into alpha non-destructively', () => {
+  const source = buffer(3, 2, [
+    255, 0, 0, 255, 250, 0, 0, 255, 0, 0, 255, 255,
+    255, 0, 0, 255, 0, 0, 255, 255, 0, 0, 255, 255,
+  ]);
+  const mask = engine.createConnectedColorMask(source, {
+    x: 0,
+    y: 0,
+    tolerance: 10,
+    connectivity: 4,
+  });
+  const result = engine.eraseWithAlphaMask(source, mask);
+
+  assert.deepEqual([...mask.values], [255, 255, 0, 255, 0, 0]);
+  assert.deepEqual(
+    Array.from({ length: 6 }, (_, pixel) => result.data[pixel * 4 + 3]),
+    [0, 0, 255, 0, 255, 255],
+  );
+  assert.equal(source.data[3], 255);
+});
+
+test('magic selection exposes connectivity and respects alpha tolerance', () => {
+  const diagonal = buffer(2, 2, [
+    0, 0, 0, 255, 255, 255, 255, 255,
+    255, 255, 255, 255, 0, 0, 0, 255,
+  ]);
+  const fourConnected = engine.createConnectedColorMask(diagonal, {
+    x: 0,
+    y: 0,
+    tolerance: 0,
+    connectivity: 4,
+  });
+  const eightConnected = engine.createConnectedColorMask(diagonal, {
+    x: 0,
+    y: 0,
+    tolerance: 0,
+    connectivity: 8,
+  });
+  const alphaEdge = buffer(2, 1, [
+    20, 30, 40, 255,
+    20, 30, 40, 180,
+  ]);
+  const strictAlpha = engine.createConnectedColorMask(alphaEdge, {
+    x: 0,
+    y: 0,
+    tolerance: 10,
+  });
+  const tolerantAlpha = engine.createConnectedColorMask(alphaEdge, {
+    x: 0,
+    y: 0,
+    tolerance: 10,
+    alphaTolerance: 80,
+  });
+
+  assert.deepEqual([...fourConnected.values], [255, 0, 0, 0]);
+  assert.deepEqual([...eightConnected.values], [255, 0, 0, 255]);
+  assert.deepEqual([...strictAlpha.values], [255, 0]);
+  assert.deepEqual([...tolerantAlpha.values], [255, 255]);
+});
+
 test('background removal learns multiple edge colors while preserving enclosed foreground', () => {
   const width = 9;
   const height = 5;
@@ -104,6 +164,52 @@ test('mask refinement removes small foreground islands without deleting a larger
 
   assert.equal(refined.values[0], 0);
   assert.equal(refined.values[24], 255);
+});
+
+test('mask refinement supports grow, shrink, and noise cleaning operations', () => {
+  const values = new Uint8Array(7 * 7);
+  values[3 * 7 + 3] = 255;
+  values[0] = 255;
+  const mask = engine.createAlphaData(7, 7, values);
+  const grown = engine.refineForegroundMask(mask, { operation: 'grow', radius: 1 });
+  const shrunk = engine.refineForegroundMask(
+    engine.createAlphaData(7, 7, Array.from({ length: 49 }, (_, index) =>
+      index % 7 >= 1 && index % 7 <= 5 && Math.floor(index / 7) >= 1 && Math.floor(index / 7) <= 5
+        ? 255
+        : 0,
+    )),
+    { operation: 'shrink', radius: 1 },
+  );
+  const cleaned = engine.refineForegroundMask(mask, { operation: 'clean', radius: 1 });
+
+  assert.equal(grown.values[2 * 7 + 2], 255);
+  assert.equal(shrunk.values[3 * 7 + 3], 255);
+  assert.equal(shrunk.values[1 * 7 + 1], 0);
+  assert.equal(cleaned.values[0], 0);
+  assert.equal(mask.values[3 * 7 + 3], 255);
+});
+
+test('selection masks combine with add, subtract, intersect, and invert', () => {
+  const base = engine.createAlphaData(3, 1, new Uint8Array([255, 128, 0]));
+  const overlay = engine.createAlphaData(3, 1, new Uint8Array([0, 128, 255]));
+
+  assert.deepEqual(
+    [...engine.combineSelectionMasks(base, overlay, 'add').values],
+    [255, 192, 255],
+  );
+  assert.deepEqual(
+    [...engine.combineSelectionMasks(base, overlay, 'subtract').values],
+    [255, 64, 0],
+  );
+  assert.deepEqual(
+    [...engine.combineSelectionMasks(base, overlay, 'intersect').values],
+    [0, 64, 0],
+  );
+  assert.deepEqual(
+    [...engine.invertSelectionMask(base).values],
+    [0, 127, 255],
+  );
+  assert.deepEqual([...base.values], [255, 128, 0]);
 });
 
 test('halftone preserves source alpha input and output dimensions', () => {
