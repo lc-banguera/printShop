@@ -9,6 +9,7 @@ import type {
   SafeArea,
 } from '../types';
 import type { DesignElement } from '../types';
+import { assertValidVectorPath } from '../paths';
 import { CURRENT_DOCUMENT_SCHEMA_VERSION } from './schema-version';
 
 export interface CreatePrintShopDocumentInput {
@@ -200,12 +201,27 @@ function isDesignElement(value: unknown): value is DesignElement {
     isOptional(value.fontSize, isFiniteNumber) &&
     isOptional(value.textAlign, isTextAlignment) &&
     isOptional(value.letterSpacing, isFiniteNumber) &&
-    isOptional(value.lineHeight, isFiniteNumber)
+    isOptional(value.lineHeight, isFiniteNumber) &&
+    isOptional(value.path, isDocumentPath) &&
+    (value.type !== 'path' || isDocumentPath(value.path)) &&
+    (value.path === undefined || value.type === 'path')
   );
 }
 
 function isElementType(value: unknown): value is DesignElement['type'] {
-  return value === 'rectangle' || value === 'circle' || value === 'text' || value === 'image' || value === 'group';
+  return value === 'rectangle' || value === 'circle' || value === 'text' || value === 'image' || value === 'group' || value === 'path';
+}
+
+function isDocumentPath(value: unknown): value is NonNullable<DesignElement['path']> {
+  if (!isRecord(value) || value.schemaVersion !== '1.0.0' || typeof value.closed !== 'boolean') {
+    return false;
+  }
+  try {
+    assertValidVectorPath(value as unknown as NonNullable<DesignElement['path']>);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function isBoolean(value: unknown): value is boolean {

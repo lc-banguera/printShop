@@ -8,4 +8,7 @@ export {
   serializeDocument,
 } from '../../../../../engine/src/document';
 export type { CreatePrintShopDocumentInput } from '../../../../../engine/src/document';
-export { CURRENT_DOCUMENT_SCHEMA_VERSION } from '../../../../../engine/src/document';
+export {
+  CURRENT_DOCUMENT_SCHEMA_VERSION,
+  LEGACY_DOCUMENT_SCHEMA_VERSION,
+} from '../../../../../engine/src/document';

@@ -6,6 +6,7 @@ import { getLayerDimensions } from "./coordinates";
 import { getHandlePositions } from "./hitTest";
 import { useCanvasInteraction } from "./useCanvasInteraction";
 import { createCenteredTransform } from "../../../../../engine/src/transform/affine-transform";
+import type { DocumentPath } from "../../../../../engine/src/types/element";
 
 const DEFAULT_FILTERS: FilterValues = {
   brightness: 100,
@@ -16,6 +17,38 @@ const DEFAULT_FILTERS: FilterValues = {
   invert: 0,
   blur: 0,
 };
+
+function pathToSvgData(path: DocumentPath, width: number, height: number): string {
+  const pathPoints = path.anchors.flatMap((anchor) => [
+    { x: anchor.x, y: anchor.y },
+    ...(anchor.handleIn ? [anchor.handleIn] : []),
+    ...(anchor.handleOut ? [anchor.handleOut] : []),
+  ]);
+  const minX = Math.min(...pathPoints.map((point) => point.x));
+  const minY = Math.min(...pathPoints.map((point) => point.y));
+  const pathWidth = Math.max(1, Math.max(...pathPoints.map((point) => point.x)) - minX);
+  const pathHeight = Math.max(1, Math.max(...pathPoints.map((point) => point.y)) - minY);
+  const toLocalPoint = (point: { x: number; y: number }) => ({
+    x: ((point.x - minX) / pathWidth) * width,
+    y: ((point.y - minY) / pathHeight) * height,
+  });
+  const first = toLocalPoint(path.anchors[0]);
+  const commands = [`M ${first.x} ${first.y}`];
+  path.segments.forEach((segment, index) => {
+    const start = path.anchors[index];
+    const end = path.anchors[(index + 1) % path.anchors.length];
+    const target = toLocalPoint(end);
+    if (segment.type === "CUBIC_BEZIER") {
+      const controlOne = toLocalPoint(start.handleOut ?? start);
+      const controlTwo = toLocalPoint(end.handleIn ?? end);
+      commands.push(`C ${controlOne.x} ${controlOne.y} ${controlTwo.x} ${controlTwo.y} ${target.x} ${target.y}`);
+    } else {
+      commands.push(`L ${target.x} ${target.y}`);
+    }
+  });
+  if (path.closed) commands.push("Z");
+  return commands.join(" ");
+}
 
 interface InteractiveCanvasProps {
   layers: DesignerLayer[];
@@ -207,11 +240,13 @@ export function InteractiveCanvas({
             // Center-origin positioning
             const leftOffset = baseSize / 2 + posX;
             const topOffset = Math.round(baseSize * (aspectH / aspectW)) / 2 + posY;
+            const layerLeft = leftOffset - width / 2;
+            const layerTop = topOffset - height / 2;
 
             const layerStyle: React.CSSProperties = {
               position: "absolute",
-              left: `${leftOffset - width / 2}px`,
-              top: `${topOffset - height / 2}px`,
+              left: `${layerLeft}px`,
+              top: `${layerTop}px`,
               width: `${width}px`,
               height: `${height}px`,
               zIndex: layers.length - index,
@@ -392,6 +427,27 @@ export function InteractiveCanvas({
                       />
                     )}
                   </div>
+                )}
+
+                {layer.type === "path" && layer.path && (
+                  <svg
+                    viewBox={`0 0 ${width} ${height}`}
+                    preserveAspectRatio="none"
+                    className="h-full w-full overflow-visible"
+                    style={{ filter: filterStr }}
+                    aria-label={layer.name}
+                  >
+                    <path
+                      d={pathToSvgData(layer.path, width, height)}
+                      fill={layer.path.closed ? layer.fill ?? "transparent" : "none"}
+                      fillRule="evenodd"
+                      stroke={layer.stroke ?? layer.fill ?? "#2563EB"}
+                      strokeWidth={layer.strokeWidth ?? 3}
+                      strokeLinejoin="round"
+                      strokeLinecap="round"
+                      vectorEffect="non-scaling-stroke"
+                    />
+                  </svg>
                 )}
               </div>
             );

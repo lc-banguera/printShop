@@ -18,6 +18,8 @@ import {
 } from "../../../../../engine/src/transform/affine-transform";
 import { createAffineTransform } from "../../../../../engine/src/transform/affine-transform";
 import type { ImageBlendMode, RasterLayerInput } from "../../../../../engine/src/processing";
+import { getPathBounds } from "../../../../../engine/src/paths";
+import type { DocumentPath } from "../../../../../engine/src/types/element";
 import type { CropRect } from "./types";
 
 /** Progress callback (0-1) */
@@ -487,6 +489,7 @@ export interface ExportLayer {
   textAlign?: string;
   // shape-specific
   shapeType?: "rectangle" | "circle" | "triangle" | "line";
+  path?: DocumentPath;
   fill?: string;
   stroke?: string;
   strokeWidth?: number;
@@ -671,6 +674,38 @@ export async function exportComposite(
         ctx.fill();
         if (layer.stroke && layer.strokeWidth) ctx.stroke();
       }
+    } else if (layer.type === "path" && layer.path) {
+      const path = layer.path;
+      const bounds = getPathBounds(path);
+      const toOutputPoint = (point: { x: number; y: number }) => ({
+        x: ((point.x - bounds.x) / bounds.width) * lw - lw / 2,
+        y: ((point.y - bounds.y) / bounds.height) * lh - lh / 2,
+      });
+      const first = toOutputPoint(path.anchors[0]);
+      ctx.beginPath();
+      ctx.moveTo(first.x, first.y);
+      path.segments.forEach((segment, index) => {
+        const start = path.anchors[index];
+        const end = path.anchors[(index + 1) % path.anchors.length];
+        const target = toOutputPoint(end);
+        if (segment.type === "CUBIC_BEZIER") {
+          const controlOne = toOutputPoint(start.handleOut ?? start);
+          const controlTwo = toOutputPoint(end.handleIn ?? end);
+          ctx.bezierCurveTo(controlOne.x, controlOne.y, controlTwo.x, controlTwo.y, target.x, target.y);
+        } else {
+          ctx.lineTo(target.x, target.y);
+        }
+      });
+      if (path.closed) {
+        ctx.closePath();
+        ctx.fillStyle = layer.fill ?? "transparent";
+        ctx.fill();
+      }
+      ctx.strokeStyle = layer.stroke ?? layer.fill ?? "#2563EB";
+      ctx.lineWidth = ((layer.strokeWidth ?? 3) / BASE) * outW;
+      ctx.lineJoin = "round";
+      ctx.lineCap = "round";
+      ctx.stroke();
     } else if (layer.type === "background") {
       ctx.fillStyle = layer.fill ?? "#ffffff";
       ctx.fillRect(0, 0, outW, outH);

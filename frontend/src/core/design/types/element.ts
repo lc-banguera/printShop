@@ -1,1 +1,5 @@
-export type { DesignElement } from '../../../../../engine/src/types/element';
+export type {
+	DesignElement,
+	DocumentPath,
+	ElementType,
+} from '../../../../../engine/src/types/element';

@@ -1,6 +1,13 @@
+
+import type { VectorPath } from '../paths';
+
 export type PrintableZoneId = 'front' | 'back' | 'sleeve_left' | 'sleeve_right' | 'label';
-export type ElementType = 'rectangle' | 'circle' | 'text' | 'image' | 'group';
+export type ElementType = 'rectangle' | 'circle' | 'text' | 'image' | 'group' | 'path';
 export type CanvasLayer = 'user' | 'guide';
+
+export interface DocumentPath extends VectorPath {
+  schemaVersion: '1.0.0';
+}
 
 export interface ArtworkFilters {
   brightness: number;
@@ -41,4 +48,5 @@ export interface DesignElement {
   textAlign?: 'left' | 'center' | 'right';
   letterSpacing?: number;
   lineHeight?: number;
+  path?: DocumentPath;
 }

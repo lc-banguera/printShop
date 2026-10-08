@@ -14,6 +14,16 @@ export type DesignerKeyboardCommand =
   | "select-all"
   | "save";
 
+export type DesignerToolShortcut =
+  | "select"
+  | "move"
+  | "direct-select"
+  | "pen"
+  | "crop"
+  | "text"
+  | "zoom"
+  | "hand";
+
 const commandsByShortcut: Readonly<Record<string, DesignerKeyboardCommand>> = {
   "mod+z": "undo",
   "mod+shift+z": "redo",
@@ -37,6 +47,17 @@ const commandsByShortcut: Readonly<Record<string, DesignerKeyboardCommand>> = {
   "mod+s": "save",
 };
 
+const toolsByShortcut: Readonly<Record<string, DesignerToolShortcut>> = {
+  v: "select",
+  m: "move",
+  a: "direct-select",
+  p: "pen",
+  c: "crop",
+  t: "text",
+  z: "zoom",
+  h: "hand",
+};
+
 export function resolveDesignerKeyboardCommand(
   event: Pick<
     KeyboardEvent,
@@ -49,4 +70,11 @@ export function resolveDesignerKeyboardCommand(
     ? `mod+${event.shiftKey ? "shift+" : ""}${key}`
     : `${event.shiftKey ? "shift+" : ""}${key}`;
   return commandsByShortcut[shortcut] ?? null;
+}
+
+export function resolveDesignerToolShortcut(
+  event: Pick<KeyboardEvent, "key" | "ctrlKey" | "metaKey" | "shiftKey" | "altKey">,
+): DesignerToolShortcut | null {
+  if (event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return null;
+  return toolsByShortcut[event.key.toLowerCase()] ?? null;
 }

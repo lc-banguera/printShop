@@ -1,6 +1,7 @@
 import * as React from "react";
+import type { DocumentPath } from "../../../../../engine/src/types/element";
 
-export type LayerKind = "image" | "text" | "shape" | "background";
+export type LayerKind = "image" | "text" | "shape" | "path" | "background";
 
 export interface FilterValues {
   brightness: number;
@@ -44,6 +45,7 @@ export interface DesignerLayer {
   // ── Shape properties ──────────────────────────────────────────────────
   fill?: string;
   shapeType?: "rectangle" | "circle" | "triangle" | "line";
+  path?: DocumentPath;
   stroke?: string;
   strokeWidth?: number;
   borderRadius?: number;

@@ -1,4 +1,4 @@
-import { createPrintShopDocument } from "@/core/design/document";
+import { createPrintShopDocument, deserializeDocument } from "@/core/design/document";
 import type {
   DocumentMetadata,
   Layer,
@@ -205,7 +205,18 @@ export async function loadDesigner3Document(
         .objectStore(DOCUMENT_STORE)
         .get(id),
     );
-    return result ?? null;
+    if (!result) return null;
+    const document = deserializeDocument(JSON.stringify(result.document));
+    if (document.schemaVersion === result.document.schemaVersion) {
+      return { ...result, document };
+    }
+    const migrated = { ...result, document };
+    await requestResult(
+      database.transaction(DOCUMENT_STORE, "readwrite")
+        .objectStore(DOCUMENT_STORE)
+        .put(migrated),
+    );
+    return migrated;
   } finally {
     database.close();
   }

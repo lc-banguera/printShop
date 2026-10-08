@@ -13,6 +13,7 @@ export type {
 export type {
   ArtworkFilters,
   CanvasLayer,
+  DocumentPath,
   DesignElement,
   ElementType,
   PrintableZoneId,

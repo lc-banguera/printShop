@@ -75,6 +75,20 @@ test('cubic Bézier segments flatten to a deterministic polyline', () => {
   assert.equal(mask.values[2 * 8 + 4], 255);
 });
 
+test('path bounds include anchors and Bézier handles in document coordinates', () => {
+  const path = {
+    id: 'bounds',
+    closed: false,
+    anchors: [
+      { id: 'a', x: 10, y: 20, type: 'SMOOTH', handleIn: { x: 5, y: 25 }, handleOut: { x: 40, y: -10 } },
+      { id: 'b', x: 60, y: 30, type: 'CORNER' },
+    ],
+    segments: [{ id: 'ab', type: 'CUBIC_BEZIER', startAnchorId: 'a', endAnchorId: 'b' }],
+  };
+
+  assert.deepEqual(engine.getPathBounds(path), { x: 5, y: -10, width: 55, height: 40 });
+});
+
 test('open paths and out-of-order path segments cannot create selection masks', () => {
   assert.throws(
     () => engine.rasterizePathSelection(polygon([[1, 1], [5, 1], [3, 5]], false), 8, 8),

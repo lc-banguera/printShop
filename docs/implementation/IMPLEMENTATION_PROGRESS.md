@@ -30,7 +30,9 @@
 | BLOCK 19 — Testing + Stabilization | PARTIAL / BLOCKED | Se validaron en navegador los subalcances implementados; no es posible certificar los tres diseñadores mientras continúen bloqueados D1, la integración de tools y producción/persistencia. No hay runner de pruebas frontend. |
 | BLOCK 19 — Testing + Stabilization | BLOCKED | Depende de los bloques pendientes y de que los flujos de D1/D3 tengan alcance verificable. |
 
-**Aclaración BLOCK 15**: el resumen “selección por color” deshabilitada se refiere a una selección persistente de objetos. ImageTools sí ofrece eliminación raster de región conectada por color, con máscara en Worker y Undo/Redo; no altera `SelectionManager` ni persiste una máscara en el documento.
+**Aclaración BLOCK 15**: el resumen “selección por color” deshabilitada se refiere a una selección persistente de objetos. ImageTools sí ofrece eliminación raster de región conectada por color, con máscara en Worker y Undo/Redo; no altera `SelectionManager` ni persiste una máscara en el documento. La nota anterior de Pluma deshabilitada ya está superada por el registro de Paths persistentes de abajo.
+
+**Aclaración BLOCK 15 — paths**: los resúmenes históricos que marcaban Pluma/edición de paths como no configurados están superados por el contrato 1.1 y el editor Advanced descritos más abajo.
 
 ## Designer 3 — rutas canónicas y documento compartido
 
@@ -399,6 +401,15 @@
 - Validación browser en `/store/designer/advanced?document=<id>`: preview de máscara roja, aplicación con cambio de artwork, Undo al asset previo y Redo al resultado; `lastOp` muestra `color-region-erase`.
 - Responsive: controles y diálogo probados a 390 × 844 px; sin overflow horizontal y Escape cierra el modal.
 - Límite: esta acción modifica una capa raster; no expone una selección de objetos ni persiste una máscara/selección en `PrintShopDocument`.
+
+## Designer 3 — paths persistentes y edición Advanced
+
+- `DONE`: `DesignElement` incorpora `type: "path"` con `path.schemaVersion: "1.0.0"`; validación reutiliza `assertValidVectorPath` para IDs, anchors, handles y conectividad de segmentos. `CURRENT_DOCUMENT_SCHEMA_VERSION` avanza a `1.1.0`.
+- `DONE`: `deserializeDocument` migra documentos 1.0 a 1.1 preservando contenido existente; round-trip serializa paths cúbicos y abiertos/cerrados. Documentos con geometría inválida o schema desconocido se rechazan.
+- `DONE`: Advanced convierte paths entre `EditorLayer` y el `PrintShopDocument`; Pluma crea anchors, cierra paths y soporta conversión corner/smooth, handles editables, insertar anchors con split De Casteljau y borrar anchors. Selección directa abre el path seleccionado. El canvas renderiza SVG desde coordenadas absolutas de documento; export rasteriza paths junto con sus capas y transforms.
+- Browser smoke en `/store/designer/advanced?document=<id>`: creó path cerrado con 3 anchors, convirtió a smooth, movió un handle, guardó, recargó, reabrió con 3 anchors/2 handles y verificó el mismo ID. Exportar mostró PNG de 960 × 1655 px.
+- Validación: `npm test --prefix engine` **PASS** (61/61); typecheck frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS** (warning existente de chunk >500 kB). Browser smoke D1 `/designer/personalize` y D2 `/designer/new`: ambas rutas montaron sin errores de página.
+- Límites: marquee de anchors y selección combinada de nodos quedan pendientes; insertar anchors sobre un segmento conserva la geometría Bézier.
 
 ## Image Engine — operaciones seguras de regiones raster
 

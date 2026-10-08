@@ -36,11 +36,18 @@ export interface PathRasterizationOptions {
   flatness?: number;
 }
 
+export interface PathBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 function isFinitePoint(point: PathPoint): boolean {
   return Number.isFinite(point.x) && Number.isFinite(point.y);
 }
 
-function validatePath(path: VectorPath): void {
+export function assertValidVectorPath(path: VectorPath): void {
   if (!path.id.trim()) throw new TypeError('Path id must not be empty.');
   if (!Array.isArray(path.anchors) || !Array.isArray(path.segments)) {
     throw new TypeError('Path anchors and segments must be arrays.');
@@ -131,7 +138,7 @@ export function flattenPath(
   path: VectorPath,
   options: Pick<PathRasterizationOptions, 'flatness'> = {},
 ): readonly PathPoint[] {
-  validatePath(path);
+  assertValidVectorPath(path);
   const flatness = options.flatness ?? 0.25;
   if (!Number.isFinite(flatness) || flatness <= 0 || flatness > 16) {
     throw new RangeError('Path flatness must be greater than 0 and at most 16 pixels.');
@@ -161,6 +168,25 @@ export function flattenPath(
 
   if (path.closed) points.pop();
   return points;
+}
+
+export function getPathBounds(path: VectorPath): PathBounds {
+  assertValidVectorPath(path);
+  const points = path.anchors.flatMap((anchor) => [
+    { x: anchor.x, y: anchor.y },
+    ...(anchor.handleIn ? [anchor.handleIn] : []),
+    ...(anchor.handleOut ? [anchor.handleOut] : []),
+  ]);
+  const minX = Math.min(...points.map((point) => point.x));
+  const minY = Math.min(...points.map((point) => point.y));
+  const maxX = Math.max(...points.map((point) => point.x));
+  const maxY = Math.max(...points.map((point) => point.y));
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(1, maxX - minX),
+    height: Math.max(1, maxY - minY),
+  };
 }
 
 function countCoveredSamples(left: number, right: number, pixel: number, samples: number): number {

@@ -5,6 +5,8 @@ import {
 import { cn } from '@/shared/utils/cn';
 import { InteractiveCanvas } from './designer/InteractiveCanvas';
 import { ImageTools } from './designer/ImageTools';
+import { PathEditorModal } from './designer/PathEditorModal';
+import { resolveDesignerToolShortcut } from './designer/keyboard-command-registry';
 import { CropModal } from './designer/CropModal';
 import { CanvasSizeModal } from './designer/CanvasSizeModal';
 import { ImageSizeModal } from './designer/ImageSizeModal';
@@ -15,8 +17,9 @@ import {
   DistributionType,
   CropRect,
 } from './designer/types';
+import type { DocumentPath } from '@/core/design/types';
 
-type LayerKind = 'image' | 'text' | 'shape' | 'background';
+type LayerKind = 'image' | 'text' | 'shape' | 'path' | 'background';
 type Panel = 'select' | 'crop' | 'draw' | 'image' | 'text' | 'shape' | 'color' | 'view' | 'arrange';
 export type DesignerWorkspaceLayer = DesignerLayer;
 interface FilterValues { brightness: number; contrast: number; saturation: number; grayscale: number; sepia: number; invert: number; blur: number; }
@@ -53,8 +56,8 @@ const MENU_UNAVAILABLE_REASONS: Record<string, Record<string, string>> = {
 
 /** Centralized tool model; unavailable actions stay visible with an explicit reason. */
 const TOOL_GROUPS: { label: string; tools: Tool[] }[] = [
-  { label: 'Selección', tools: [{ id: 'select', label: 'Seleccionar', shortcut: 'V', icon: MousePointer2, panel: 'select' }, { id: 'move', label: 'Mover', shortcut: 'M', icon: Move, panel: 'select' }, { id: 'transform', label: 'Transformar', icon: Frame, panel: 'select', hasPanel: true }, { id: 'crop', label: 'Recortar', shortcut: 'C', icon: Crop, panel: 'crop', hasPanel: true }] },
-  { label: 'Dibujo', tools: [{ id: 'brush', label: 'Pincel', shortcut: 'B', icon: Palette, panel: 'draw', disabled: true, unavailableReason: 'El trazo raster no está conectado al canvas ni al documento.' }, { id: 'pen', label: 'Pluma', icon: PenTool, panel: 'draw', disabled: true, unavailableReason: 'La edición de trazados vectoriales no está configurada.' }, { id: 'eraser', label: 'Borrador', icon: Eraser, panel: 'draw', disabled: true, unavailableReason: 'El borrado directo sobre el canvas no está configurado.' }] },
+  { label: 'Selección', tools: [{ id: 'select', label: 'Seleccionar', shortcut: 'V', icon: MousePointer2, panel: 'select' }, { id: 'move', label: 'Mover', shortcut: 'M', icon: Move, panel: 'select' }, { id: 'direct-select', label: 'Selección directa', shortcut: 'A', icon: MousePointer2, panel: 'select' }, { id: 'transform', label: 'Transformar', icon: Frame, panel: 'select', hasPanel: true }, { id: 'crop', label: 'Recortar', shortcut: 'C', icon: Crop, panel: 'crop', hasPanel: true }] },
+  { label: 'Dibujo', tools: [{ id: 'brush', label: 'Pincel', shortcut: 'B', icon: Palette, panel: 'draw', disabled: true, unavailableReason: 'El trazo raster no está conectado al canvas ni al documento.' }, { id: 'pen', label: 'Pluma', shortcut: 'P', icon: PenTool, panel: 'draw' }, { id: 'eraser', label: 'Borrador', icon: Eraser, panel: 'draw', disabled: true, unavailableReason: 'El borrado directo sobre el canvas no está configurado.' }] },
   { label: 'Selección avanzada', tools: [{ id: 'magic', label: 'Varita mágica', icon: Wand2, panel: 'image', disabled: true, unavailableReason: 'La máscara local aún no está integrada como selección en Advanced.' }, { id: 'color-select', label: 'Selección por color', icon: Pipette, panel: 'image', disabled: true, unavailableReason: 'La selección por color aún no está integrada en Advanced.' }] },
   { label: 'Imagen', tools: [{ id: 'background', label: 'Quitar fondo', icon: ImageMinus, panel: 'image', hasPanel: true }, { id: 'vectorize', label: 'Vectorizar', icon: Wand2, panel: 'image', disabled: true, unavailableReason: 'No hay un vectorizador local o provider conectado a Advanced.' }, { id: 'adjustments', label: 'Ajustes', icon: SlidersHorizontal, panel: 'image' }, { id: 'filters', label: 'Filtros', icon: Contrast, panel: 'image' }, { id: 'effects', label: 'Efectos', icon: Sparkles, panel: 'image', disabled: true, unavailableReason: 'Sombras, resplandor y borde no tienen un modelo de capa/export configurado.' }] },
   { label: 'Crear', tools: [{ id: 'text', label: 'Texto', shortcut: 'T', icon: Type, panel: 'text', hasPanel: true }, { id: 'shapes', label: 'Formas', shortcut: 'U', icon: Shapes, panel: 'shape', hasPanel: true }, { id: 'picker', label: 'Cuentagotas', icon: Pipette, panel: 'color', disabled: true, unavailableReason: 'La lectura de color desde el canvas no está conectada.' }] },
@@ -133,6 +136,7 @@ export function DesignerWorkspace({
   onUpdateSelectedImageFilters,
   onUpdateLayer,
   onUpdateMultipleLayers,
+  onSavePath,
 }: {
   title: string;
   previewUrl?: string;
@@ -204,9 +208,15 @@ export function DesignerWorkspace({
   onUpdateSelectedImageFilters: (changes: Partial<FilterValues>) => void;
   onUpdateLayer?: (id: string, changes: Partial<DesignerWorkspaceLayer>) => void;
   onUpdateMultipleLayers?: (updates: { id: string; changes: Partial<DesignerWorkspaceLayer> }[]) => void;
+  onSavePath: (
+    path: DocumentPath,
+    style: { fill: string; stroke: string; strokeWidth: number },
+    layerId?: string,
+  ) => void;
 }) {
   const [activeTool, setActiveTool] = React.useState('select');
   const [cropModalOpen, setCropModalOpen] = React.useState(false);
+  const [pathEditorLayerId, setPathEditorLayerId] = React.useState<string | null>(null);
   const [zoom, setZoom] = React.useState(100);
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const [selectedLayer, setSelectedLayer] = React.useState(layers[0]?.id);
@@ -235,6 +245,23 @@ export function DesignerWorkspace({
       if (isTextControl(event.target)) return;
       const key = event.key.toLowerCase();
       const modifier = event.ctrlKey || event.metaKey;
+      const tool = resolveDesignerToolShortcut(event);
+      if (tool) {
+        event.preventDefault();
+        setOpenToolGroup(null);
+        setActiveTool(tool);
+        if (tool === 'pen') {
+          setPathEditorLayerId(selected?.type === 'path' ? selected.id : null);
+        } else if (tool === 'direct-select') {
+          if (selected?.type === 'path') setPathEditorLayerId(selected.id);
+          else setTab('layers');
+        } else if (tool === 'crop') {
+          setCropModalOpen(true);
+        } else if (tool === 'text') {
+          onAddTextLayer();
+        }
+        return;
+      }
       if (modifier && key === 'z') {
         event.preventDefault();
         (event.shiftKey ? onRedo : onUndo)();
@@ -300,7 +327,7 @@ export function DesignerWorkspace({
       window.removeEventListener('keydown', handler);
       window.removeEventListener('paste', pasteHandler);
     };
-  }, [onNew, onOpen, onSave, onSaveAs, onUndo, onRedo, onCut, onCopy, onPaste, onDuplicate, onDeleteSelected, onSelectAll, onMoveLayerUp, onMoveLayerDown, onBringLayerToFront, onSendLayerToBack, onDropFiles]);
+  }, [onNew, onOpen, onSave, onSaveAs, onUndo, onRedo, onCut, onCopy, onPaste, onDuplicate, onDeleteSelected, onSelectAll, onMoveLayerUp, onMoveLayerDown, onBringLayerToFront, onSendLayerToBack, onDropFiles, onAddTextLayer, selected?.id, selected?.type]);
 
   const fileActions: Record<string, () => void> = { Nuevo: onNew, Abrir: onOpen, Recientes: onRecents, Guardar: onSave, 'Guardar como': onSaveAs, Exportar: onExport, Cerrar: onBack };
   const editActions: Record<string, () => void> = { Deshacer: onUndo, Rehacer: onRedo, Cortar: onCut, Copiar: onCopy, Pegar: onPaste, Duplicar: onDuplicate, Eliminar: onDeleteSelected, 'Seleccionar todo': onSelectAll };
@@ -457,6 +484,25 @@ export function DesignerWorkspace({
           group={TOOL_GROUPS.find((group) => group.label === openToolGroup)!}
           activeTool={activeTool}
           onSelect={(id) => {
+            if (id === 'pen') {
+              setActiveTool(id);
+              setPathEditorLayerId(selected?.type === 'path' ? selected.id : null);
+              setOpenToolGroup(null);
+              setTab('properties');
+              return;
+            }
+            if (id === 'direct-select') {
+              if (selected?.type !== 'path') {
+                setOpenToolGroup(null);
+                setTab('layers');
+                return;
+              }
+              setActiveTool(id);
+              setPathEditorLayerId(selected.id);
+              setOpenToolGroup(null);
+              setTab('properties');
+              return;
+            }
             if (id === 'adjustments') {
               setOpenToolGroup(null);
               onAdjustments();
@@ -636,6 +682,24 @@ export function DesignerWorkspace({
         onApplyCrop={(id, rect, url) => {
           onCropApply?.(id, rect, url);
           setCropModalOpen(false);
+        }}
+      />
+    )}
+    {(pathEditorLayerId !== null || activeTool === 'pen') && (
+      <PathEditorModal
+        key={pathEditorLayerId ?? 'new-path'}
+        documentWidth={documentWidth}
+        documentHeight={documentHeight}
+        initialPath={layers.find((layer) => layer.id === pathEditorLayerId)?.path}
+        initialStyle={layers.find((layer) => layer.id === pathEditorLayerId)}
+        onClose={() => {
+          setPathEditorLayerId(null);
+          setActiveTool('select');
+        }}
+        onSave={(path, style) => {
+          onSavePath(path, style, pathEditorLayerId ?? undefined);
+          setPathEditorLayerId(null);
+          setActiveTool('select');
         }}
       />
     )}

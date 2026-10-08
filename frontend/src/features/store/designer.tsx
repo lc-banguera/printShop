@@ -1,3 +1,4 @@
+import { getPathBounds } from "../../../../engine/src/paths";
 import * as React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -50,7 +51,7 @@ import {
 import { cn } from "@/shared/utils/cn";
 import { DesignerWorkspace } from "./designer-workspace";
 import { exportComposite } from "./designer/imageProcessor";
-import type { DesignElement, Layer } from "@/core/design/types";
+import type { DesignElement, DocumentPath, Layer } from "@/core/design/types";
 import {
   CommandSystem,
   type Command,
@@ -106,7 +107,7 @@ interface StylePreset {
 interface EditorLayer {
   id: string;
   name: string;
-  type: "image" | "text" | "shape" | "background";
+  type: "image" | "text" | "shape" | "path" | "background";
   visible: boolean;
   locked: boolean;
   opacity: number;
@@ -120,6 +121,7 @@ interface EditorLayer {
   // Shape properties
   fill?: string;
   shapeType?: "rectangle" | "circle" | "triangle" | "line";
+  path?: DocumentPath;
   stroke?: string;
   strokeWidth?: number;
   borderRadius?: number;
@@ -275,6 +277,8 @@ function toDocumentLayers(
         ? "image"
         : layer.type === "text"
           ? "text"
+          : layer.type === "path"
+            ? "path"
           : layer.shapeType === "circle"
             ? "circle"
             : "rectangle";
@@ -294,6 +298,7 @@ function toDocumentLayers(
       width: Math.max(1, (layer.width ?? 1) * scaleX),
       height: Math.max(1, (layer.height ?? 1) * scaleY),
       ...(layer.type === "image" && source ? { image: source, originalImageSrc: layer.src ?? source } : {}),
+      ...(layer.type === "path" && layer.path ? { path: layer.path } : {}),
       rotation: layer.rotation ?? 0,
       scaleX: layer.flipX ? -1 : 1,
       scaleY: layer.flipY ? -1 : 1,
@@ -348,7 +353,9 @@ function fromDocumentLayers(
           ? "image"
           : element.type === "text"
             ? "text"
-            : "shape";
+            : element.type === "path"
+              ? "path"
+              : "shape";
       const mapped: EditorLayer = {
         ...previous,
         id: layer.id,
@@ -367,6 +374,7 @@ function fromDocumentLayers(
         fill: element.fill,
         color: element.fill,
         shapeType: element.type === "circle" ? "circle" : previous?.shapeType ?? "rectangle",
+        path: element.type === "path" ? element.path : undefined,
         stroke: element.stroke,
         strokeWidth: element.strokeWidth,
         content: element.textContent,
@@ -1751,6 +1759,43 @@ export default function StoreDesigner() {
     setSelectedLayerIds([id]);
   };
 
+  const savePathLayer = (
+    path: DocumentPath,
+    style: { fill: string; stroke: string; strokeWidth: number },
+    layerId?: string,
+  ) => {
+    const bounds = getPathBounds(path);
+    const canvasHeight = advancedCanvasHeight(documentWidth, documentHeight);
+    const scaleX = ADVANCED_CANVAS_BASE_WIDTH / documentWidth;
+    const scaleY = canvasHeight / documentHeight;
+    const changes: Partial<EditorLayer> = {
+      name: layerId ? layers.find((layer) => layer.id === layerId)?.name ?? "Path" : `Path ${layers.filter((layer) => layer.type === "path").length + 1}`,
+      type: "path",
+      path,
+      x: (bounds.x + bounds.width / 2) * scaleX - ADVANCED_CANVAS_BASE_WIDTH / 2,
+      y: (bounds.y + bounds.height / 2) * scaleY - canvasHeight / 2,
+      width: Math.max(1, bounds.width * scaleX),
+      height: Math.max(1, bounds.height * scaleY),
+      rotation: 0,
+      visible: true,
+      locked: false,
+      opacity: 100,
+      preview: "",
+      ...style,
+    };
+    if (layerId) {
+      updateLayer(layerId, changes);
+      setSelectedLayerId(layerId);
+      setSelectedLayerIds([layerId]);
+      return;
+    }
+    const id = `layer-path-${Date.now()}`;
+    setLayers((current) => [{ ...changes, id, name: changes.name ?? "Path", type: "path", visible: true, locked: false, opacity: 100, preview: "" } as EditorLayer, ...current]);
+    setIsDirty(true);
+    setSelectedLayerId(id);
+    setSelectedLayerIds([id]);
+  };
+
   const updateSelectedText = (changes: Partial<EditorLayer>) => {
     if (!selectedLayerId) return;
     const selected = layers.find((layer) => layer.id === selectedLayerId);
@@ -2209,6 +2254,7 @@ export default function StoreDesigner() {
         flipX: layer.flipX,
         flipY: layer.flipY,
         shapeType: layer.shapeType,
+        path: layer.path,
         stroke: layer.stroke,
         strokeWidth: layer.strokeWidth,
         borderRadius: layer.borderRadius,
@@ -2835,6 +2881,7 @@ export default function StoreDesigner() {
             onToggleSelectedLock={toggleSelectedLock}
             onAddTextLayer={addTextLayer}
             onAddShape={addShapeLayer}
+                        onSavePath={savePathLayer}
             onAlign={handleAlign}
             onDistribute={handleDistribute}
             onCropApply={handleCropApply}

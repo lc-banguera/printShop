@@ -1,7 +1,8 @@
-export { flattenPath, rasterizePathSelection } from './path-engine';
+export { assertValidVectorPath, flattenPath, getPathBounds, rasterizePathSelection } from './path-engine';
 export type {
   PathAnchor,
   PathAnchorType,
+  PathBounds,
   PathPoint,
   PathRasterizationOptions,
   PathSegment,
