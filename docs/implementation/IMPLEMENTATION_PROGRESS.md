@@ -30,6 +30,8 @@
 | BLOCK 19 — Testing + Stabilization | PARTIAL / BLOCKED | Se validaron en navegador los subalcances implementados; no es posible certificar los tres diseñadores mientras continúen bloqueados D1, la integración de tools y producción/persistencia. No hay runner de pruebas frontend. |
 | BLOCK 19 — Testing + Stabilization | BLOCKED | Depende de los bloques pendientes y de que los flujos de D1/D3 tengan alcance verificable. |
 
+**Aclaración BLOCK 15**: el resumen “selección por color” deshabilitada se refiere a una selección persistente de objetos. ImageTools sí ofrece eliminación raster de región conectada por color, con máscara en Worker y Undo/Redo; no altera `SelectionManager` ni persiste una máscara en el documento.
+
 ## Designer 3 — rutas canónicas y documento compartido
 
 - `/store/designerv` es la pantalla de entrada para crear, abrir o cargar un diseño; no es un canvas.
