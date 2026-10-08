@@ -11,34 +11,62 @@ import {
 import {
   ArrowLeft,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   CloudUpload,
   Check,
+  Circle,
+  Copy,
   Crosshair,
+  Download,
+  Droplets,
+  Eraser,
+  FilePlus,
+  Focus,
   Folder,
+  FolderOpen,
   FolderUp,
+  Frame,
   Grid2X2,
   Hand,
   Images,
   Layers,
   LayoutGrid,
+  Lightbulb,
   Link2,
   LogOut,
   Maximize2,
   MoreVertical,
+  Network,
+  Palette,
   Redo2,
   RotateCcw,
+  Ruler,
+  Save,
+  Scan,
+  Scissors,
   Search,
   Shapes,
+  SlidersHorizontal,
+  Sparkles,
+  Sun,
+  Thermometer,
+  Trash2,
   Type,
   Undo2,
+  Wand2,
+  X,
   ZoomIn,
   ZoomOut,
 } from "lucide-react";
 
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-import { processRasterImageUrl } from "@/core/design/processing";
+import {
+  processArtworkImageUrl,
+  processRasterImageUrl,
+  type HalftoneOptions,
+} from "@/core/design/processing";
 import type { DesignResource } from "@/types/design-resource";
 import {
   registerUploadedDesign,
@@ -105,6 +133,33 @@ interface ProcessedImageDimensions {
 }
 
 type ArtworkGestureMode = "scale" | "rotate";
+type EasyToolId =
+  | "adjust"
+  | "magic-eraser"
+  | "enhance"
+  | "vectorize"
+  | "halftone"
+  | "magic-layers"
+  | "eraser"
+  | "magic-edit";
+type EasyToolStatus =
+  | "AVAILABLE"
+  | "PROCESSING"
+  | "SUCCESS"
+  | "FAILED"
+  | "NOT_CONFIGURED";
+
+interface EasyAdjustments {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+}
+
+interface MagicEraserStroke {
+  pointerId: number;
+  x: number;
+  y: number;
+}
 
 interface ArtworkGesture {
   pointerId: number;
@@ -173,8 +228,8 @@ interface BackgroundOption {
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const DEFAULT_WIDTH_CM = "35";
-const DEFAULT_HEIGHT_CM = "50";
+const DEFAULT_WIDTH_CM = "58";
+const DEFAULT_HEIGHT_CM = "100";
 const RULER_WIDTH_PX = 28;
 const RULER_HEIGHT_PX = 22;
 
@@ -320,14 +375,83 @@ const backgroundOptions: BackgroundOption[] = [
 ];
 
 const sidebarTools = [
-  { id: "archivo", label: "Archivo", icon: CloudUpload },
+  { id: "archivo", label: "Archivos", icon: CloudUpload },
   { id: "subidos", label: "Subidos", icon: Images },
-  { id: "plantillas", label: "Plantillas", icon: LayoutGrid },
-  { id: "elementos", label: "Elementos", icon: Shapes },
   { id: "texto", label: "Texto", icon: Type },
-  { id: "formas", label: "Formas", icon: Grid2X2 },
-  { id: "capas", label: "Capas", icon: Layers },
+  { id: "herramientas", label: "Herramientas", icon: SlidersHorizontal },
+  { id: "plantillas", label: "Plantillas", icon: LayoutGrid },
+  { id: "formas", label: "Formas", icon: Shapes },
+  { id: "marcos", label: "Marcos", icon: Frame },
 ] as const;
+
+function FeatureDevelopmentState() {
+  return (
+    <div className="flex w-full items-center justify-center">
+      <img
+        src="/img/desarrollo.png"
+        alt="Función en desarrollo"
+        className="block h-auto w-full select-none object-contain pointer-events-none"
+        loading="eager"
+      />
+    </div>
+  );
+}
+
+const easyTools: {
+  id: EasyToolId;
+  label: string;
+  icon: typeof SlidersHorizontal;
+  status: EasyToolStatus;
+}[] = [
+  {
+    id: "adjust",
+    label: "Ajustar",
+    icon: SlidersHorizontal,
+    status: "AVAILABLE",
+  },
+  {
+    id: "magic-eraser",
+    label: "Eliminador mágico",
+    icon: Wand2,
+    status: "AVAILABLE",
+  },
+  {
+    id: "enhance",
+    label: "Escalar / Mejorar",
+    icon: Scan,
+    status: "NOT_CONFIGURED",
+  },
+  {
+    id: "vectorize",
+    label: "Vectorizar",
+    icon: Network,
+    status: "NOT_CONFIGURED",
+  },
+  {
+    id: "halftone",
+    label: "Semitonos",
+    icon: Crosshair,
+    status: "AVAILABLE",
+  },
+  {
+    id: "magic-layers",
+    label: "Capas mágicas",
+    icon: Layers,
+    status: "NOT_CONFIGURED",
+  },
+  {
+    id: "eraser",
+    label: "Borrador mágico",
+    icon: Scissors,
+    status: "AVAILABLE",
+  },
+  {
+    id: "magic-edit",
+    label: "Edición mágica",
+    icon: Sparkles,
+    status: "NOT_CONFIGURED",
+  },
+];
 
 type SidebarToolId = (typeof sidebarTools)[number]["id"];
 type UploadedLibraryTab = "images" | "folders";
@@ -560,7 +684,7 @@ function SteppedInput({
     <div
       className={
         suffix
-          ? "flex h-10 items-center rounded-xl border border-[#e2e8f0] bg-white focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]/20"
+          ? "flex h-10 items-center rounded-[5px] border border-[#e2e8f0] bg-white focus-within:border-[#4f46e5] focus-within:ring-1 focus-within:ring-[#4f46e5]/20"
           : "relative flex items-center"
       }
     >
@@ -575,7 +699,7 @@ function SteppedInput({
         className={
           suffix
             ? `h-full min-w-0 flex-1 border-0 bg-transparent pl-3 pr-1 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${className ?? ""}`
-            : `h-9 w-full rounded-xl border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
+            : `h-9 w-full rounded-[5px] border border-[#e2e8f0] bg-white pl-3 pr-7 text-[13px] font-semibold text-[#0f172a] outline-none [appearance:textfield] focus:border-[#4f46e5] focus:ring-1 focus:ring-[#4f46e5]/20 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${
                 className ?? ""
               }`
         }
@@ -638,7 +762,9 @@ export function DesignerEasyModePage() {
   const [technique, setTechnique] = useState("dtf");
   const [isHeaderMenuOpen, setIsHeaderMenuOpen] = useState(false);
   const [canvasSettings, setCanvasSettings] = useState(
-    () => modeSession?.canvasSettings ?? createInitialCanvasSettings(location.state),
+    () =>
+      modeSession?.canvasSettings ??
+      createInitialCanvasSettings(location.state),
   );
   const [canvasViewport, setCanvasViewport] = useState<CanvasViewport | null>(
     null,
@@ -651,6 +777,95 @@ export function DesignerEasyModePage() {
   const [isPanning, setIsPanning] = useState(false);
   const [activeSidebarTool, setActiveSidebarTool] =
     useState<SidebarToolId>("archivo");
+  const [activeEasyTool, setActiveEasyTool] = useState<EasyToolId>("adjust");
+  const [isToolsSelectionOpen, setIsToolsSelectionOpen] = useState(true);
+  const [openToolPanel, setOpenToolPanel] = useState<EasyToolId | null>("adjust");
+  const [openHeaderDropdown, setOpenHeaderDropdown] = useState<
+    "archivo" | "editar" | "ver" | "zoom" | null
+  >(null);
+  const [showRulers, setShowRulers] = useState(true);
+  const headerNavRef = useRef<HTMLDivElement | null>(null);
+  const zoomPillRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!openHeaderDropdown) return;
+      const target = e.target as Node;
+      if (
+        headerNavRef.current?.contains(target) ||
+        zoomPillRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setOpenHeaderDropdown(null);
+    };
+
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [openHeaderDropdown]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (openHeaderDropdown) {
+          setOpenHeaderDropdown(null);
+        } else if (activeSidebarTool === "herramientas") {
+          if (openToolPanel !== null) {
+            setOpenToolPanel(null);
+          } else if (isToolsSelectionOpen) {
+            setIsToolsSelectionOpen(false);
+          }
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeSidebarTool, openToolPanel, isToolsSelectionOpen, openHeaderDropdown]);
+  const [adjustments, setAdjustments] = useState<EasyAdjustments>({
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+  });
+  const [halftoneOptions, setHalftoneOptions] = useState<HalftoneOptions>({
+    cellSize: 8,
+    angle: 45,
+    dotColor: "original",
+    bgColor: "transparent",
+    intensity: 100,
+    contrast: 100,
+    shape: "circle",
+  });
+  const [toolStatuses, setToolStatuses] = useState<
+    Record<EasyToolId, EasyToolStatus>
+  >({
+    adjust: "AVAILABLE",
+    "magic-eraser": "AVAILABLE",
+    enhance: "NOT_CONFIGURED",
+    vectorize: "NOT_CONFIGURED",
+    halftone: "AVAILABLE",
+    "magic-layers": "NOT_CONFIGURED",
+    eraser: "AVAILABLE",
+    "magic-edit": "NOT_CONFIGURED",
+  });
+  const [magicEraserMode, setMagicEraserMode] = useState<"select" | "brush">(
+    "select",
+  );
+  const [magicEraserBrushSize, setMagicEraserBrushSize] = useState(24);
+  const [magicBrushCursor, setMagicBrushCursor] = useState<{
+    x: number;
+    y: number;
+    size: number;
+  } | null>(null);
+  const [upscaleFactor, setUpscaleFactor] = useState(2);
+  const [magicMaskPreviewUrl, setMagicMaskPreviewUrl] = useState<string | null>(
+    null,
+  );
+  const [hasMagicBrushMask, setHasMagicBrushMask] = useState(false);
+  const magicMaskBlobRef = useRef<Blob | null>(null);
+  const magicMaskCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const maskPreviewCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const magicEraserStrokeRef = useRef<MagicEraserStroke | null>(null);
   const [keepRatio, setKeepRatio] = useState(false);
   const [canvasRatio, setCanvasRatio] = useState(
     () =>
@@ -667,7 +882,9 @@ export function DesignerEasyModePage() {
     string | null
   >(() => modeSession?.activeUploadedAssetId ?? null);
   const [uploadedLibraryTab, setUploadedLibraryTab] =
-    useState<UploadedLibraryTab>(() => modeSession?.uploadedLibraryTab ?? "images");
+    useState<UploadedLibraryTab>(
+      () => modeSession?.uploadedLibraryTab ?? "images",
+    );
   const [activeUploadedFolderId, setActiveUploadedFolderId] = useState<
     string | null
   >(() => modeSession?.activeUploadedFolderId ?? null);
@@ -693,8 +910,9 @@ export function DesignerEasyModePage() {
     () => modeSession?.showProcessedImage ?? true,
   );
   const [isDraggingFile, setIsDraggingFile] = useState(false);
-  const [removeSemitransparencies, setRemoveSemitransparencies] =
-    useState(() => modeSession?.removeSemitransparencies ?? false);
+  const [removeSemitransparencies, setRemoveSemitransparencies] = useState(
+    () => modeSession?.removeSemitransparencies ?? false,
+  );
   const [imageHistory, setImageHistory] = useState<EasyImageHistory>(
     () => modeSession?.imageHistory ?? { undo: [], redo: [] },
   );
@@ -818,12 +1036,13 @@ export function DesignerEasyModePage() {
     showProcessedImage && processedImageUrl
       ? processedImageUrl
       : (activeUploadedAsset?.image ?? null);
-  const handleSwitchToAdvanced = async () => {
+  const handleSwitchToAdvanced = () => {
     if (!documentId || !isDocumentHydrated) {
       showToast({
         type: "error",
         title: "Documento no disponible",
-        message: "Espera a que el documento termine de cargarse antes de cambiar de modo.",
+        message:
+          "Espera a que el documento termine de cargarse antes de cambiar de modo.",
       });
       return;
     }
@@ -858,19 +1077,21 @@ export function DesignerEasyModePage() {
     };
     saveEasyModeSession(session);
     setIsHeaderMenuOpen(false);
-    try {
-      await saveDesigner3Snapshot(documentId, "easy", session);
-      navigate(`/store/designer/advanced?document=${encodeURIComponent(documentId)}`);
-    } catch (error) {
-      showToast({
-        type: "error",
-        title: "No se pudo guardar el documento",
-        message:
-          error instanceof Error
-            ? error.message
-            : "No se pudo guardar el documento para continuar en modo avanzado.",
-      });
-    }
+    navigate(
+      `/store/designer/advanced?document=${encodeURIComponent(documentId)}`,
+    );
+    void saveDesigner3Snapshot(documentId, "easy", session).catch(
+      (error: unknown) => {
+        showToast({
+          type: "error",
+          title: "No se pudo guardar el documento",
+          message:
+            error instanceof Error
+              ? error.message
+              : "No se pudo guardar el documento para continuar en modo avanzado.",
+        });
+      },
+    );
   };
   const activeUploadedFolder =
     uploadedFolders.find((folder) => folder.id === activeUploadedFolderId) ??
@@ -1020,11 +1241,19 @@ export function DesignerEasyModePage() {
 
   const changeCanvasZoom = (direction: 1 | -1) => {
     setCanvasZoom((current) =>
-      Math.min(4, Math.max(0.25, Number((current * (direction > 0 ? 1.15 : 0.87)).toFixed(3)))),
+      Math.min(
+        4,
+        Math.max(
+          0.25,
+          Number((current * (direction > 0 ? 1.15 : 0.87)).toFixed(3)),
+        ),
+      ),
     );
   };
 
-  const handleWorkspacePointerDown = (event: ReactPointerEvent<HTMLElement>) => {
+  const handleWorkspacePointerDown = (
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
     if (!isHandToolActive || event.button !== 0) return;
     if (
       event.target instanceof Element &&
@@ -1048,7 +1277,9 @@ export function DesignerEasyModePage() {
     setIsPanning(true);
   };
 
-  const handleWorkspacePointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+  const handleWorkspacePointerMove = (
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
     const drag = panDragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
 
@@ -1070,9 +1301,263 @@ export function DesignerEasyModePage() {
     }
   };
 
+  const clearMagicMask = () => {
+    magicMaskBlobRef.current = null;
+    setHasMagicBrushMask(false);
+    setMagicBrushCursor(null);
+    setMagicMaskPreviewUrl((current) => {
+      if (current) URL.revokeObjectURL(current);
+      return null;
+    });
+    const maskContext = magicMaskCanvasRef.current?.getContext("2d");
+    if (maskContext) {
+      maskContext.clearRect(
+        0,
+        0,
+        magicMaskCanvasRef.current?.width ?? 0,
+        magicMaskCanvasRef.current?.height ?? 0,
+      );
+    }
+    const previewContext = maskPreviewCanvasRef.current?.getContext("2d");
+    if (previewContext && maskPreviewCanvasRef.current) {
+      previewContext.clearRect(
+        0,
+        0,
+        maskPreviewCanvasRef.current.width,
+        maskPreviewCanvasRef.current.height,
+      );
+    }
+  };
+
+  const handleMagicRegionSelect = async (
+    event: ReactPointerEvent<HTMLImageElement>,
+  ) => {
+    if (!selectedImage || isProcessing || isRemovingBg) return;
+    clearMagicMask();
+    const image = event.currentTarget;
+    const bounds = image.getBoundingClientRect();
+    const width = image.naturalWidth;
+    const height = image.naturalHeight;
+    if (!width || !height || !bounds.width || !bounds.height) return;
+    const x = Math.min(
+      width - 1,
+      Math.max(
+        0,
+        Math.floor(((event.clientX - bounds.left) / bounds.width) * width),
+      ),
+    );
+    const y = Math.min(
+      height - 1,
+      Math.max(
+        0,
+        Math.floor(((event.clientY - bounds.top) / bounds.height) * height),
+      ),
+    );
+    const statusKey = activeEasyTool === "eraser" ? "eraser" : "magic-eraser";
+    setToolStatuses((current) => ({ ...current, [statusKey]: "PROCESSING" }));
+    setIsProcessing(true);
+    setProcessingError(null);
+    try {
+      const result = await processRasterImageUrl(selectedImage, {
+        kind: "select-color-region",
+        x,
+        y,
+        tolerance: 32,
+      });
+      const previewUrl = URL.createObjectURL(result.blob);
+      magicMaskBlobRef.current = result.blob;
+      setMagicMaskPreviewUrl((current) => {
+        if (current) URL.revokeObjectURL(current);
+        return previewUrl;
+      });
+      setToolStatuses((current) => ({ ...current, [statusKey]: "SUCCESS" }));
+    } catch (error) {
+      setToolStatuses((current) => ({ ...current, [statusKey]: "FAILED" }));
+      setProcessingError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo seleccionar la región de la imagen.",
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleMaskPointerDown = (
+    event: ReactPointerEvent<HTMLCanvasElement>,
+  ) => {
+    if (
+      magicEraserMode !== "brush" ||
+      !selectedImage ||
+      isProcessing ||
+      isRemovingBg
+    ) {
+      return;
+    }
+    event.preventDefault();
+    event.stopPropagation();
+    const previewCanvas = event.currentTarget;
+    const bounds = previewCanvas.getBoundingClientRect();
+    const width = artworkDimensions?.width ?? previewCanvas.width;
+    const height = artworkDimensions?.height ?? previewCanvas.height;
+    if (!bounds.width || !bounds.height || !width || !height) return;
+
+    if (
+      !magicMaskCanvasRef.current ||
+      magicMaskCanvasRef.current.width !== width ||
+      magicMaskCanvasRef.current.height !== height
+    ) {
+      magicMaskCanvasRef.current = document.createElement("canvas");
+      magicMaskCanvasRef.current.width = width;
+      magicMaskCanvasRef.current.height = height;
+    }
+    previewCanvas.width = width;
+    previewCanvas.height = height;
+    const maskContext = magicMaskCanvasRef.current.getContext("2d");
+    const previewContext = previewCanvas.getContext("2d");
+    if (!maskContext || !previewContext) {
+      setProcessingError("No se pudo preparar la máscara del borrador.");
+      return;
+    }
+
+    const x = Math.min(
+      width,
+      Math.max(0, ((event.clientX - bounds.left) / bounds.width) * width),
+    );
+    const y = Math.min(
+      height,
+      Math.max(0, ((event.clientY - bounds.top) / bounds.height) * height),
+    );
+    const drawPoint = (context: CanvasRenderingContext2D, color: string) => {
+      context.beginPath();
+      context.fillStyle = color;
+      context.arc(x, y, magicEraserBrushSize / 2, 0, Math.PI * 2);
+      context.fill();
+    };
+    drawPoint(maskContext, "rgba(255,255,255,1)");
+    drawPoint(previewContext, "rgba(239,68,68,0.48)");
+    setHasMagicBrushMask(true);
+    magicEraserStrokeRef.current = { pointerId: event.pointerId, x, y };
+    previewCanvas.setPointerCapture(event.pointerId);
+    setToolStatuses((current) => ({ ...current, "magic-eraser": "AVAILABLE" }));
+  };
+
+  const handleMaskPointerMove = (
+    event: ReactPointerEvent<HTMLCanvasElement>,
+  ) => {
+    const previewCanvas = event.currentTarget;
+    const bounds = previewCanvas.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return;
+    setMagicBrushCursor({
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+      size: (magicEraserBrushSize * bounds.width) / previewCanvas.width,
+    });
+    const stroke = magicEraserStrokeRef.current;
+    if (!stroke || stroke.pointerId !== event.pointerId) return;
+    const x = Math.min(
+      previewCanvas.width,
+      Math.max(
+        0,
+        ((event.clientX - bounds.left) / bounds.width) * previewCanvas.width,
+      ),
+    );
+    const y = Math.min(
+      previewCanvas.height,
+      Math.max(
+        0,
+        ((event.clientY - bounds.top) / bounds.height) * previewCanvas.height,
+      ),
+    );
+    const drawSegment = (context: CanvasRenderingContext2D, color: string) => {
+      context.beginPath();
+      context.strokeStyle = color;
+      context.lineWidth = magicEraserBrushSize;
+      context.lineCap = "round";
+      context.lineJoin = "round";
+      context.moveTo(stroke.x, stroke.y);
+      context.lineTo(x, y);
+      context.stroke();
+    };
+    const maskContext = magicMaskCanvasRef.current?.getContext("2d");
+    const previewContext = previewCanvas.getContext("2d");
+    if (!maskContext || !previewContext) return;
+    drawSegment(maskContext, "rgba(255,255,255,1)");
+    drawSegment(previewContext, "rgba(239,68,68,0.48)");
+    stroke.x = x;
+    stroke.y = y;
+  };
+
+  const finishMaskStroke = (event: ReactPointerEvent<HTMLCanvasElement>) => {
+    const stroke = magicEraserStrokeRef.current;
+    if (!stroke || stroke.pointerId !== event.pointerId) return;
+    magicEraserStrokeRef.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const applyMagicMask = async () => {
+    if (!selectedImage || isProcessing || isRemovingBg) return;
+    let mask = magicMaskBlobRef.current;
+    if (!mask && magicMaskCanvasRef.current) {
+      mask = await new Promise<Blob | null>((resolve) =>
+        magicMaskCanvasRef.current?.toBlob(resolve, "image/png"),
+      );
+    }
+    if (!mask) {
+      setProcessingError(
+        "Selecciona una región o dibuja un trazo antes de aplicar.",
+      );
+      return;
+    }
+    const statusKey = activeEasyTool === "eraser" ? "eraser" : "magic-eraser";
+    const requestId = ++processingRequestId.current;
+    const previousState = captureImageSnapshot();
+    setToolStatuses((current) => ({ ...current, [statusKey]: "PROCESSING" }));
+    setIsProcessing(true);
+    setProcessingError(null);
+    try {
+      const result = await processRasterImageUrl(selectedImage, {
+        kind: "erase-mask",
+        mask,
+      });
+      if (requestId !== processingRequestId.current) return;
+      const resultUrl = URL.createObjectURL(result.blob);
+      ownedProcessedImageUrlsRef.current.add(resultUrl);
+      recordImageChange(previousState);
+      replaceProcessedImage(resultUrl);
+      setProcessedDimensions({ width: result.width, height: result.height });
+      setShowProcessedImage(true);
+      setToolStatuses((current) => ({ ...current, [statusKey]: "SUCCESS" }));
+      clearMagicMask();
+    } catch (error) {
+      if (requestId === processingRequestId.current) {
+        setToolStatuses((current) => ({ ...current, [statusKey]: "FAILED" }));
+        setProcessingError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo aplicar el borrador.",
+        );
+      }
+    } finally {
+      if (requestId === processingRequestId.current) setIsProcessing(false);
+    }
+  };
+
   const handleArtworkPointerDown = (
     event: ReactPointerEvent<HTMLImageElement>,
   ) => {
+    if (
+      (activeEasyTool === "magic-eraser" && magicEraserMode === "select") ||
+      activeEasyTool === "eraser"
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      setIsArtworkSelected(true);
+      void handleMagicRegionSelect(event);
+      return;
+    }
     if (
       isHandToolActive ||
       event.button !== 0 ||
@@ -1137,7 +1622,9 @@ export function DesignerEasyModePage() {
     if (!selectedImage || !canvasViewport || isHandToolActive) return;
     event.preventDefault();
     event.stopPropagation();
-    const canvas = event.currentTarget.closest<HTMLElement>("[data-artwork-canvas]");
+    const canvas = event.currentTarget.closest<HTMLElement>(
+      "[data-artwork-canvas]",
+    );
     if (!canvas) return;
     const bounds = canvas.getBoundingClientRect();
     const canvasX = (event.clientX - bounds.left) / canvasZoom;
@@ -1160,8 +1647,11 @@ export function DesignerEasyModePage() {
     event: ReactPointerEvent<HTMLButtonElement>,
   ) => {
     const gesture = artworkGestureRef.current;
-    if (!gesture || gesture.pointerId !== event.pointerId || !canvasViewport) return;
-    const canvas = event.currentTarget.closest<HTMLElement>("[data-artwork-canvas]");
+    if (!gesture || gesture.pointerId !== event.pointerId || !canvasViewport)
+      return;
+    const canvas = event.currentTarget.closest<HTMLElement>(
+      "[data-artwork-canvas]",
+    );
     if (!canvas) return;
     const bounds = canvas.getBoundingClientRect();
     const canvasX = (event.clientX - bounds.left) / canvasZoom;
@@ -1175,7 +1665,10 @@ export function DesignerEasyModePage() {
 
     if (gesture.mode === "scale") {
       const ratio = Math.hypot(deltaX, deltaY) / gesture.startDistance;
-      const scale = Math.min(4, Math.max(0.1, gesture.startTransform.scale * ratio));
+      const scale = Math.min(
+        4,
+        Math.max(0.1, gesture.startTransform.scale * ratio),
+      );
       setArtworkTransform({ ...gesture.startTransform, scale });
       return;
     }
@@ -1187,11 +1680,14 @@ export function DesignerEasyModePage() {
     );
     setArtworkTransform({
       ...gesture.startTransform,
-      rotationDegrees: gesture.startTransform.rotationDegrees + angleDelta * (180 / Math.PI),
+      rotationDegrees:
+        gesture.startTransform.rotationDegrees + angleDelta * (180 / Math.PI),
     });
   };
 
-  const finishArtworkGesture = (event: ReactPointerEvent<HTMLButtonElement>) => {
+  const finishArtworkGesture = (
+    event: ReactPointerEvent<HTMLButtonElement>,
+  ) => {
     const gesture = artworkGestureRef.current;
     if (!gesture || gesture.pointerId !== event.pointerId) return;
     artworkGestureRef.current = null;
@@ -1214,7 +1710,8 @@ export function DesignerEasyModePage() {
       showToast({
         type: "error",
         title: "No se pudo exportar",
-        message: "Reduce las dimensiones o el DPI para exportar un PNG de hasta 40 megapíxeles.",
+        message:
+          "Reduce las dimensiones o el DPI para exportar un PNG de hasta 40 megapíxeles.",
       });
       return;
     }
@@ -1226,7 +1723,9 @@ export function DesignerEasyModePage() {
       output.height = rasterHeight;
       const context = output.getContext("2d", { alpha: true });
       if (!context) {
-        throw new Error("El navegador no pudo preparar el lienzo de exportación.");
+        throw new Error(
+          "El navegador no pudo preparar el lienzo de exportación.",
+        );
       }
 
       if (canvasSettings.background !== "transparent") {
@@ -1239,7 +1738,10 @@ export function DesignerEasyModePage() {
         image.crossOrigin = "anonymous";
         await new Promise<void>((resolve, reject) => {
           image.onload = () => resolve();
-          image.onerror = () => reject(new Error("No se pudo leer la imagen activa para exportarla."));
+          image.onerror = () =>
+            reject(
+              new Error("No se pudo leer la imagen activa para exportarla."),
+            );
           image.src = selectedImage;
         });
 
@@ -1275,19 +1777,25 @@ export function DesignerEasyModePage() {
 
       const blob = await new Promise<Blob>((resolve, reject) => {
         output.toBlob(
-          (result) => result
-            ? resolve(result)
-            : reject(new Error("El navegador no pudo codificar el PNG.")),
+          (result) =>
+            result
+              ? resolve(result)
+              : reject(new Error("El navegador no pudo codificar el PNG.")),
           "image/png",
         );
       });
       const pngBytes = new Uint8Array(await blob.arrayBuffer());
-      const metadataPlan = createPngDpiMetadataPlan(pngBytes, canvasSettings.dpi);
+      const metadataPlan = createPngDpiMetadataPlan(
+        pngBytes,
+        canvasSettings.dpi,
+      );
       const downloadParts: BlobPart[] = [];
       for (const [index, range] of metadataPlan.sourceRanges.entries()) {
         downloadParts.push(blob.slice(range.start, range.end));
         if (index === 0) {
-          const metadataBuffer = new ArrayBuffer(metadataPlan.resolutionChunk.byteLength);
+          const metadataBuffer = new ArrayBuffer(
+            metadataPlan.resolutionChunk.byteLength,
+          );
           new Uint8Array(metadataBuffer).set(metadataPlan.resolutionChunk);
           downloadParts.push(metadataBuffer);
         }
@@ -1308,7 +1816,10 @@ export function DesignerEasyModePage() {
       showToast({
         type: "error",
         title: "No se pudo exportar",
-        message: error instanceof Error ? error.message : "Error desconocido al exportar PNG.",
+        message:
+          error instanceof Error
+            ? error.message
+            : "Error desconocido al exportar PNG.",
       });
     } finally {
       setIsExporting(false);
@@ -1467,11 +1978,15 @@ export function DesignerEasyModePage() {
       try {
         const widthPx = Math.max(
           1,
-          Math.round((Number(canvasSettings.widthCm) / 2.54) * canvasSettings.dpi),
+          Math.round(
+            (Number(canvasSettings.widthCm) / 2.54) * canvasSettings.dpi,
+          ),
         );
         const heightPx = Math.max(
           1,
-          Math.round((Number(canvasSettings.heightCm) / 2.54) * canvasSettings.dpi),
+          Math.round(
+            (Number(canvasSettings.heightCm) / 2.54) * canvasSettings.dpi,
+          ),
         );
         const id = createDesigner3DocumentId();
         await createDesigner3Document(id, "Mi nuevo diseño", {
@@ -1546,8 +2061,12 @@ export function DesignerEasyModePage() {
             ? metadata.backgroundColor
             : "#ffffff";
         const derivedCanvasSettings: EasyCanvasSettings = {
-          widthCm: Number(((documentWidth / documentDpi) * 2.54).toFixed(1)).toString(),
-          heightCm: Number(((documentHeight / documentDpi) * 2.54).toFixed(1)).toString(),
+          widthCm: Number(
+            ((documentWidth / documentDpi) * 2.54).toFixed(1),
+          ).toString(),
+          heightCm: Number(
+            ((documentHeight / documentDpi) * 2.54).toFixed(1),
+          ).toString(),
           dpi: documentDpi,
           background: documentBackground,
           backgroundColor: documentBackgroundColor,
@@ -1577,15 +2096,18 @@ export function DesignerEasyModePage() {
                 typeof layer.preview === "string"),
           );
           if (imageLayer) {
-            const image =
-              (typeof imageLayer.processedSrc === "string" &&
+            const image = (
+              typeof imageLayer.processedSrc === "string" &&
               imageLayer.processedSrc
                 ? imageLayer.processedSrc
                 : typeof imageLayer.src === "string" && imageLayer.src
                   ? imageLayer.src
-                  : imageLayer.preview) as string;
+                  : imageLayer.preview
+            ) as string;
             const layerId =
-              typeof imageLayer.id === "string" ? imageLayer.id : "designer3-artwork";
+              typeof imageLayer.id === "string"
+                ? imageLayer.id
+                : "designer3-artwork";
             const layerName =
               typeof imageLayer.name === "string" ? imageLayer.name : "Diseño";
             const width =
@@ -1600,11 +2122,18 @@ export function DesignerEasyModePage() {
                 : typeof imageLayer.height === "number"
                   ? imageLayer.height
                   : 480;
-            const fitScale = Math.min(documentWidth / width, documentHeight / height);
+            const fitScale = Math.min(
+              documentWidth / width,
+              documentHeight / height,
+            );
             const renderedWidth =
-              typeof imageLayer.width === "number" ? imageLayer.width : width * fitScale;
+              typeof imageLayer.width === "number"
+                ? imageLayer.width
+                : width * fitScale;
             const renderedHeight =
-              typeof imageLayer.height === "number" ? imageLayer.height : height * fitScale;
+              typeof imageLayer.height === "number"
+                ? imageLayer.height
+                : height * fitScale;
             const centerX =
               (typeof imageLayer.x === "number" ? imageLayer.x : 0) +
               renderedWidth / 2;
@@ -1642,8 +2171,7 @@ export function DesignerEasyModePage() {
               semitransparencyResult: null,
               imageHistory: { undo: [], redo: [] },
               artworkTransform: {
-                scale:
-                  fitScale > 0 ? renderedWidth / (width * fitScale) : 1,
+                scale: fitScale > 0 ? renderedWidth / (width * fitScale) : 1,
                 rotationDegrees:
                   typeof imageLayer.rotation === "number"
                     ? imageLayer.rotation
@@ -1658,7 +2186,10 @@ export function DesignerEasyModePage() {
               imageUrl: image,
               ownedProcessedImageUrls: [],
               advancedElementId: layerId,
-              advancedElementBaseSize: { width: renderedWidth, height: renderedHeight },
+              advancedElementBaseSize: {
+                width: renderedWidth,
+                height: renderedHeight,
+              },
               advancedImageUrl: image,
               previousAdvancedZoneId: null,
             };
@@ -1735,12 +2266,7 @@ export function DesignerEasyModePage() {
     return () => {
       cancelled = true;
     };
-  }, [
-    documentId,
-    isDocumentHydrated,
-    location.state,
-    showToast,
-  ]);
+  }, [documentId, isDocumentHydrated, location.state, showToast]);
 
   useEffect(() => {
     if (!documentId || !isDocumentHydrated) return;
@@ -1782,11 +2308,15 @@ export function DesignerEasyModePage() {
         }
         const widthPx = Math.max(
           1,
-          Math.round((Number(canvasSettings.widthCm) / 2.54) * canvasSettings.dpi),
+          Math.round(
+            (Number(canvasSettings.widthCm) / 2.54) * canvasSettings.dpi,
+          ),
         );
         const heightPx = Math.max(
           1,
-          Math.round((Number(canvasSettings.heightCm) / 2.54) * canvasSettings.dpi),
+          Math.round(
+            (Number(canvasSettings.heightCm) / 2.54) * canvasSettings.dpi,
+          ),
         );
         const existingSurface = persisted.document.surfaces.find(
           (surface) => surface.id === "front",
@@ -1807,7 +2337,10 @@ export function DesignerEasyModePage() {
           1,
           artworkDimensions?.height ?? processedDimensions?.height ?? heightPx,
         );
-        const fitScale = Math.min(widthPx / naturalWidth, heightPx / naturalHeight);
+        const fitScale = Math.min(
+          widthPx / naturalWidth,
+          heightPx / naturalHeight,
+        );
         const artworkWidth = naturalWidth * fitScale * artworkTransform.scale;
         const artworkHeight = naturalHeight * fitScale * artworkTransform.scale;
         const element: DesignElement | null = selectedImage
@@ -2107,6 +2640,71 @@ export function DesignerEasyModePage() {
     }
   };
 
+  const applyAdjustments = async () => {
+    if (!selectedImage || isProcessing || isRemovingBg) return;
+    const requestId = ++processingRequestId.current;
+    const previousState = captureImageSnapshot();
+    setToolStatuses((current) => ({ ...current, adjust: "PROCESSING" }));
+    setIsProcessing(true);
+    setProcessingError(null);
+    try {
+      const result = await processArtworkImageUrl(selectedImage, adjustments);
+      if (requestId !== processingRequestId.current) return;
+      const resultUrl = URL.createObjectURL(result.blob);
+      ownedProcessedImageUrlsRef.current.add(resultUrl);
+      recordImageChange(previousState);
+      replaceProcessedImage(resultUrl);
+      setProcessedDimensions({ width: result.width, height: result.height });
+      setShowProcessedImage(true);
+      setToolStatuses((current) => ({ ...current, adjust: "SUCCESS" }));
+    } catch (error) {
+      if (requestId === processingRequestId.current) {
+        setToolStatuses((current) => ({ ...current, adjust: "FAILED" }));
+        setProcessingError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo ajustar la imagen.",
+        );
+      }
+    } finally {
+      if (requestId === processingRequestId.current) setIsProcessing(false);
+    }
+  };
+
+  const applyHalftone = async () => {
+    if (!selectedImage || isProcessing || isRemovingBg) return;
+    const requestId = ++processingRequestId.current;
+    const previousState = captureImageSnapshot();
+    setToolStatuses((current) => ({ ...current, halftone: "PROCESSING" }));
+    setIsProcessing(true);
+    setProcessingError(null);
+    try {
+      const result = await processRasterImageUrl(selectedImage, {
+        kind: "halftone",
+        options: halftoneOptions,
+      });
+      if (requestId !== processingRequestId.current) return;
+      const resultUrl = URL.createObjectURL(result.blob);
+      ownedProcessedImageUrlsRef.current.add(resultUrl);
+      recordImageChange(previousState);
+      replaceProcessedImage(resultUrl);
+      setProcessedDimensions({ width: result.width, height: result.height });
+      setShowProcessedImage(true);
+      setToolStatuses((current) => ({ ...current, halftone: "SUCCESS" }));
+    } catch (error) {
+      if (requestId === processingRequestId.current) {
+        setToolStatuses((current) => ({ ...current, halftone: "FAILED" }));
+        setProcessingError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo aplicar el semitono.",
+        );
+      }
+    } finally {
+      if (requestId === processingRequestId.current) setIsProcessing(false);
+    }
+  };
+
   const handleUndo = () => {
     const previous = imageHistory.undo.at(-1);
     if (!previous) return;
@@ -2144,6 +2742,119 @@ export function DesignerEasyModePage() {
     setRemoveSemitransparencies(false);
     setArtworkTransform(DEFAULT_ARTWORK_TRANSFORM);
     semitransparencyResultRef.current = null;
+  };
+
+  const getCurrentSession = (): EasyModeSession | null => {
+    if (!documentId) return null;
+    return {
+      documentId,
+      canvasSettings,
+      canvasZoom,
+      canvasPan,
+      uploadedAssets,
+      uploadedFolders,
+      activeUploadedAssetId,
+      uploadedLibraryTab,
+      activeUploadedFolderId,
+      activeUploadedFolderPath,
+      uploadSearch,
+      processedImageUrl,
+      processedDimensions,
+      showProcessedImage,
+      removeSemitransparencies,
+      semitransparencyResult: semitransparencyResultRef.current,
+      imageHistory,
+      artworkTransform,
+      artworkDimensions,
+      isArtworkSelected,
+      imageUrl: selectedImage,
+      ownedProcessedImageUrls: [...ownedProcessedImageUrlsRef.current],
+      advancedElementId: modeSession?.advancedElementId ?? null,
+      advancedElementBaseSize: modeSession?.advancedElementBaseSize ?? null,
+      advancedImageUrl: modeSession?.advancedImageUrl ?? null,
+      previousAdvancedZoneId: modeSession?.previousAdvancedZoneId ?? null,
+    };
+  };
+
+  const handleNewDocument = () => {
+    handleClearImage();
+    setCanvasSettings({
+      widthCm: DEFAULT_WIDTH_CM,
+      heightCm: DEFAULT_HEIGHT_CM,
+      dpi: 300,
+      background: "transparent",
+      backgroundColor: "#ffffff",
+    });
+    setImageHistory({ undo: [], redo: [] });
+    setCanvasZoom(1);
+    setCanvasPan({ x: 0, y: 0 });
+    showToast({
+      type: "success",
+      title: "Nuevo documento",
+      message: "Lienzo restablecido a 58 × 100 cm a 300 DPI.",
+    });
+  };
+
+  const handleDuplicateArtwork = () => {
+    if (!selectedImage) return;
+    recordImageChange();
+    if (activeUploadedAsset) {
+      const duplicateId = `${activeUploadedAsset.id}-copy-${Date.now()}`;
+      const duplicateAsset: UploadedAsset = {
+        ...activeUploadedAsset,
+        id: duplicateId,
+        name: `${activeUploadedAsset.name} (copia)`,
+      };
+      setUploadedAssets((current) => [...current, duplicateAsset]);
+    }
+    setArtworkTransform((current) => ({
+      ...current,
+      offsetX: Math.min(0.8, current.offsetX + 0.04),
+      offsetY: Math.min(0.8, current.offsetY + 0.04),
+    }));
+    showToast({
+      type: "success",
+      title: "Elemento duplicado",
+      message: "Se ha duplicado el diseño seleccionado.",
+    });
+  };
+
+  const handleFitToCanvas = () => {
+    setCanvasZoom(1);
+    setCanvasPan({ x: 0, y: 0 });
+  };
+
+  const handleActualSize = () => {
+    const basePercent = canvasViewport?.zoomPercent ?? 100;
+    setCanvasZoom(100 / (basePercent || 100));
+    setCanvasPan({ x: 0, y: 0 });
+  };
+
+  const handleSetZoomPreset = (preset: number) => {
+    const basePercent = canvasViewport?.zoomPercent ?? 100;
+    setCanvasZoom(preset / (basePercent || 100));
+    setCanvasPan({ x: 0, y: 0 });
+  };
+
+  const handleToggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      void document.documentElement.requestFullscreen?.();
+    } else {
+      void document.exitFullscreen?.();
+    }
+  };
+
+  const handleSaveDesign = () => {
+    const session = getCurrentSession();
+    if (session && documentId) {
+      saveEasyModeSession(session);
+      void saveDesigner3Snapshot(documentId, "easy", session).catch(() => {});
+    }
+    showToast({
+      type: "success",
+      title: "Diseño guardado",
+      message: "El estado actual del diseño ha sido guardado exitosamente.",
+    });
   };
 
   const commitArtworkTransform = (next: ArtworkTransform) => {
@@ -2319,22 +3030,26 @@ export function DesignerEasyModePage() {
         artworkTransform,
       )
     : null;
-  const artworkBox = canvasViewport && artworkDimensions
-    ? (() => {
-        const availableWidth = Math.max(1, canvasViewport.widthPx - 2);
-        const availableHeight = Math.max(1, canvasViewport.heightPx - 2);
-        const fitScale = Math.min(
-          availableWidth / artworkDimensions.width,
-          availableHeight / artworkDimensions.height,
-        );
-        return {
-          width: artworkDimensions.width * fitScale,
-          height: artworkDimensions.height * fitScale,
-        };
-      })()
-    : canvasViewport
-      ? { width: canvasViewport.widthPx - 2, height: canvasViewport.heightPx - 2 }
-      : null;
+  const artworkBox =
+    canvasViewport && artworkDimensions
+      ? (() => {
+          const availableWidth = Math.max(1, canvasViewport.widthPx - 2);
+          const availableHeight = Math.max(1, canvasViewport.heightPx - 2);
+          const fitScale = Math.min(
+            availableWidth / artworkDimensions.width,
+            availableHeight / artworkDimensions.height,
+          );
+          return {
+            width: artworkDimensions.width * fitScale,
+            height: artworkDimensions.height * fitScale,
+          };
+        })()
+      : canvasViewport
+        ? {
+            width: canvasViewport.widthPx - 2,
+            height: canvasViewport.heightPx - 2,
+          }
+        : null;
 
   // ─── Render ───────────────────────────────────────────────────────────────
 
@@ -2363,27 +3078,357 @@ export function DesignerEasyModePage() {
           </Link>
 
           <nav
+            ref={headerNavRef}
             aria-label="Menú del editor"
             className="hidden items-center gap-[clamp(18px,1.9vw,32px)] text-[clamp(13px,0.9vw,15px)] font-medium text-[#475569] lg:flex"
           >
-            <button
-              type="button"
-              className="transition-colors hover:text-[#0f172a]"
-            >
-              Archivo
-            </button>
-            <button
-              type="button"
-              className="transition-colors hover:text-[#0f172a]"
-            >
-              Editar
-            </button>
-            <button
-              type="button"
-              className="transition-colors hover:text-[#0f172a]"
-            >
-              Ver
-            </button>
+            {/* ── Archivo ── */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={openHeaderDropdown === "archivo"}
+                onClick={() =>
+                  setOpenHeaderDropdown((prev) =>
+                    prev === "archivo" ? null : "archivo",
+                  )
+                }
+                className={`transition-colors hover:text-[#0f172a] ${
+                  openHeaderDropdown === "archivo"
+                    ? "font-semibold text-[#0f172a]"
+                    : ""
+                }`}
+              >
+                Archivo
+              </button>
+              {openHeaderDropdown === "archivo" && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-full z-50 mt-2 w-52 rounded-[5px] border border-[#e2e8f0] bg-white p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleNewDocument();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FilePlus
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Nuevo documento</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      fileInputRef.current?.click();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <FolderOpen
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Abrir imagen…</span>
+                    </div>
+                  </button>
+
+                  <div
+                    role="separator"
+                    className="my-1 border-t border-[#f1f5f9]"
+                  />
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleSaveDesign();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Save
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Guardar diseño</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Ctrl+S
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      void handleExportPng();
+                    }}
+                    disabled={isExporting}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc] disabled:opacity-50"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Download
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Descargar PNG</span>
+                    </div>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* ── Editar ── */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={openHeaderDropdown === "editar"}
+                onClick={() =>
+                  setOpenHeaderDropdown((prev) =>
+                    prev === "editar" ? null : "editar",
+                  )
+                }
+                className={`transition-colors hover:text-[#0f172a] ${
+                  openHeaderDropdown === "editar"
+                    ? "font-semibold text-[#0f172a]"
+                    : ""
+                }`}
+              >
+                Editar
+              </button>
+              {openHeaderDropdown === "editar" && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-full z-50 mt-2 w-52 rounded-[5px] border border-[#e2e8f0] bg-white p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={imageHistory.undo.length === 0}
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleUndo();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Undo2
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Deshacer</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Ctrl+Z
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={imageHistory.redo.length === 0}
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleRedo();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Redo2
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Rehacer</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Ctrl+Y
+                    </span>
+                  </button>
+
+                  <div
+                    role="separator"
+                    className="my-1 border-t border-[#f1f5f9]"
+                  />
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={!selectedImage}
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleDuplicateArtwork();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Copy
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Duplicar</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Ctrl+D
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={!selectedImage}
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleClearImage();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#ef4444] transition-colors hover:bg-[#fef2f2] disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Trash2
+                        className="h-4 w-4 text-[#ef4444]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Eliminar diseño</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Supr
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* ── Ver ── */}
+            <div className="relative">
+              <button
+                type="button"
+                aria-haspopup="menu"
+                aria-expanded={openHeaderDropdown === "ver"}
+                onClick={() =>
+                  setOpenHeaderDropdown((prev) =>
+                    prev === "ver" ? null : "ver",
+                  )
+                }
+                className={`transition-colors hover:text-[#0f172a] ${
+                  openHeaderDropdown === "ver"
+                    ? "font-semibold text-[#0f172a]"
+                    : ""
+                }`}
+              >
+                Ver
+              </button>
+              {openHeaderDropdown === "ver" && (
+                <div
+                  role="menu"
+                  className="absolute left-0 top-full z-50 mt-2 w-52 rounded-[5px] border border-[#e2e8f0] bg-white p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleFitToCanvas();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Focus
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Ajustar al lienzo</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Ctrl+0
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleActualSize();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Scan
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Tamaño real (100%)</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      Ctrl+1
+                    </span>
+                  </button>
+
+                  <div
+                    role="separator"
+                    className="my-1 border-t border-[#f1f5f9]"
+                  />
+
+                  <button
+                    type="button"
+                    role="menuitemcheckbox"
+                    aria-checked={showRulers}
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      setShowRulers((prev) => !prev);
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Ruler
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Mostrar reglas</span>
+                    </div>
+                    {showRulers && (
+                      <Check
+                        className="h-3.5 w-3.5 text-[#4f46e5]"
+                        strokeWidth={2.2}
+                      />
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setOpenHeaderDropdown(null);
+                      handleToggleFullscreen();
+                    }}
+                    className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Maximize2
+                        className="h-4 w-4 text-[#64748b]"
+                        strokeWidth={1.8}
+                      />
+                      <span>Pantalla completa</span>
+                    </div>
+                    <span className="text-[11px] font-normal text-[#94a3b8]">
+                      F11
+                    </span>
+                  </button>
+                </div>
+              )}
+            </div>
           </nav>
         </div>
 
@@ -2413,11 +3458,83 @@ export function DesignerEasyModePage() {
             </button>
           </div>
 
-          {/* Zoom pill */}
-          <div className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-[5px] border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs">
-            <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
-            <span>{Math.round((canvasViewport?.zoomPercent ?? 0) * canvasZoom)}%</span>
-            <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
+          {/* Zoom pill con dropdown interactivo */}
+          <div ref={zoomPillRef} className="relative">
+            <button
+              type="button"
+              aria-label="Ajustar zoom"
+              aria-haspopup="menu"
+              aria-expanded={openHeaderDropdown === "zoom"}
+              onClick={() =>
+                setOpenHeaderDropdown((prev) =>
+                  prev === "zoom" ? null : "zoom",
+                )
+              }
+              className="flex h-[clamp(36px,2.63vw,44px)] items-center gap-1.5 rounded-[5px] border border-[#e2e8f0] bg-white px-[clamp(9px,0.95vw,16px)] text-[clamp(12px,0.9vw,15px)] font-medium text-[#334155] shadow-xs transition-colors hover:border-[#cbd5e1]"
+            >
+              <RotateCcw className="h-3.5 w-3.5 text-[#64748b]" />
+              <span>
+                {Math.round((canvasViewport?.zoomPercent ?? 0) * canvasZoom)}%
+              </span>
+              <ChevronDown className="h-3.5 w-3.5 text-[#94a3b8]" />
+            </button>
+            {openHeaderDropdown === "zoom" && (
+              <div
+                role="menu"
+                className="absolute right-0 top-full z-50 mt-1.5 w-44 rounded-[5px] border border-[#e2e8f0] bg-white p-1.5 shadow-[0_8px_24px_rgba(15,23,42,0.10)]"
+              >
+                <button
+                  type="button"
+                  role="menuitem"
+                  onClick={() => {
+                    setOpenHeaderDropdown(null);
+                    handleFitToCanvas();
+                  }}
+                  className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                >
+                  <span>Ajustar al lienzo</span>
+                  {canvasZoom === 1 && (
+                    <Check
+                      className="h-3.5 w-3.5 text-[#4f46e5]"
+                      strokeWidth={2.2}
+                    />
+                  )}
+                </button>
+
+                <div
+                  role="separator"
+                  className="my-1 border-t border-[#f1f5f9]"
+                />
+
+                {[25, 50, 75, 100, 150, 200].map((preset) => {
+                  const currentPercent = Math.round(
+                    (canvasViewport?.zoomPercent ?? 0) * canvasZoom,
+                  );
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setOpenHeaderDropdown(null);
+                        handleSetZoomPreset(preset);
+                      }}
+                      className="flex w-full items-center justify-between rounded-[5px] px-2.5 py-1.5 text-left text-[13px] font-medium text-[#0f172a] transition-colors hover:bg-[#f8fafc]"
+                    >
+                      <span>
+                        {preset}% {preset === 100 ? "(Real)" : ""}
+                      </span>
+                      {currentPercent === preset && (
+                        <Check
+                          className="h-3.5 w-3.5 text-[#4f46e5]"
+                          strokeWidth={2.2}
+                        />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Descargar PNG */}
@@ -2465,20 +3582,6 @@ export function DesignerEasyModePage() {
                 <div className="px-2.5 pb-1 pt-1.5 text-[11px] font-semibold text-[#64748b]">
                   Modo de edición
                 </div>
-                <button
-                  type="button"
-                  role="menuitemradio"
-                  aria-checked="true"
-                  tabIndex={-1}
-                  onClick={() => {
-                    setIsHeaderMenuOpen(false);
-                    headerMenuButtonRef.current?.focus();
-                  }}
-                  className="flex w-full items-center justify-between rounded-lg px-2.5 py-2 text-left text-[13px] font-medium text-[#0f172a] hover:bg-[#f8fafc] focus:bg-[#f8fafc] focus:outline-none"
-                >
-                  <span>Modo fácil</span>
-                  <Check className="h-4 w-4 text-[#4f46e5]" />
-                </button>
                 <button
                   type="button"
                   role="menuitemradio"
@@ -2540,7 +3643,9 @@ export function DesignerEasyModePage() {
         className="grid min-h-0 flex-1 overflow-hidden"
         style={{
           gridTemplateColumns:
-            "clamp(68px, 6.46vw, 108px) clamp(304px, 22.85vw, 382px) minmax(0, 1fr)",
+            activeSidebarTool === "herramientas" && !isToolsSelectionOpen
+              ? "clamp(68px, 6.46vw, 108px) 0px minmax(0, 1fr)"
+              : "clamp(68px, 6.46vw, 108px) clamp(304px, 22.85vw, 382px) minmax(0, 1fr)",
         }}
       >
         {/* ─── SIDEBAR TOOLBAR ─── 76px de ancho como en la referencia */}
@@ -2558,26 +3663,30 @@ export function DesignerEasyModePage() {
                 type="button"
                 aria-pressed={isActive}
                 onClick={() => {
-                  setActiveSidebarTool(tool.id);
+                  if (tool.id === "herramientas") {
+                    if (activeSidebarTool === "herramientas") {
+                      setIsToolsSelectionOpen((prev) => !prev);
+                    } else {
+                      setActiveSidebarTool("herramientas");
+                      setIsToolsSelectionOpen(true);
+                      setOpenToolPanel((prev) => prev ?? activeEasyTool);
+                    }
+                  } else {
+                    setActiveSidebarTool(tool.id);
+                  }
                 }}
-                className={`group mx-[clamp(6px,0.95vw,16px)] flex shrink-0 self-stretch flex-col items-center justify-center gap-[clamp(3px,0.3vw,5px)] py-1 transition-colors ${
-                  isActive
-                    ? "text-[#4f46e5]"
-                    : "text-[#64748b] hover:text-[#0f172a]"
-                }`}
+                className="group mx-[clamp(6px,0.95vw,16px)] flex shrink-0 self-stretch flex-col items-center justify-center gap-[clamp(3px,0.3vw,5px)] py-1"
               >
                 <span
-                  className={`flex h-[clamp(32px,2.86vw,44px)] w-[clamp(32px,2.86vw,44px)] items-center justify-center rounded-xl transition-colors ${
+                  className={`flex h-[clamp(32px,2.86vw,44px)] w-[clamp(32px,2.86vw,44px)] items-center justify-center rounded-xl transition-all duration-150 ${
                     isActive
-                      ? "bg-[#eff2fe]"
-                      : "group-hover:bg-[#f5f7ff]"
+                      ? "bg-[#f1f5f9] text-[#0f172a] shadow-xs ring-1 ring-[#cbd5e1]"
+                      : "text-[#64748b] group-hover:bg-[#f8fafc] group-hover:text-[#334155]"
                   }`}
                 >
-                  <Icon className="h-5 w-5" strokeWidth={isActive ? 1.8 : 1.6} />
+                  <Icon className="h-5 w-5" strokeWidth={isActive ? 2 : 1.6} />
                 </span>
-                <span
-                  className={`text-[11px] ${isActive ? "font-semibold" : "font-medium"}`}
-                >
+                <span className="text-[11px] font-medium text-[#64748b]">
                   {tool.label}
                 </span>
               </button>
@@ -2586,7 +3695,13 @@ export function DesignerEasyModePage() {
         </nav>
 
         {/* ─── PANEL LATERAL DE CONFIGURACIÓN ─── */}
-        <aside className="flex min-w-0 flex-col overflow-y-auto border-r border-[#e2e8f0] bg-white px-[clamp(18px,1.43vw,24px)] py-3">
+        <aside
+          className={`min-w-0 flex-col overflow-y-auto border-r border-[#e2e8f0] bg-white px-[clamp(18px,1.43vw,24px)] py-3 ${
+            activeSidebarTool === "herramientas" && !isToolsSelectionOpen
+              ? "hidden"
+              : "flex"
+          }`}
+        >
           <input
             ref={fileInputRef}
             type="file"
@@ -2656,17 +3771,17 @@ export function DesignerEasyModePage() {
               {/* 2. LIENZO */}
               <section className="border-t border-[#eef0f4] pt-3">
                 <h2 className="mb-2.5 text-[15px] font-bold text-[#0f172a]">
-                  Lienzo
+                  Configuración del Lienzo
                 </h2>
 
                 {/* Ancho / Alto */}
                 <div className="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
                   <label className="min-w-0 text-[12px] text-[#64748b]">
-                    <span className="mb-1.5 block">Ancho (cm)</span>
+                    <span className="mb-1.5 block">Ancho del Lienzo</span>
                     <SteppedInput
                       label="Ancho"
                       min="0.1"
-                      step="0.1"
+                      step="1"
                       value={canvasSettings.widthCm}
                       onChange={(value) =>
                         handleDimensionChange("widthCm", value)
@@ -2686,7 +3801,7 @@ export function DesignerEasyModePage() {
                     }
                     aria-pressed={keepRatio}
                     onClick={handleRatioToggle}
-                    className={`mb-2.5 rounded-lg p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
+                    className={`mb-2.5 rounded-[5px] p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4f46e5] ${
                       keepRatio
                         ? "text-[#4f46e5] bg-[#eeedff]"
                         : "text-[#94a3b8] hover:text-[#0f172a]"
@@ -2696,11 +3811,11 @@ export function DesignerEasyModePage() {
                   </button>
 
                   <label className="min-w-0 text-[12px] text-[#64748b]">
-                    <span className="mb-1.5 block">Alto (cm)</span>
+                    <span className="mb-1.5 block">Alto del lienzo</span>
                     <SteppedInput
                       label="Alto"
                       min="0.1"
-                      step="0.1"
+                      step="1"
                       value={canvasSettings.heightCm}
                       onChange={(value) =>
                         handleDimensionChange("heightCm", value)
@@ -2840,9 +3955,14 @@ export function DesignerEasyModePage() {
                   </button>
                   <button
                     type="button"
-                    disabled
-                    title="Duplicar no está configurado en Modo Básico."
-                    className="flex h-9 cursor-not-allowed items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] opacity-45"
+                    onClick={handleDuplicateArtwork}
+                    disabled={!selectedImage}
+                    title={
+                      selectedImage
+                        ? "Duplicar diseño"
+                        : "Selecciona una imagen para duplicar"
+                    }
+                    className="flex h-9 items-center justify-center rounded-[5px] border border-[#e2e8f0] bg-white text-[11px] font-bold uppercase text-[#334155] transition-colors hover:bg-[#f8fafc] disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     DUPLICAR
                   </button>
@@ -2908,7 +4028,7 @@ export function DesignerEasyModePage() {
                 <div
                   role="tablist"
                   aria-label="Biblioteca de subidos"
-                  className="flex min-w-0 rounded-lg bg-[#f1f5f9] p-0.5"
+                  className="flex min-w-0 rounded-[5px] bg-[#f1f5f9] p-0.5"
                 >
                   <button
                     type="button"
@@ -2919,7 +4039,7 @@ export function DesignerEasyModePage() {
                       setActiveUploadedFolderId(null);
                       setActiveUploadedFolderPath("");
                     }}
-                    className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    className={`rounded-[5px] px-3 py-1.5 text-[11px] font-medium transition-colors ${
                       uploadedLibraryTab === "images"
                         ? "bg-white text-[#0f172a] shadow-xs"
                         : "text-[#64748b] hover:text-[#0f172a]"
@@ -2936,7 +4056,7 @@ export function DesignerEasyModePage() {
                       setActiveUploadedFolderId(null);
                       setActiveUploadedFolderPath("");
                     }}
-                    className={`rounded-md px-3 py-1.5 text-[11px] font-medium transition-colors ${
+                    className={`rounded-[5px] px-3 py-1.5 text-[11px] font-medium transition-colors ${
                       uploadedLibraryTab === "folders"
                         ? "bg-white text-[#0f172a] shadow-xs"
                         : "text-[#64748b] hover:text-[#0f172a]"
@@ -3009,7 +4129,7 @@ export function DesignerEasyModePage() {
                   onChange={(event) => setUploadSearch(event.target.value)}
                   placeholder="Buscar imágenes o carpetas"
                   aria-label="Buscar imágenes o carpetas"
-                  className="h-9 w-full rounded-lg border border-[#e2e8f0] bg-white pl-8 pr-2.5 text-[11px] text-[#0f172a] outline-none placeholder:text-[#94a3b8] focus:border-[#a5b4fc] focus:ring-2 focus:ring-[#4f46e5]/10"
+                  className="h-9 w-full rounded-[5px] border border-[#e2e8f0] bg-white pl-8 pr-2.5 text-[11px] text-[#0f172a] outline-none placeholder:text-[#94a3b8] focus:border-[#a5b4fc] focus:ring-2 focus:ring-[#4f46e5]/10"
                 />
               </label>
 
@@ -3226,7 +4346,8 @@ export function DesignerEasyModePage() {
                           Esta carpeta no contiene diseños PNG compatibles.
                         </p>
                         <p className="mt-0.5 text-[11px] text-[#94a3b8]">
-                          Los archivos de otros formatos fueron omitidos al importarla.
+                          Los archivos de otros formatos fueron omitidos al
+                          importarla.
                         </p>
                       </div>
                     ) : null}
@@ -3295,17 +4416,6 @@ export function DesignerEasyModePage() {
             </section>
           )}
 
-          {activeSidebarTool === "elementos" && (
-            <section className="min-w-0">
-              <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
-                Elementos
-              </h1>
-              <p className="text-[12px] text-[#64748b]">
-                Gráficos, stickers e ilustraciones para añadir a tu diseño.
-              </p>
-            </section>
-          )}
-
           {activeSidebarTool === "texto" && (
             <section className="min-w-0">
               <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
@@ -3329,25 +4439,123 @@ export function DesignerEasyModePage() {
             </section>
           )}
 
-          {activeSidebarTool === "capas" && (
+          {activeSidebarTool === "marcos" && (
             <section className="min-w-0">
               <h1 className="mb-3 text-[15px] font-bold text-[#0f172a]">
-                Capas
+                Marcos
               </h1>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-[#f8fafc] px-3 py-2 text-[12px]">
-                  <span className="font-medium text-[#0f172a]">
-                    {selectedImage ? "Diseño activo" : "Sin diseño en lienzo"}
-                  </span>
-                  <span className="text-[11px] text-[#64748b]">
-                    {selectedImage ? "Capa 1" : "Vacío"}
-                  </span>
+              <p className="text-[12px] text-[#64748b]">
+                Agrega marcos y bordes a tu composición.
+              </p>
+            </section>
+          )}
+
+          {activeSidebarTool === "herramientas" && (
+            <section className="min-w-0">
+              {/* ── Encabezado ── */}
+              <div className="mb-4 flex items-start justify-between gap-2">
+                <div>
+                  <h1 className="text-[17px] font-bold tracking-tight text-[#0f172a]">
+                    Herramientas
+                  </h1>
+                  <p className="mt-0.5 text-[12px] leading-relaxed text-[#64748b]">
+                    Procesamiento aplicado al diseño seleccionado.
+                  </p>
                 </div>
-                <div className="flex items-center justify-between rounded-lg border border-[#e2e8f0] bg-white px-3 py-2 text-[12px]">
-                  <span className="text-[#64748b]">Lienzo base</span>
-                  <span className="text-[11px] text-[#94a3b8]">Fondo</span>
-                </div>
+                <button
+                  type="button"
+                  id="easy-tools-selection-close"
+                  aria-label="Cerrar panel de herramientas"
+                  onClick={() => setIsToolsSelectionOpen(false)}
+                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-[5px] text-[#94a3b8] transition-colors hover:bg-[#f1f5f9] hover:text-[#475569]"
+                >
+                  <X className="h-4 w-4" strokeWidth={2} />
+                </button>
               </div>
+
+              {/* ── Lista de tarjetas ── */}
+              <div className="space-y-1.5">
+                {easyTools.map((tool) => {
+                  const isActive = activeEasyTool === tool.id;
+                  const status = toolStatuses[tool.id];
+
+                  return (
+                    <button
+                      key={tool.id}
+                      id={`easy-tool-card-${tool.id}`}
+                      type="button"
+                      onClick={() => {
+                        setActiveEasyTool(tool.id);
+                        setOpenToolPanel(tool.id);
+                        if (
+                          tool.id === "magic-eraser" ||
+                          tool.id === "eraser"
+                        ) {
+                          clearMagicMask();
+                        }
+                        if (tool.id === "eraser") setMagicEraserMode("select");
+                      }}
+                      aria-pressed={isActive}
+                      className={[
+                        "group relative flex w-full items-center gap-3 rounded-[5px] border px-3 py-2.5 text-left",
+                        "transition-all duration-150 ease-out",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-1",
+                        isActive
+                          ? "border-[#cbd5e1] bg-[#f8fafc] shadow-xs"
+                          : "border-[#f1f3f7] bg-white hover:border-[#cbd5e1] hover:bg-[#f8fafc]",
+                      ].join(" ")}
+                    >
+                      {/* Icono monocromático — solo el icono comunica el estado activo */}
+                      <span
+                        className={[
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-[5px] transition-all duration-150",
+                          isActive
+                            ? "bg-[#0f172a] text-white shadow-xs"
+                            : "bg-[#f1f5f9] text-[#334155] group-hover:bg-[#e2e8f0] group-hover:text-[#0f172a]",
+                        ].join(" ")}
+                      >
+                        <tool.icon
+                          className="h-4 w-4"
+                          strokeWidth={isActive ? 2 : 1.75}
+                        />
+                      </span>
+
+                      {/* Texto — solo el nombre, visualmente estable */}
+                      <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-[#1e293b]">
+                        {tool.label}
+                      </span>
+
+                      {/* Indicador discreto si procesa + flecha sutil */}
+                      <span className="flex shrink-0 items-center gap-1.5">
+                        {status === "PROCESSING" && (
+                          <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-slate-600" />
+                        )}
+                        {status === "SUCCESS" && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                        )}
+                        {status === "FAILED" && (
+                          <span className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                        )}
+                        <ChevronRight
+                          className={[
+                            "h-3.5 w-3.5 transition-transform duration-150",
+                            isActive
+                              ? "translate-x-0.5 text-[#0f172a]"
+                              : "text-[#cbd5e1] group-hover:text-[#94a3b8]",
+                          ].join(" ")}
+                          strokeWidth={2}
+                        />
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {processingError && (
+                <p role="alert" className="mt-3 text-[12px] text-red-700">
+                  {processingError}
+                </p>
+              )}
             </section>
           )}
         </aside>
@@ -3368,6 +4576,517 @@ export function DesignerEasyModePage() {
               : ""
           }`}
         >
+          {/* ══ PANEL CONTEXTUAL FLOTANTE — Herramientas ══════════════════════
+              Aparece sobre el workspace cuando herramientas está activo.
+              Fiel a la referencia: tarjeta blanca con controles y CTAs.
+          ══════════════════════════════════════════════════════════════════ */}
+          {activeSidebarTool === "herramientas" && openToolPanel !== null && (
+            <div
+              className="pointer-events-none absolute inset-y-0 left-0 z-30 flex items-start p-4"
+              style={{ animationTimingFunction: "cubic-bezier(0.16,1,0.3,1)" }}
+            >
+              <div
+                className="pointer-events-auto w-[292px] overflow-hidden rounded-[5px] border border-[#e2e8f0] bg-white shadow-[0_8px_32px_rgba(15,23,42,0.10),0_2px_8px_rgba(15,23,42,0.06)]"
+                style={{
+                  animation:
+                    "easy-panel-in 220ms cubic-bezier(0.16,1,0.3,1) both",
+                }}
+              >
+                <style>{`
+                  @keyframes easy-panel-in {
+                    from { opacity: 0; transform: translateX(-12px); }
+                    to   { opacity: 1; transform: translateX(0); }
+                  }
+                  @media (prefers-reduced-motion: reduce) {
+                    .easy-tool-panel-enter { animation: none !important; }
+                  }
+                  .ps-slider {
+                    -webkit-appearance: none;
+                    appearance: none;
+                    height: 4px;
+                    border-radius: 9999px;
+                    outline: none;
+                    cursor: pointer;
+                    width: 100%;
+                  }
+                  .ps-slider::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    width: 14px;
+                    height: 14px;
+                    border-radius: 9999px;
+                    background: #4f46e5;
+                    border: 2px solid #fff;
+                    box-shadow: 0 0 0 1px #4f46e5, 0 1px 3px rgba(0,0,0,0.18);
+                    cursor: pointer;
+                  }
+                  .ps-slider-blue {
+                    background: linear-gradient(to right, #818cf8 0%, #4f46e5 100%);
+                  }
+                  .ps-slider-warm {
+                    background: linear-gradient(to right, #60a5fa 0%, #f59e0b 100%);
+                  }
+                  .ps-slider-hue {
+                    background: linear-gradient(to right, #ef4444, #f59e0b, #22c55e, #06b6d4, #4f46e5, #ec4899, #ef4444);
+                  }
+                  .ps-slider-sharp {
+                    background: linear-gradient(to right, #e2e8f0 0%, #0f172a 100%);
+                  }
+                `}</style>
+
+                {/* ── Encabezado del panel ── */}
+                <div className="flex items-center gap-2.5 border-b border-[#f0f2f5] px-4 py-3.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-[5px] bg-[#f1f5f9] text-[#0f172a]">
+                    {openToolPanel === "adjust" && (
+                      <SlidersHorizontal
+                        className="h-4 w-4"
+                        strokeWidth={1.8}
+                      />
+                    )}
+                    {(openToolPanel === "magic-eraser" ||
+                      openToolPanel === "eraser") && (
+                      <Wand2 className="h-4 w-4" strokeWidth={1.8} />
+                    )}
+                    {openToolPanel === "halftone" && (
+                      <Crosshair className="h-4 w-4" strokeWidth={1.8} />
+                    )}
+                    {openToolPanel === "enhance" && (
+                      <Scan className="h-4 w-4" strokeWidth={1.8} />
+                    )}
+                    {openToolPanel === "vectorize" && (
+                      <Network className="h-4 w-4" strokeWidth={1.8} />
+                    )}
+                    {openToolPanel === "magic-layers" && (
+                      <Layers className="h-4 w-4" strokeWidth={1.8} />
+                    )}
+                    {openToolPanel === "magic-edit" && (
+                      <Sparkles className="h-4 w-4" strokeWidth={1.8} />
+                    )}
+                  </span>
+                  <span className="flex-1 text-[15px] font-bold tracking-tight text-[#0f172a]">
+                    {easyTools.find((t) => t.id === openToolPanel)?.label ??
+                      ""}
+                  </span>
+                  <button
+                    type="button"
+                    id="easy-tool-panel-close"
+                    aria-label="Cerrar panel"
+                    onClick={() => setOpenToolPanel(null)}
+                    className="flex h-7 w-7 items-center justify-center rounded-[5px] text-[#94a3b8] transition-colors hover:bg-[#f1f5f9] hover:text-[#475569]"
+                  >
+                    <X className="h-4 w-4" strokeWidth={2} />
+                  </button>
+                </div>
+
+                {/* ── Cuerpo del panel ── */}
+                <div className="max-h-[calc(100vh-200px)] overflow-y-auto p-3">
+                  {/* ════ AJUSTAR ════ */}
+                  {openToolPanel === "adjust" && (
+                    <div className="space-y-4">
+                      {/* Controles de ajuste — sin iconos en los controles */}
+                      <div className="space-y-3.5">
+                        {/* Brillo */}
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151]">
+                              Brillo
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#0f172a]">
+                              {adjustments.brightness - 100}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={200}
+                            value={adjustments.brightness}
+                            onChange={(event) =>
+                              setAdjustments((current) => ({
+                                ...current,
+                                brightness: Number(event.target.value),
+                              }))
+                            }
+                            className="ps-slider ps-slider-blue"
+                          />
+                        </div>
+
+                        {/* Contraste */}
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151]">
+                              Contraste
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#0f172a]">
+                              {adjustments.contrast - 100}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={200}
+                            value={adjustments.contrast}
+                            onChange={(event) =>
+                              setAdjustments((current) => ({
+                                ...current,
+                                contrast: Number(event.target.value),
+                              }))
+                            }
+                            className="ps-slider ps-slider-blue"
+                          />
+                        </div>
+
+                        {/* Saturación */}
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151]">
+                              Saturación
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#0f172a]">
+                              {adjustments.saturation - 100}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={200}
+                            value={adjustments.saturation}
+                            onChange={(event) =>
+                              setAdjustments((current) => ({
+                                ...current,
+                                saturation: Number(event.target.value),
+                              }))
+                            }
+                            className="ps-slider ps-slider-blue"
+                          />
+                        </div>
+
+                        {/* Temperatura */}
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151]">
+                              Temperatura
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#64748b]">
+                              0
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={-100}
+                            max={100}
+                            defaultValue={0}
+                            readOnly
+                            className="ps-slider ps-slider-warm"
+                          />
+                        </div>
+
+                        {/* Matiz */}
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151]">
+                              Matiz
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#64748b]">
+                              0
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={-180}
+                            max={180}
+                            defaultValue={0}
+                            readOnly
+                            className="ps-slider ps-slider-hue"
+                          />
+                        </div>
+
+                        {/* Nitidez */}
+                        <div>
+                          <div className="mb-1.5 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151]">
+                              Nitidez
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#64748b]">
+                              0
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            defaultValue={0}
+                            readOnly
+                            className="ps-slider ps-slider-sharp"
+                          />
+                        </div>
+                      </div>
+
+                      {/* CTAs */}
+                      <div className="space-y-2 pt-1">
+                        <button
+                          type="button"
+                          id="easy-tool-adjust-apply"
+                          onClick={() => void applyAdjustments()}
+                          disabled={
+                            !selectedImage || isProcessing || isRemovingBg
+                          }
+                          className="flex w-full items-center justify-center gap-2 rounded-[5px] bg-[#4f46e5] px-4 py-2.5 text-[13px] font-semibold text-white shadow-sm transition-colors hover:bg-[#4338ca] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {isProcessing ? "Procesando…" : "Aplicar ajustes"}
+                        </button>
+                        <button
+                          type="button"
+                          id="easy-tool-adjust-reset"
+                          onClick={() =>
+                            setAdjustments({
+                              brightness: 100,
+                              contrast: 100,
+                              saturation: 100,
+                            })
+                          }
+                          className="flex w-full items-center justify-center gap-2 rounded-[5px] border border-[#e2e8f0] px-4 py-2 text-[13px] font-semibold text-[#475569] transition-colors hover:bg-[#f8fafc]"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
+                          Restablecer
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ════ SEMITONOS ════ */}
+                  {openToolPanel === "halftone" && (
+                    <div className="space-y-3">
+                      <label className="block">
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-[#374151]">
+                            Tamaño de punto
+                          </span>
+                          <span className="text-[12px] font-semibold text-[#4f46e5]">
+                            {halftoneOptions.cellSize}px
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={2}
+                          max={60}
+                          value={halftoneOptions.cellSize}
+                          onChange={(e) =>
+                            setHalftoneOptions((c) => ({
+                              ...c,
+                              cellSize: Number(e.target.value),
+                            }))
+                          }
+                          className="ps-slider ps-slider-blue"
+                        />
+                      </label>
+                      <label className="block">
+                        <div className="mb-1 flex items-center justify-between">
+                          <span className="text-[12px] font-medium text-[#374151]">
+                            Ángulo
+                          </span>
+                          <span className="text-[12px] font-semibold text-[#4f46e5]">
+                            {halftoneOptions.angle}°
+                          </span>
+                        </div>
+                        <input
+                          type="range"
+                          min={0}
+                          max={180}
+                          value={halftoneOptions.angle}
+                          onChange={(e) =>
+                            setHalftoneOptions((c) => ({
+                              ...c,
+                              angle: Number(e.target.value),
+                            }))
+                          }
+                          className="ps-slider ps-slider-blue"
+                        />
+                      </label>
+                      {(["intensity", "contrast"] as const).map((key) => (
+                        <label key={key} className="block">
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="text-[12px] font-medium text-[#374151] capitalize">
+                              {key === "intensity" ? "Intensidad" : "Contraste"}
+                            </span>
+                            <span className="text-[12px] font-semibold text-[#4f46e5]">
+                              {halftoneOptions[key]}%
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min={10}
+                            max={200}
+                            value={halftoneOptions[key]}
+                            onChange={(e) =>
+                              setHalftoneOptions((c) => ({
+                                ...c,
+                                [key]: Number(e.target.value),
+                              }))
+                            }
+                            className="ps-slider ps-slider-blue"
+                          />
+                        </label>
+                      ))}
+                      <label className="block text-[12px] font-medium text-[#374151]">
+                        Forma
+                        <select
+                          value={halftoneOptions.shape}
+                          onChange={(e) =>
+                            setHalftoneOptions((c) => ({
+                              ...c,
+                              shape: e.target.value as "circle" | "square",
+                            }))
+                          }
+                          className="mt-1 w-full rounded-[5px] border border-[#e2e8f0] bg-white px-2.5 py-1.5 text-[12px] text-[#374151] focus:outline-none focus:ring-2 focus:ring-[#4f46e5]/30"
+                        >
+                          <option value="circle">Círculo</option>
+                          <option value="square">Cuadrado</option>
+                        </select>
+                      </label>
+                      <label className="flex items-center gap-2 text-[12px] font-medium text-[#374151]">
+                        <input
+                          type="checkbox"
+                          checked={halftoneOptions.invert ?? false}
+                          onChange={(e) =>
+                            setHalftoneOptions((c) => ({
+                              ...c,
+                              invert: e.target.checked,
+                            }))
+                          }
+                          className="accent-[#4f46e5]"
+                        />
+                        Invertir tonos
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => void applyHalftone()}
+                        disabled={
+                          !selectedImage || isProcessing || isRemovingBg
+                        }
+                        className="mt-2 flex w-full items-center justify-center rounded-[5px] bg-[#4f46e5] px-4 py-2.5 text-[13px] font-semibold text-white hover:bg-[#4338ca] disabled:opacity-50"
+                      >
+                        {isProcessing ? "Procesando…" : "Aplicar semitono"}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* ════ ELIMINADOR / BORRADOR MÁGICO ════ */}
+                  {(openToolPanel === "magic-eraser" ||
+                    openToolPanel === "eraser") && (
+                    <div className="space-y-3">
+                      {openToolPanel === "magic-eraser" && (
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            aria-pressed={magicEraserMode === "select"}
+                            onClick={() => {
+                              clearMagicMask();
+                              setMagicEraserMode("select");
+                            }}
+                            className={`flex min-h-10 items-center justify-center gap-1.5 rounded-[5px] px-2 text-[11px] font-semibold transition-colors ${
+                              magicEraserMode === "select"
+                                ? "bg-[#f1f5f9] text-[#0f172a] ring-1 ring-[#cbd5e1]"
+                                : "border border-[#e2e8f0] text-[#475569]"
+                            }`}
+                          >
+                            <Crosshair className="h-3.5 w-3.5" /> Seleccionar
+                            área
+                          </button>
+                          <button
+                            type="button"
+                            aria-pressed={magicEraserMode === "brush"}
+                            onClick={() => {
+                              clearMagicMask();
+                              setMagicEraserMode("brush");
+                            }}
+                            className={`flex min-h-10 items-center justify-center gap-1.5 rounded-[5px] px-2 text-[11px] font-semibold transition-colors ${
+                              magicEraserMode === "brush"
+                                ? "bg-[#f1f5f9] text-[#0f172a] ring-1 ring-[#cbd5e1]"
+                                : "border border-[#e2e8f0] text-[#475569] hover:bg-[#f8fafc]"
+                            }`}
+                          >
+                            <Eraser className="h-3.5 w-3.5" /> Dibujar trazo
+                          </button>
+                        </div>
+                      )}
+                      {openToolPanel === "magic-eraser" &&
+                        magicEraserMode === "brush" && (
+                          <label className="block">
+                            <div className="mb-1 flex items-center justify-between">
+                              <span className="text-[12px] font-medium text-[#374151]">
+                                Tamaño del pincel
+                              </span>
+                              <span className="text-[12px] font-semibold text-[#4f46e5]">
+                                {magicEraserBrushSize}px
+                              </span>
+                            </div>
+                            <input
+                              type="range"
+                              min={4}
+                              max={120}
+                              value={magicEraserBrushSize}
+                              onChange={(e) =>
+                                setMagicEraserBrushSize(Number(e.target.value))
+                              }
+                              className="ps-slider ps-slider-blue"
+                            />
+                          </label>
+                        )}
+                      <p className="text-[11px] text-[#64748b]">
+                        {magicMaskBlobRef.current || hasMagicBrushMask
+                          ? "Máscara lista. Puedes aplicarla o cancelarla."
+                          : magicEraserMode === "brush"
+                            ? "Dibuja un trazo sobre la zona que deseas eliminar."
+                            : "Selecciona el área que deseas eliminar."}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => void applyMagicMask()}
+                          disabled={
+                            !selectedImage ||
+                            (!magicMaskBlobRef.current && !hasMagicBrushMask) ||
+                            isProcessing ||
+                            isRemovingBg
+                          }
+                          className="flex-1 rounded-[5px] bg-[#4f46e5] px-3 py-2.5 text-[12px] font-semibold text-white hover:bg-[#4338ca] disabled:opacity-50"
+                        >
+                          {isProcessing ? "Procesando…" : "Aplicar borrado"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={clearMagicMask}
+                          disabled={
+                            !magicMaskBlobRef.current && !hasMagicBrushMask
+                          }
+                          className="rounded-[5px] border border-[#e2e8f0] px-3 py-2 text-[12px] font-semibold text-[#475569] hover:bg-[#f8fafc] disabled:opacity-50"
+                        >
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ════ FUNCIONES EN DESARROLLO (COMPONENTE COMPARTIDO) ════ */}
+                  {[
+                    "enhance",
+                    "vectorize",
+                    "magic-layers",
+                    "magic-edit",
+                  ].includes(openToolPanel) && <FeatureDevelopmentState />}
+
+                  {processingError &&
+                    !["enhance", "vectorize", "magic-layers", "magic-edit"].includes(
+                      openToolPanel,
+                    ) && (
+                      <p role="alert" className="mt-3 text-[12px] text-red-600">
+                        {processingError}
+                      </p>
+                    )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Rulers and canvas share the same fitted viewport geometry. */}
           {canvasViewport && (
             <div
@@ -3380,26 +5099,30 @@ export function DesignerEasyModePage() {
               }}
             >
               {/* Fila superior: esquina (cm) + regla horizontal */}
-              <div className="flex items-end">
-                <div className="flex h-[22px] w-[28px] shrink-0 items-center justify-end pr-1 text-[10px] font-medium text-[#64748b]">
-                  cm
+              {showRulers && (
+                <div className="flex items-end">
+                  <div className="flex h-[22px] w-[28px] shrink-0 items-center justify-end pr-1 text-[10px] font-medium text-[#64748b]">
+                    cm
+                  </div>
+                  <div style={{ width: `${canvasViewport.widthPx}px` }}>
+                    <HorizontalRuler
+                      widthPx={canvasViewport.widthPx}
+                      lengthCm={safeWidthCm}
+                    />
+                  </div>
                 </div>
-                <div style={{ width: `${canvasViewport.widthPx}px` }}>
-                  <HorizontalRuler
-                    widthPx={canvasViewport.widthPx}
-                    lengthCm={safeWidthCm}
-                  />
-                </div>
-              </div>
+              )}
 
               {/* Fila inferior: regla vertical + lienzo */}
               <div className="flex items-start">
-                <div style={{ height: `${canvasViewport.heightPx}px` }}>
-                  <VerticalRuler
-                    heightPx={canvasViewport.heightPx}
-                    lengthCm={safeHeightCm}
-                  />
-                </div>
+                {showRulers && (
+                  <div style={{ height: `${canvasViewport.heightPx}px` }}>
+                    <VerticalRuler
+                      heightPx={canvasViewport.heightPx}
+                      lengthCm={safeHeightCm}
+                    />
+                  </div>
+                )}
 
                 {/* Lienzo / Canvas dominante */}
                 <div
@@ -3450,7 +5173,12 @@ export function DesignerEasyModePage() {
                               : "Imagen subida al lienzo"
                           }
                           className={`h-full w-full select-none object-fill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
-                            isHandToolActive ? "" : "cursor-move touch-none"
+                            isHandToolActive
+                              ? ""
+                              : activeEasyTool === "magic-eraser" &&
+                                  magicEraserMode === "brush"
+                                ? "cursor-crosshair touch-none"
+                                : "cursor-move touch-none"
                           }`}
                           draggable={false}
                           tabIndex={0}
@@ -3461,7 +5189,8 @@ export function DesignerEasyModePage() {
                               : "Arrastra para mover el diseño"
                           }
                           onLoad={(event) => {
-                            const { naturalWidth, naturalHeight } = event.currentTarget;
+                            const { naturalWidth, naturalHeight } =
+                              event.currentTarget;
                             if (naturalWidth > 0 && naturalHeight > 0) {
                               setArtworkDimensions({
                                 width: naturalWidth,
@@ -3481,15 +5210,74 @@ export function DesignerEasyModePage() {
                             }
                             handleArtworkKeyDown(event);
                           }}
-                          style={{ pointerEvents: isHandToolActive ? "none" : "auto" }}
+                          style={{
+                            pointerEvents:
+                              isHandToolActive ||
+                              (activeEasyTool === "magic-eraser" &&
+                                magicEraserMode === "brush")
+                                ? "none"
+                                : "auto",
+                          }}
                         />
+                        {magicMaskPreviewUrl &&
+                          (activeEasyTool === "magic-eraser" ||
+                            activeEasyTool === "eraser") && (
+                            <img
+                              src={magicMaskPreviewUrl}
+                              alt="Vista previa de la máscara"
+                              aria-hidden="true"
+                              className="pointer-events-none absolute inset-0 z-20 h-full w-full object-fill opacity-60"
+                            />
+                          )}
+                        {activeEasyTool === "magic-eraser" &&
+                          magicEraserMode === "brush" && (
+                            <canvas
+                              ref={maskPreviewCanvasRef}
+                              width={artworkDimensions?.width ?? 1}
+                              height={artworkDimensions?.height ?? 1}
+                              aria-label="Máscara del borrador; dibuja sobre las zonas que quieres eliminar"
+                              className="absolute inset-0 z-20 h-full w-full cursor-crosshair touch-none"
+                              onPointerDown={handleMaskPointerDown}
+                              onPointerMove={handleMaskPointerMove}
+                              onPointerUp={finishMaskStroke}
+                              onPointerCancel={finishMaskStroke}
+                              onPointerLeave={() => {
+                                if (!magicEraserStrokeRef.current) {
+                                  setMagicBrushCursor(null);
+                                }
+                              }}
+                            />
+                          )}
+                        {magicBrushCursor &&
+                          activeEasyTool === "magic-eraser" &&
+                          magicEraserMode === "brush" && (
+                            <div
+                              aria-hidden="true"
+                              className="pointer-events-none absolute z-30 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white bg-red-500/20 shadow-[0_0_0_1px_rgba(15,23,42,0.7)]"
+                              style={{
+                                left: magicBrushCursor.x,
+                                top: magicBrushCursor.y,
+                                width: magicBrushCursor.size,
+                                height: magicBrushCursor.size,
+                              }}
+                            />
+                          )}
                         {isArtworkSelected && !isHandToolActive && (
                           <>
                             <div className="pointer-events-none absolute inset-0 border border-indigo-500" />
-                            {(["top-left", "top-right", "bottom-left", "bottom-right"] as const).map((position) => {
-                              const cursor = position === "top-left" || position === "bottom-right"
-                                ? "nwse-resize"
-                                : "nesw-resize";
+                            {(
+                              [
+                                "top-left",
+                                "top-right",
+                                "bottom-left",
+                                "bottom-right",
+                              ] as const
+                            ).map((position) => {
+                              const cursor =
+                                position === "top-left" ||
+                                position === "bottom-right"
+                                  ? "nwse-resize"
+                                  : "nesw-resize";
                               return (
                                 <button
                                   key={position}
@@ -3498,13 +5286,24 @@ export function DesignerEasyModePage() {
                                   title="Arrastra para cambiar el tamaño"
                                   className={`absolute z-10 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-sm border-2 border-indigo-600 bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500`}
                                   style={{
-                                    left: position.endsWith("left") ? 0 : "100%",
-                                    top: position.startsWith("top") ? 0 : "100%",
+                                    left: position.endsWith("left")
+                                      ? 0
+                                      : "100%",
+                                    top: position.startsWith("top")
+                                      ? 0
+                                      : "100%",
                                     cursor,
                                     touchAction: "none",
                                   }}
-                                  onPointerDown={(event) => handleArtworkGesturePointerDown(event, "scale")}
-                                  onPointerMove={handleArtworkGesturePointerMove}
+                                  onPointerDown={(event) =>
+                                    handleArtworkGesturePointerDown(
+                                      event,
+                                      "scale",
+                                    )
+                                  }
+                                  onPointerMove={
+                                    handleArtworkGesturePointerMove
+                                  }
                                   onPointerUp={finishArtworkGesture}
                                   onPointerCancel={finishArtworkGesture}
                                 />
@@ -3515,8 +5314,14 @@ export function DesignerEasyModePage() {
                               aria-label="Rotar diseño"
                               title="Arrastra para rotar"
                               className="absolute left-1/2 z-10 flex h-6 w-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-indigo-600 bg-white text-indigo-700 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
-                              style={{ top: -24, cursor: "grab", touchAction: "none" }}
-                              onPointerDown={(event) => handleArtworkGesturePointerDown(event, "rotate")}
+                              style={{
+                                top: -24,
+                                cursor: "grab",
+                                touchAction: "none",
+                              }}
+                              onPointerDown={(event) =>
+                                handleArtworkGesturePointerDown(event, "rotate")
+                              }
                               onPointerMove={handleArtworkGesturePointerMove}
                               onPointerUp={finishArtworkGesture}
                               onPointerCancel={finishArtworkGesture}
