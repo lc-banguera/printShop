@@ -1,6 +1,8 @@
 import { clampByte } from './image-processing';
 import { cloneImageBuffer, createImageBuffer, type ImageBuffer } from './image-buffer';
 
+const CELL_SAMPLE_POSITIONS = [-0.375, -0.125, 0.125, 0.375] as const;
+
 export interface HalftoneOptions {
   cellSize: number;
   angle: number;
@@ -131,12 +133,6 @@ export function applyHalftone(source: ImageBuffer, options: HalftoneOptions): Im
   const halfExtent = Math.sqrt(width * width + height * height) / 2 + cellSize * 2;
   const minimum = Math.floor(-halfExtent / cellSize);
   const maximum = Math.ceil(halfExtent / cellSize);
-  const sampleOffset = Math.max(1, Math.round(halfCell * 0.45));
-  const offsets = [
-    [0, 0], [-sampleOffset, 0], [sampleOffset, 0], [0, -sampleOffset],
-    [0, sampleOffset], [-sampleOffset, -sampleOffset], [sampleOffset, -sampleOffset],
-    [-sampleOffset, sampleOffset], [sampleOffset, sampleOffset],
-  ] as const;
 
   for (let row = minimum; row <= maximum; row += 1) {
     const v = (row + 0.5) * cellSize;
@@ -152,21 +148,25 @@ export function applyHalftone(source: ImageBuffer, options: HalftoneOptions): Im
       let greenSum = 0;
       let blueSum = 0;
       let sampleCount = 0;
-      for (const [dx, dy] of offsets) {
-        const sx = Math.round(x + dx * cos - dy * sin);
-        const sy = Math.round(y + dx * sin + dy * cos);
-        if (sx < 0 || sy < 0 || sx >= width || sy >= height) continue;
-        const index = (sy * width + sx) * 4;
-        const red = input.data[index];
-        const green = input.data[index + 1];
-        const blue = input.data[index + 2];
-        const alpha = input.data[index + 3] / 255;
-        luminanceSum += ((0.299 * red + 0.587 * green + 0.114 * blue) / 255) * alpha;
-        alphaSum += alpha;
-        redSum += red * alpha;
-        greenSum += green * alpha;
-        blueSum += blue * alpha;
-        sampleCount += 1;
+      for (const sampleY of CELL_SAMPLE_POSITIONS) {
+        for (const sampleX of CELL_SAMPLE_POSITIONS) {
+          const dx = sampleX * cellSize;
+          const dy = sampleY * cellSize;
+          const sx = Math.round(x + dx * cos - dy * sin);
+          const sy = Math.round(y + dx * sin + dy * cos);
+          if (sx < 0 || sy < 0 || sx >= width || sy >= height) continue;
+          const index = (sy * width + sx) * 4;
+          const red = input.data[index];
+          const green = input.data[index + 1];
+          const blue = input.data[index + 2];
+          const alpha = input.data[index + 3] / 255;
+          luminanceSum += ((0.299 * red + 0.587 * green + 0.114 * blue) / 255) * alpha;
+          alphaSum += alpha;
+          redSum += red * alpha;
+          greenSum += green * alpha;
+          blueSum += blue * alpha;
+          sampleCount += 1;
+        }
       }
 
       if (sampleCount === 0 || alphaSum < 0.015) continue;

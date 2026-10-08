@@ -374,6 +374,12 @@
 - Validación: `npm --prefix engine test` **PASS** (21/21); TypeScript frontend con `--ignoreDeprecations 5.0` **PASS**; Vite build **PASS**; `git diff --check` **PASS**.
 - Compatibilidad visual: la cobertura antialias modifica los píxeles de borde de los puntos respecto al raster duro anterior; parámetros y disposición permanecen intactos.
 
+## Image Engine — cobertura completa de celda para Semitonos
+
+- `DONE`: cada punto calcula luminancia, alpha y color con 16 muestras estratificadas sobre toda la celda de trama, en vez de concentrar nueve muestras alrededor del centro. Esto conserva detalles descentrados y representa mejor el tono medio de la celda.
+- Test: un detalle oscuro fuera del centro de una celda genera cobertura en la trama; se comprueba que el buffer de origen permanece intacto.
+- Validación: `npm --prefix engine test` **PASS** (55/55), `npm --prefix frontend run build` **PASS**, smoke en navegador de aplicación y undo/redo de Semitonos **PASS**.
+
 ## Image Engine — operaciones seguras de regiones raster
 
 - `DONE`: `cloneImageRegion` extrae una región RGBA acotada y `copyImageRegion` copia regiones entre buffers, con validación estricta de dimensiones y coordenadas.

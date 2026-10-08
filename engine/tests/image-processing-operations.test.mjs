@@ -270,6 +270,29 @@ test('halftone antialiases dot edges and retains transparent output outside the 
   assert.ok(alpha.some((value) => value === 255));
 });
 
+test('halftone samples across the complete screen cell to retain off-center detail', () => {
+  const pixels = Array(8 * 8).fill([255, 255, 255, 255]).flat();
+  const detailOffset = (1 * 8 + 1) * 4;
+  pixels.splice(detailOffset, 4, 0, 0, 0, 255);
+  const source = buffer(8, 8, pixels);
+  const output = engine.applyHalftone(source, {
+    cellSize: 8,
+    angle: 0,
+    intensity: 100,
+    contrast: 100,
+    dotColor: '#000000',
+    bgColor: '#ffffff',
+    shape: 'circle',
+  });
+
+  assert.ok(
+    Array.from({ length: 64 }, (_, pixel) => output.data[pixel * 4]).some(
+      (red) => red < 255,
+    ),
+  );
+  assert.deepEqual([...source.data], pixels);
+});
+
 test('halftone angle rotates the screen pattern without mutating the source image', () => {
   const pixels = Array.from({ length: 32 * 32 }, (_, pixel) => {
     const x = pixel % 32;
