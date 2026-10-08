@@ -391,6 +391,13 @@
 - Validación técnica: `npm test --prefix engine` **PASS** (55/55); `npm run build --prefix frontend` **PASS** (`tsc` + Vite; warning existente de chunk >500 kB); `git diff --check` **PASS**.
 - Límite: el path es una selección raster temporal, no una capa vectorial del documento. Edición persistente de paths/anchors, selección geométrica general, historial serializado, PDF y export de producción/DPI Advanced siguen pendientes o bloqueados por sus contratos.
 
+## Designer 3 — borrado de región conectada por color en Advanced
+
+- `DONE`: ImageTools ofrece “Eliminar región por color” para una capa raster seleccionada. El punto semilla, tolerancia y conectividad 4/8 generan una máscara real con `select-color-region`; `erase-mask` aplica el alpha en el Worker compartido y `commitProcessed` registra una sola entrada undoable sin modificar el original.
+- Validación browser en `/store/designer/advanced?document=<id>`: preview de máscara roja, aplicación con cambio de artwork, Undo al asset previo y Redo al resultado; `lastOp` muestra `color-region-erase`.
+- Responsive: controles y diálogo probados a 390 × 844 px; sin overflow horizontal y Escape cierra el modal.
+- Límite: esta acción modifica una capa raster; no expone una selección de objetos ni persiste una máscara/selección en `PrintShopDocument`.
+
 ## Image Engine — operaciones seguras de regiones raster
 
 - `DONE`: `cloneImageRegion` extrae una región RGBA acotada y `copyImageRegion` copia regiones entre buffers, con validación estricta de dimensiones y coordenadas.

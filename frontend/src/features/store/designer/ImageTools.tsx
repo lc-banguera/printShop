@@ -22,6 +22,7 @@ import {
   Crop,
   Paintbrush,
   PenTool,
+  Pipette,
   RotateCcw,
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
@@ -31,6 +32,7 @@ import {
 } from "@/core/design/processing";
 import { DesignerLayer } from "./types";
 import { PathEraserModal } from "./PathEraserModal";
+import { ColorRegionEraserModal } from "./ColorRegionEraserModal";
 import {
   applyGrayscale,
   applyInvert,
@@ -1279,6 +1281,7 @@ function AdjustmentsTool({
 export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps) {
   const [activeTool, setActiveTool] = React.useState<ActiveTool>("none");
   const [isPathEraserOpen, setIsPathEraserOpen] = React.useState(false);
+  const [isColorRegionEraserOpen, setIsColorRegionEraserOpen] = React.useState(false);
   const [processing, setProcessing] = React.useState(false);
   const [processingError, setProcessingError] = React.useState<string | null>(
     null,
@@ -1404,6 +1407,11 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
           label="Recorte poligonal…"
           onClick={() => setIsPathEraserOpen(true)}
         />
+        <ToolBtn
+          icon={Pipette}
+          label="Eliminar región por color…"
+          onClick={() => setIsColorRegionEraserOpen(true)}
+        />
 
         <ToolBtn
           icon={ImageMinus}
@@ -1493,6 +1501,13 @@ export function ImageTools({ layer, onUpdateLayer, onOpenCrop }: ImageToolsProps
           layer={layer}
           onApply={(result) => commitProcessed(result, "path-erase")}
           onClose={() => setIsPathEraserOpen(false)}
+        />
+      )}
+      {isColorRegionEraserOpen && (
+        <ColorRegionEraserModal
+          layer={layer}
+          onApply={(result) => commitProcessed(result, "color-region-erase")}
+          onClose={() => setIsColorRegionEraserOpen(false)}
         />
       )}
 
