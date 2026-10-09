@@ -6,16 +6,16 @@ import type { HeroCapabilityIcon, HeroFeature } from "../../data/hero.data";
 
 const CubeIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <rect width="20" height="20" rx="5" fill="#EEF0FF" />
+    <rect width="20" height="20" rx="5" fill="var(--accent-muted)" />
     <path
       d="M10 4L15.5 7.25V13.75L10 17L4.5 13.75V7.25L10 4Z"
-      stroke="#5D46E8"
+      stroke="var(--primary)"
       strokeWidth="1.5"
       strokeLinejoin="round"
     />
     <path
       d="M10 4V10.5M10 10.5L15.5 7.25M10 10.5L4.5 7.25"
-      stroke="#5D46E8"
+      stroke="var(--primary)"
       strokeWidth="1.5"
     />
   </svg>
@@ -23,15 +23,15 @@ const CubeIcon = () => (
 
 const TemplatesIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <rect width="20" height="20" rx="5" fill="#EEF0FF" />
-    <rect x="4" y="4" width="5" height="5" rx="1" fill="#5D46E8" />
+    <rect width="20" height="20" rx="5" fill="var(--accent-muted)" />
+    <rect x="4" y="4" width="5" height="5" rx="1" fill="var(--primary)" />
     <rect
       x="11"
       y="4"
       width="5"
       height="5"
       rx="1"
-      fill="#5D46E8"
+      fill="var(--primary)"
       opacity="0.5"
     />
     <rect
@@ -40,7 +40,7 @@ const TemplatesIcon = () => (
       width="5"
       height="5"
       rx="1"
-      fill="#5D46E8"
+      fill="var(--primary)"
       opacity="0.5"
     />
     <rect
@@ -49,7 +49,7 @@ const TemplatesIcon = () => (
       width="5"
       height="5"
       rx="1"
-      fill="#5D46E8"
+      fill="var(--primary)"
       opacity="0.3"
     />
   </svg>
@@ -57,15 +57,15 @@ const TemplatesIcon = () => (
 
 const TruckIcon = () => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
-    <rect width="20" height="20" rx="5" fill="#EEF0FF" />
+    <rect width="20" height="20" rx="5" fill="var(--accent-muted)" />
     <path
       d="M3 6h9v7H3V6ZM12 8h2.5L16 10.5V13h-4V8Z"
-      stroke="#5D46E8"
+      stroke="var(--primary)"
       strokeWidth="1.25"
       strokeLinejoin="round"
     />
-    <circle cx="6" cy="13.5" r="1.25" fill="#5D46E8" />
-    <circle cx="14" cy="13.5" r="1.25" fill="#5D46E8" />
+    <circle cx="6" cy="13.5" r="1.25" fill="var(--primary)" />
+    <circle cx="14" cy="13.5" r="1.25" fill="var(--primary)" />
   </svg>
 );
 
@@ -87,7 +87,7 @@ export const HeroFeatures: React.FC<HeroFeaturesProps> = ({ features }) => {
       {features.map((item) => (
         <li key={item.icon} className="flex items-center gap-3">
           <span className="shrink-0">{iconMap[item.icon]}</span>
-          <span className="text-[15px] font-medium text-[#161823]">
+          <span className="text-[15px] font-medium text-foreground">
             {item.label}
           </span>
         </li>

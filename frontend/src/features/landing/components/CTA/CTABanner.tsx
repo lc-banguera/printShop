@@ -12,7 +12,7 @@ export const CTABanner: React.FC = () => {
   };
 
   return (
-    <section className="w-full py-8 md:py-12 bg-white">
+    <section className="w-full py-8 md:py-12 bg-surface">
       <Container variant="wide">
         <div className="relative w-full rounded-3xl md:rounded-[36px] overflow-hidden bg-gradient-to-r from-[#5D46E8] via-[#8534E0] to-[#E50C74] px-6 py-12 md:py-16 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 min-h-[300px]">
           
@@ -36,7 +36,7 @@ export const CTABanner: React.FC = () => {
             </p>
             <Link
               to="/designer/new"
-              className="mt-6 inline-flex items-center justify-center px-6 py-3 font-bold text-[#5D46E8] bg-white rounded-xl shadow-md hover:bg-purple-50 transition-colors"
+              className="mt-6 inline-flex items-center justify-center px-6 py-3 font-bold text-primary bg-surface rounded-control shadow-card hover:bg-accentMuted transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary"
             >
               Comenzar a diseñar &rarr;
             </Link>
