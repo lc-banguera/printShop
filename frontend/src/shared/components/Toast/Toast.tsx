@@ -62,7 +62,7 @@ function ToastItem({ toast, onClose }: { toast: ToastData; onClose: (id: string)
       role={toast.type === 'error' ? 'alert' : 'status'}
       aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
       className={[
-        'pointer-events-auto relative w-full max-w-[380px] rounded-[6px] border p-4 shadow-lg shadow-slate-200/60 transition-all duration-200 ease-out',
+        'pointer-events-auto relative w-full max-w-[380px] rounded-[6px] border p-4 shadow-elevated transition-all duration-200 ease-out',
         borderMap[toast.type],
       ].join(' ')}
     >
@@ -72,14 +72,14 @@ function ToastItem({ toast, onClose }: { toast: ToastData; onClose: (id: string)
         </div>
 
         <div className="min-w-0 flex-1 pr-6">
-          <p className="text-sm font-semibold leading-5 text-[#0F172A]">{toast.title}</p>
-          <p className="mt-1 text-sm leading-5 text-[#475569]">{toast.message}</p>
+          <p className="text-sm font-semibold leading-5 text-foreground">{toast.title}</p>
+          <p className="mt-1 text-sm leading-5 text-foregroundMuted">{toast.message}</p>
         </div>
 
         <button
           type="button"
           onClick={() => onClose(toast.id)}
-          className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-[4px] text-[#475569] transition-colors hover:bg-white/60 hover:text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-slate-300"
+          className="absolute right-3 top-3 inline-flex h-7 w-7 items-center justify-center rounded-[4px] text-foregroundMuted transition-colors hover:bg-white/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
           aria-label="Cerrar notificación"
         >
           <X className="h-4 w-4" aria-hidden="true" />
