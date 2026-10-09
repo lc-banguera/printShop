@@ -35,6 +35,7 @@ export default {
         warningMuted: 'var(--warning-muted)',
         warningForeground: 'var(--warning-foreground)',
         success: 'var(--success)',
+        successMuted: 'var(--success-muted)',
         info: 'var(--info)',
         infoMuted: 'var(--info-muted)'
       },

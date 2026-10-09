@@ -49,6 +49,7 @@
   --warning-muted: #FFFBEB;
   --warning-foreground: #B45309;
   --success: #10B981;
+  --success-muted: #F0FDF4;
   --info: var(--accent-blue);
   --info-muted: #EFF6FF;
 

@@ -14,7 +14,7 @@ Los tokens de Fase 1 están centralizados en `frontend/src/shared/styles/globals
 |---|---|
 | Tipografía | `Inter` con fallback de sistema mediante `font-sans`; la escala usa clases Tailwind existentes, con títulos, cuerpo y metadata definidos por los componentes. |
 | Superficies y texto | `background`, `surface`, `surface-muted`, `surface-strong`, `surface-elevated`, `foreground`, `foreground-muted`, `foreground-subtle`. |
-| Color semántico | `primary`, `primary-hover`, `primary-active`, `primary-foreground`, `success`, `warning`, `danger`, `info`, además de los alias de identidad `accent`. |
+| Color semántico | `primary`, `primary-hover`, `primary-active`, `primary-foreground`, `success`, `success-muted`, `warning`, `danger`, `info`, además de los alias de identidad `accent`. |
 | Bordes | `border`, `border-strong`, `border-muted`. |
 | Espaciado | Escala base `--space-1` a `--space-8` y alias `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`. |
 | Radios | `control` (8 px), `card` (16 px), `dialog` (20 px), `badge` (píldora), junto con la escala heredada. |
