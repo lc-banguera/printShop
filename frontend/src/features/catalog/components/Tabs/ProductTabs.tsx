@@ -53,7 +53,7 @@ export const ProductTabs: React.FC<ProductTabsProps> = ({ product }) => {
       <div className="pt-4">
         {/* Panel 1: Descripción */}
         {activeTab === "descripcion" && (
-          <div className="text-xs sm:text-sm text-[#4B5563] leading-relaxed max-w-3xl space-y-3">
+          <div className="text-xs sm:text-sm text-[var(--text-secondary)] leading-relaxed max-w-3xl space-y-3">
             <p>{product.description || <>El modelo <strong>{product.name}</strong> está diseñado para ofrecer una experiencia de uso duradera.</>}</p>
             <p>
               Todos nuestros productos cuentan con procesos de personalización de última generación (impresión directa DTG, bordado de precisión o sublimación HD), manteniendo colores vibrantes e inalterables lavado tras lavado.
@@ -77,20 +77,20 @@ export const ProductTabs: React.FC<ProductTabsProps> = ({ product }) => {
                   return (
                     <tr
                       key={idx}
-                      className={`border-b border-[#F1F5F9] transition-colors ${
-                        isEven ? "bg-white" : "bg-[#F8FAFC]"
+                      className={`border-b border-[var(--border-muted)] transition-colors ${
+                        isEven ? "bg-white" : "bg-[var(--surface-muted)]"
                       }`}
                     >
-                      <td className="py-2.5 px-4 font-bold text-[#111827]">
+                      <td className="py-2.5 px-4 font-bold text-[var(--text-primary)]">
                         {row.characteristic}
                       </td>
-                      <td className="py-2.5 px-4 text-[#4B5563]">
+                      <td className="py-2.5 px-4 text-[var(--text-secondary)]">
                         {row.detail}
                       </td>
                     </tr>
                   );
                 })}
-                {specs.length === 0 && <tr><td colSpan={2} className="py-4 px-4 text-[#64748B]">Este producto no tiene características adicionales publicadas.</td></tr>}
+                {specs.length === 0 && <tr><td colSpan={2} className="py-4 px-4 text-[var(--text-muted)]">Este producto no tiene características adicionales publicadas.</td></tr>}
               </tbody>
             </table>
           </div>

@@ -38,7 +38,7 @@ export const RelatedProducts: React.FC<RelatedProductsProps> = ({
     <div className="w-full">
       {/* Section Header */}
       <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
-        <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+        <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
           Productos relacionados
         </h2>
 
@@ -48,7 +48,7 @@ export const RelatedProducts: React.FC<RelatedProductsProps> = ({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="text-xs font-semibold text-[#1D4ED8] hover:text-[#1E3A8A] transition-colors cursor-pointer"
+              className="text-xs font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors cursor-pointer"
             >
               {isExpanded ? "Ver menos productos" : "Ver todos los productos"}
             </button>
