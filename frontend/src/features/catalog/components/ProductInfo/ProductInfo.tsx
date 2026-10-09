@@ -148,13 +148,13 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
               key={i}
               className={`w-3.5 h-3.5 ${
                 i < Math.round(rating)
-                  ? "fill-[#F59E0B] text-[#F59E0B]"
-                  : "text-[#D1D5DB]"
+                  ? "fill-[var(--warning)] text-[var(--warning)]"
+                  : "text-[var(--border-strong)]"
               }`}
             />
           ))}
         </div>
-        <span className="text-xs text-[#6B7280]">
+        <span className="text-xs text-[var(--text-secondary)]">
           ({reviewCount} Reviews)
         </span>
       </div>
@@ -165,7 +165,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
           {product.price}
         </span>
         {product.originalPrice && (
-          <span className="text-xs sm:text-sm text-[#9CA3AF] line-through">
+          <span className="text-xs sm:text-sm text-[var(--text-muted)] line-through">
             {product.originalPrice}
           </span>
         )}
@@ -182,7 +182,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
               Elige tu color
             </span>
             {selectedColor && (
-              <span className="text-[11px] font-semibold text-[#64748B]">
+              <span className="text-[11px] font-semibold text-[var(--text-muted)]">
                 {getColorName(selectedColor)}
               </span>
             )}
@@ -218,12 +218,12 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
         return (
           <div key={attr.id} className="flex flex-col gap-1.5 pt-1">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#374151]">
+              <span className="text-xs font-semibold text-[var(--text-secondary)]">
                 {attr.label}
-                {attr.required && <span className="text-[#DC2626] ml-1">*</span>}
+                {attr.required && <span className="text-[var(--danger-strong)] ml-1">*</span>}
               </span>
               {currentValue && (
-                <span className="text-[11px] font-semibold text-[#64748B]">
+                <span className="text-[11px] font-semibold text-[var(--text-muted)]">
                   {currentValue}
                 </span>
               )}
@@ -239,7 +239,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
                     onClick={() => handleSelectAttribute(attr.id, opt.id)}
                     className={`h-8 min-w-[36px] px-3 rounded-[5px] text-xs font-bold transition-all cursor-pointer border ${
                       isSelected
-                        ? "bg-[#1D4ED8] text-white border-[#1D4ED8] shadow-2xs"
+                        ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-2xs"
                         : isMissing
                               ? "border-dangerStrong bg-surface text-foregroundMuted hover:border-dangerStrong"
                               : "border-border bg-surfaceMuted text-foregroundMuted hover:border-primary hover:bg-infoMuted hover:text-primary"
@@ -256,7 +256,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
 
       {/* ── Feedback de validación elegante (sin alert del navegador) ── */}
       {validationError && (
-        <div className="p-2.5 rounded-[5px] bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+        <div className="p-2.5 rounded-[5px] bg-[var(--danger-muted)] border border-[var(--danger-muted)] text-[var(--danger-strong)] text-xs font-semibold flex items-center gap-2 animate-in fade-in">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{validationError}</span>
         </div>
@@ -268,24 +268,24 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
           <button
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
             aria-label="Disminuir cantidad"
           >
             −
           </button>
-          <span className="w-8 h-7 flex items-center justify-center text-xs font-semibold text-[#111827] border-x border-[#D1D5DB]">
+          <span className="w-8 h-7 flex items-center justify-center text-xs font-semibold text-[var(--text-primary)] border-x border-[var(--border-strong)]">
             {qty}
           </span>
           <button
             type="button"
             onClick={() => setQty((q) => q + 1)}
-            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#374151] hover:bg-[#F9FAFB] transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
             aria-label="Aumentar cantidad"
           >
             +
           </button>
         </div>
-        <span className="text-[11px] sm:text-xs text-[#6B7280]">
+        <span className="text-[11px] sm:text-xs text-[var(--text-secondary)]">
           ¡Solo quedan 10 unidades, date prisa!
         </span>
       </div>
@@ -332,7 +332,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
           type="button"
           onClick={() => setIsFavorite(!isFavorite)}
           className={`inline-flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer ${
-            isFavorite ? "text-[#EF4444]" : "text-[#4B5563] hover:text-[#1D4ED8]"
+            isFavorite ? "text-[var(--danger-strong)]" : "text-[var(--text-secondary)] hover:text-[var(--primary)]"
           }`}
         >
           <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
@@ -343,26 +343,26 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
       {/* Service Benefits Information */}
       <div className="flex flex-col gap-3.5 border-t border-borderMuted pt-5">
         <div className="flex items-start gap-2.5">
-          <Package className="w-4 h-4 text-[#1D4ED8] shrink-0 mt-0.5" />
+          <Package className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-bold text-[#111827]">Envío gratis</p>
-            <p className="text-[11px] text-[#6B7280]">En pedidos superiores a $150.000</p>
+            <p className="text-xs font-bold text-[var(--text-primary)]">Envío gratis</p>
+            <p className="text-[11px] text-[var(--text-secondary)]">En pedidos superiores a $150.000</p>
           </div>
         </div>
 
         <div className="flex items-start gap-2.5">
-          <ShieldCheck className="w-4 h-4 text-[#1D4ED8] shrink-0 mt-0.5" />
+          <ShieldCheck className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-bold text-[#111827]">Pagos seguros</p>
-            <p className="text-[11px] text-[#6B7280]">Tus pagos 100% protegidos</p>
+            <p className="text-xs font-bold text-[var(--text-primary)]">Pagos seguros</p>
+            <p className="text-[11px] text-[var(--text-secondary)]">Tus pagos 100% protegidos</p>
           </div>
         </div>
 
         <div className="flex items-start gap-2.5">
-          <Headphones className="w-4 h-4 text-[#1D4ED8] shrink-0 mt-0.5" />
+          <Headphones className="w-4 h-4 text-[var(--primary)] shrink-0 mt-0.5" />
           <div>
-            <p className="text-xs font-bold text-[#111827]">Atención 24/7</p>
-            <p className="text-[11px] text-[#6B7280]">Soporte dedicado para ayudarte</p>
+            <p className="text-xs font-bold text-[var(--text-primary)]">Atención 24/7</p>
+            <p className="text-[11px] text-[var(--text-secondary)]">Soporte dedicado para ayudarte</p>
           </div>
         </div>
       </div>
