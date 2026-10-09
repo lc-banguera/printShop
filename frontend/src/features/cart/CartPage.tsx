@@ -93,7 +93,7 @@ export function CartPage() {
           <div className="mb-6 flex items-center justify-between gap-3">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Continuar comprando</span>
@@ -103,7 +103,7 @@ export function CartPage() {
               <button
                 type="button"
                 onClick={() => setIsClearingCart(true)}
-                className="text-xs font-medium text-[#94A3B8] hover:text-[#DC2626] transition-colors flex items-center gap-1 cursor-pointer"
+                className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Vaciar carrito</span>
@@ -121,13 +121,13 @@ export function CartPage() {
           {/* ── 14. Experiencia de Carrito Vacío ─────────────────────── */}
           {items.length === 0 ? (
             <div className="mx-auto my-8 max-w-lg rounded-card border border-border bg-surface p-8 text-center shadow-card sm:p-12">
-              <div className="h-16 w-16 rounded-full bg-[#F1F5F9] text-[#64748B] flex items-center justify-center mx-auto mb-4">
+              <div className="h-16 w-16 rounded-full bg-[var(--border-muted)] text-[var(--text-secondary)] flex items-center justify-center mx-auto mb-4">
                 <ShoppingBag className="h-8 w-8" />
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                 Tu carrito está vacío
               </h2>
-              <p className="text-xs sm:text-sm text-[#64748B] mt-1.5 max-w-sm mx-auto">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1.5 max-w-sm mx-auto">
                 Agrega productos para comenzar tu compra y personalizar con tus
                 diseños favoritos.
               </p>
@@ -157,7 +157,7 @@ export function CartPage() {
                 </div>
 
                 {/* Banner de beneficios / información de compra */}
-                <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[#64748B] shadow-2xs mt-4">
+                <div className="bg-white rounded-[5px] border border-[var(--border)] p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[var(--text-secondary)] shadow-2xs mt-4">
                   <div className="flex items-center gap-2">
                     <Truck className="h-4 w-4 shrink-0 text-primary" />
                     <span>
@@ -175,15 +175,15 @@ export function CartPage() {
               {/* Columna Derecha: Resumen del Pedido (4 cols sticky) ──── */}
               <div className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:col-span-4">
                 <div className="space-y-5 rounded-card border border-border bg-surface p-5 shadow-card sm:p-6">
-                  <h2 className="text-sm sm:text-base font-bold text-[#111827] pb-3 border-b border-[#F1F5F9]">
+                  <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)] pb-3 border-b border-[var(--border-muted)]">
                     Resumen del pedido
                   </h2>
 
                   {/* Detalle de costos */}
                   <div className="space-y-2.5 text-xs sm:text-[13px]">
-                    <div className="flex items-center justify-between text-[#475569]">
+                    <div className="flex items-center justify-between text-[var(--text-secondary)]">
                       <span>Subtotal</span>
-                      <span className="font-semibold text-[#111827]">
+                      <span className="font-semibold text-[var(--text-primary)]">
                         {formatCurrency(subtotal)}
                       </span>
                     </div>
@@ -200,9 +200,9 @@ export function CartPage() {
                       </div>
                     )}
 
-                    <div className="flex items-center justify-between text-[#475569]">
+                    <div className="flex items-center justify-between text-[var(--text-secondary)]">
                       <span>Envío</span>
-                      <span className="font-medium text-[#111827]">
+                      <span className="font-medium text-[var(--text-primary)]">
                         {shipping === 0 ? (
                           <span className="font-semibold text-success">
                             Gratis
@@ -214,43 +214,43 @@ export function CartPage() {
                     </div>
 
                     {/* Total con mayor jerarquía visual */}
-                    <div className="pt-3 border-t border-[#E5E7EB] flex items-baseline justify-between">
+                    <div className="pt-3 border-t border-[var(--border)] flex items-baseline justify-between">
                       <div>
-                        <span className="text-sm sm:text-base font-bold text-[#111827] block">
+                        <span className="text-sm sm:text-base font-bold text-[var(--text-primary)] block">
                           Total
                         </span>
-                        <span className="text-[11px] text-[#64748B]">
+                        <span className="text-[11px] text-[var(--text-secondary)]">
                           IVA incluido
                         </span>
                       </div>
-                      <span className="text-lg sm:text-xl font-black text-[#111827]">
+                      <span className="text-lg sm:text-xl font-black text-[var(--text-primary)]">
                         {formatCurrency(total)}
                       </span>
                     </div>
                   </div>
 
                   {/* ── 11. Sección de Cupón / Descuento ──────────────── */}
-                  <div className="pt-3 border-t border-[#F1F5F9]">
+                  <div className="pt-3 border-t border-[var(--border-muted)]">
                     <label
                       htmlFor="coupon-input"
-                      className="block text-xs font-semibold text-[#374151] mb-1.5"
+                      className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
                     >
                       ¿Tienes un cupón?
                     </label>
 
                     {couponCode ? (
-                      <div className="flex items-center justify-between p-2 rounded-[5px] bg-[#ECFDF5] border border-[#A7F3D0] text-xs text-[#065F46]">
+                      <div className="flex items-center justify-between p-2 rounded-[5px] bg-[var(--success-muted)] border border-[var(--border-strong)] text-xs text-[var(--success)]">
                         <div className="flex items-center gap-1.5 font-semibold">
                           <Tag className="h-3.5 w-3.5" />
                           <span>{couponCode}</span>
-                          <span className="text-[11px] font-normal text-[#047857]">
+                          <span className="text-[11px] font-normal text-[var(--success)]">
                             ({discountRate * 100}% aplicado)
                           </span>
                         </div>
                         <button
                           type="button"
                           onClick={removeCoupon}
-                          className="text-[11px] text-[#DC2626] hover:underline cursor-pointer"
+                          className="text-[11px] text-[var(--danger-strong)] hover:underline cursor-pointer"
                         >
                           Quitar
                         </button>
@@ -273,7 +273,7 @@ export function CartPage() {
                           <button
                             type="submit"
                             disabled={isApplyingCoupon || !inputCoupon.trim()}
-                            className="h-9 px-3 rounded-[5px] border border-[#E2E8F0] bg-white hover:bg-[#F8FAFC] text-xs font-medium text-[#1E293B] transition-colors shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                            className="h-9 px-3 rounded-[5px] border border-[var(--border)] bg-white hover:bg-[var(--surface-muted)] text-xs font-medium text-[var(--text-primary)] transition-colors shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                           >
                             {isApplyingCoupon ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -284,7 +284,7 @@ export function CartPage() {
                         </div>
 
                         {couponError && (
-                          <p className="text-[11px] text-[#EF4444] flex items-center gap-1 pt-0.5">
+                          <p className="text-[11px] text-[var(--danger-strong)] flex items-center gap-1 pt-0.5">
                             <AlertCircle className="h-3 w-3 shrink-0" />
                             <span>{couponError}</span>
                           </p>
@@ -305,12 +305,12 @@ export function CartPage() {
                   </div>
 
                   {/* Sellos de Confianza y Pago */}
-                  <div className="pt-2 space-y-2 border-t border-[#F1F5F9] text-[11px] text-[#64748B]">
+                  <div className="pt-2 space-y-2 border-t border-[var(--border-muted)] text-[11px] text-[var(--text-secondary)]">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 shrink-0 text-success" />
                       <span>Pago seguro procesado con Mercado Pago</span>
                     </div>
-                    <p className="text-[10.5px] text-[#94A3B8] leading-tight">
+                    <p className="text-[10.5px] text-[var(--text-muted)] leading-tight">
                       Aceptamos tarjetas de crédito, débito, PSE, Nequi y
                       efectivo.
                     </p>
@@ -321,10 +321,10 @@ export function CartPage() {
           )}
 
           {/* ── 18. Sección de Productos Recomendados ─────────────────── */}
-          <div className="mt-14 pt-8 border-t border-[#E5E7EB]">
+          <div className="mt-14 pt-8 border-t border-[var(--border)]">
             <div className="flex items-center gap-2 mb-5">
               <Sparkles className="h-4 w-4 text-primary" />
-              <h2 className="text-base sm:text-lg font-bold text-[#111827]">
+              <h2 className="text-base sm:text-lg font-bold text-[var(--text-primary)]">
                 También te puede interesar
               </h2>
             </div>
@@ -348,7 +348,7 @@ export function CartPage() {
           itemToDelete ? (
             <span>
               ¿Estás seguro de que deseas eliminar{" "}
-              <strong className="text-[#111827]">"{itemToDelete.name}"</strong>{" "}
+              <strong className="text-[var(--text-primary)]">"{itemToDelete.name}"</strong>{" "}
               de tu lista de compras?
             </span>
           ) : (
