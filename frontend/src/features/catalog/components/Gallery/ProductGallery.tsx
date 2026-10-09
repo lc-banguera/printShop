@@ -45,7 +45,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ product, related
             <button
               type="button"
               onClick={prev}
-              className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-control border border-border bg-surface text-foregroundMuted shadow-subtle transition-colors hover:bg-surfaceMuted hover:text-foreground"
+              className="absolute left-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-control border border-border bg-surface text-foregroundMuted shadow-subtle transition-colors hover:bg-surfaceMuted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
               aria-label="Imagen anterior"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -53,7 +53,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ product, related
             <button
               type="button"
               onClick={next}
-              className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-control border border-border bg-surface text-foregroundMuted shadow-subtle transition-colors hover:bg-surfaceMuted hover:text-foreground"
+              className="absolute right-3 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-control border border-border bg-surface text-foregroundMuted shadow-subtle transition-colors hover:bg-surfaceMuted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
               aria-label="Imagen siguiente"
             >
               <ChevronRight className="w-4 h-4" />
@@ -72,7 +72,7 @@ export const ProductGallery: React.FC<ProductGalleryProps> = ({ product, related
                 key={idx}
                 type="button"
                 onClick={() => setActiveIdx(idx)}
-                className={`h-14 w-14 shrink-0 overflow-hidden rounded-control border-2 bg-surfaceMuted transition-all ${
+                className={`h-14 w-14 shrink-0 overflow-hidden rounded-control border-2 bg-surfaceMuted transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 ${
                   isActive ? "border-primary shadow-subtle" : "border-border hover:border-borderStrong"
                 }`}
                 aria-label={`Miniatura ${idx + 1}`}

@@ -199,7 +199,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
                     isSelected
                       ? "ring-2 ring-primary ring-offset-2"
                       : "border border-borderStrong"
-                  }`}
+                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                   style={{ backgroundColor: color }}
                   title={getColorName(color, idx)}
                   aria-label={`Color ${getColorName(color, idx)}`}
@@ -237,7 +237,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
                     key={opt.id}
                     type="button"
                     onClick={() => handleSelectAttribute(attr.id, opt.id)}
-                    className={`h-8 min-w-[36px] px-3 rounded-[5px] text-xs font-bold transition-all cursor-pointer border ${
+                    className={`h-8 min-w-[36px] px-3 rounded-control text-xs font-bold transition-all cursor-pointer border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 ${
                       isSelected
                         ? "bg-[var(--primary)] text-white border-[var(--primary)] shadow-2xs"
                         : isMissing
@@ -256,7 +256,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
 
       {/* ── Feedback de validación elegante (sin alert del navegador) ── */}
       {validationError && (
-        <div className="p-2.5 rounded-[5px] bg-[var(--danger-muted)] border border-[var(--danger-muted)] text-[var(--danger-strong)] text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+        <div className="p-2.5 rounded-control bg-[var(--danger-muted)] border border-[var(--danger-muted)] text-[var(--danger-strong)] text-xs font-semibold flex items-center gap-2 animate-in fade-in">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{validationError}</span>
         </div>
@@ -268,7 +268,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
           <button
             type="button"
             onClick={() => setQty((q) => Math.max(1, q - 1))}
-            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
             aria-label="Disminuir cantidad"
           >
             −
@@ -279,7 +279,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
           <button
             type="button"
             onClick={() => setQty((q) => q + 1)}
-            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer"
+            className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
             aria-label="Aumentar cantidad"
           >
             +
@@ -296,7 +296,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
         {/* Button 1: Personalizar (Solid Blue, opens /designer) */}
         <Link
           to="/designer/personalize"
-          className="flex h-11 w-full flex-1 items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover"
+          className="flex h-11 w-full flex-1 items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
         >
           <span>Personalizar</span>
           <Edit3 className="w-3.5 h-3.5" />
@@ -310,7 +310,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
             addedSuccess
               ? "border-success bg-success text-primaryForeground"
               : "border-primary bg-surface text-primary hover:bg-infoMuted"
-          }`}
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
         >
           {addedSuccess ? (
             <>
@@ -333,7 +333,7 @@ export const ProductInfo: React.FC<ProductInfoProps> = ({ product }) => {
           onClick={() => setIsFavorite(!isFavorite)}
           className={`inline-flex items-center gap-1.5 text-xs font-medium transition-colors cursor-pointer ${
             isFavorite ? "text-[var(--danger-strong)]" : "text-[var(--text-secondary)] hover:text-[var(--primary)]"
-          }`}
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
         >
           <Heart className={`w-3.5 h-3.5 ${isFavorite ? "fill-current" : ""}`} />
           <span>{isFavorite ? "En tus favoritos" : "Agregar a favoritos"}</span>
