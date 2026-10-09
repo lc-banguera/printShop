@@ -55,7 +55,7 @@ export const VerificationQRCode: React.FC<VerificationQRCodeProps> = ({
         <button
           type="button"
           onClick={onCancel}
-          className="w-[70%] mx-auto bg-[#DC2626] hover:bg-[#B91C1C] active:bg-[#991B1B] text-white font-semibold py-3 px-4 rounded-lg text-sm transition-colors shadow-sm focus:outline-hidden cursor-pointer flex items-center justify-center text-center"
+          className="w-[70%] mx-auto bg-dangerStrong hover:brightness-95 active:brightness-90 text-white font-semibold py-3 px-4 rounded-lg text-sm transition-colors shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dangerStrong/30 focus-visible:ring-offset-2 cursor-pointer flex items-center justify-center text-center"
         >
           Cancelar
         </button>
