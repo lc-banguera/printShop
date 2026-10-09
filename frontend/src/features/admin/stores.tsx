@@ -308,7 +308,7 @@ export default function Stores() {
             <button
               type="button"
               onClick={handleExport}
-              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
               {exportNotice ? "Exportando..." : "Exportar"}
@@ -316,7 +316,7 @@ export default function Stores() {
             <button
               type="button"
               onClick={() => setIsNewStoreModalOpen(true)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[var(--primary)] rounded-[5px] px-3.5 py-1.5 hover:bg-[var(--primary-hover)] transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[var(--primary)] rounded-[5px] px-3.5 py-1.5 hover:bg-[var(--primary-hover)] transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Nueva Tienda</span>
@@ -335,7 +335,7 @@ export default function Stores() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar tienda por nombre, correo o propietario..."
-            className="w-full h-9 pl-9 pr-3.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] shadow-2xs"
+            className="w-full h-9 pl-9 pr-3.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] focus-visible:ring-2 focus-visible:ring-primary shadow-2xs"
           />
         </div>
 
@@ -346,7 +346,7 @@ export default function Stores() {
             <select
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-primary shadow-2xs"
             >
               <option value="Todos">Todos los planes</option>
               <option value="Básico">Plan Básico</option>
@@ -361,7 +361,7 @@ export default function Stores() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-primary shadow-2xs"
             >
               <option value="Todos">Todos los estados</option>
               <option value="Activa">Activa</option>
@@ -374,7 +374,7 @@ export default function Stores() {
           {/* Botón Filtros */}
           <button
             type="button"
-            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors cursor-pointer shadow-2xs"
+            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Filter className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
             <span>Filtros</span>
@@ -404,7 +404,7 @@ export default function Stores() {
                     <DropdownMenuTrigger asChild>
                       <button
                         type="button"
-                        className="h-7 w-7 rounded-[4px] bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-xs transition-colors focus:outline-none"
+                        className="h-7 w-7 rounded-[4px] bg-black/40 hover:bg-black/60 text-white flex items-center justify-center backdrop-blur-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                       >
                         <MoreVertical className="h-4 w-4" />
                       </button>
