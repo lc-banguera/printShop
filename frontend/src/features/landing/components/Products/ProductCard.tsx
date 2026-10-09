@@ -23,7 +23,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <Link
       to={product.href || `/products/${product.id}`}
       data-card
-      className="group flex h-full select-none flex-col overflow-hidden rounded-card border border-borderMuted bg-surface transition-all duration-normal hover:-translate-y-0.5 hover:border-borderStrong hover:shadow-card"
+      className="group flex h-full select-none flex-col overflow-hidden rounded-card border border-borderMuted bg-surface transition-all duration-normal hover:-translate-y-0.5 hover:border-borderStrong hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {/* ── 1. ÁREA DE IMAGEN ───────────────────────────────────────── */}
       <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-surfaceMuted p-3.5 sm:p-4">
