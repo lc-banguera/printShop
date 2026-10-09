@@ -414,7 +414,7 @@ export default function StoreOrders() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Buscar por ID, cliente, guía o prenda..."
-            className="w-full text-xs pl-9 pr-3 py-2 bg-white border border-[#E2E8F0] rounded-[4px] focus:outline-none focus:border-[#2563EB] text-[#111827] placeholder-[#94A3B8]"
+            className="w-full text-xs pl-9 pr-3 py-2 bg-white border border-[#E2E8F0] rounded-[4px] focus:outline-none focus:border-[#2563EB] focus-visible:ring-2 focus-visible:ring-primary text-[#111827] placeholder-[#94A3B8]"
           />
         </div>
 
