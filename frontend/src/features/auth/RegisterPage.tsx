@@ -114,7 +114,7 @@ export function RegisterPage() {
   const isFormDisabled = isLoading || isGoogleLoading;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] flex flex-col justify-between items-center p-4 sm:p-6 select-none">
+    <div className="min-h-screen bg-[var(--surface-muted)] flex flex-col justify-between items-center p-4 sm:p-6 select-none">
       <div className="w-full flex-1 flex flex-col justify-center items-center">
         {/* Header con Logo */}
         <div className="mb-6 text-center">
@@ -123,22 +123,22 @@ export function RegisterPage() {
             className="inline-flex items-center gap-2.5 transition-transform hover:opacity-95"
             title="Volver al inicio"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-[#2563EB] text-base font-black text-white shadow-2xs">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-[var(--primary)] text-base font-black text-white shadow-2xs">
               P
             </span>
-            <span className="text-[22px] font-black tracking-tight text-[#111827]">
-              Print<span className="text-[#2563EB]">Shop</span>
+            <span className="text-[22px] font-black tracking-tight text-[var(--text-primary)]">
+              Print<span className="text-[var(--primary)]">Shop</span>
             </span>
           </Link>
         </div>
 
         {/* Tarjeta de Registro */}
-        <div className="bg-white rounded-[5px] border border-[#E5E7EB] shadow-xs w-full max-w-[400px] p-6 sm:p-8">
+        <div className="bg-white rounded-[5px] border border-[var(--border)] shadow-xs w-full max-w-[400px] p-6 sm:p-8">
           <div className="text-center mb-6">
-            <h1 className="text-xl sm:text-[22px] font-bold text-[#111827] tracking-tight">
+            <h1 className="text-xl sm:text-[22px] font-bold text-[var(--text-primary)] tracking-tight">
               Crea tu cuenta
             </h1>
-            <p className="text-xs sm:text-[13px] text-[#64748B] mt-1.5">
+            <p className="text-xs sm:text-[13px] text-[var(--text-secondary)] mt-1.5">
               Únete a PrintShop y empieza hoy mismo
             </p>
           </div>
@@ -148,12 +148,12 @@ export function RegisterPage() {
             type="button"
             onClick={handleGoogleSignUp}
             disabled={isFormDisabled}
-            className="w-full h-10 px-4 rounded-[5px] border border-[#E2E8F0] bg-white text-xs sm:text-[13px] font-medium text-[#1E293B] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] active:bg-[#F1F5F9] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/20 transition-all flex items-center justify-center gap-2.5 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-10 px-4 rounded-[5px] border border-[var(--border)] bg-white text-xs sm:text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] active:bg-[var(--border-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20 transition-all flex items-center justify-center gap-2.5 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
               <>
-                <Loader2 className="h-4 w-4 animate-spin text-[#64748B]" />
-                <span className="text-[#64748B]">Conectando...</span>
+                <Loader2 className="h-4 w-4 animate-spin text-[var(--text-secondary)]" />
+                <span className="text-[var(--text-secondary)]">Conectando...</span>
               </>
             ) : (
               <>
@@ -166,9 +166,9 @@ export function RegisterPage() {
           {/* Separador */}
           <div className="relative my-5 flex items-center justify-center">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E5E7EB]" />
+              <div className="w-full border-t border-[var(--border)]" />
             </div>
-            <div className="relative bg-white px-3 text-[11px] font-medium text-[#94A3B8] lowercase tracking-wide">
+            <div className="relative bg-white px-3 text-[11px] font-medium text-[var(--text-muted)] lowercase tracking-wide">
               o regístrate con tu correo
             </div>
           </div>
@@ -179,7 +179,7 @@ export function RegisterPage() {
             <div>
               <label
                 htmlFor="register-name"
-                className="block text-xs font-semibold text-[#374151] mb-1.5"
+                className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
               >
                 Nombre completo
               </label>
@@ -188,8 +188,8 @@ export function RegisterPage() {
                   <User
                     className={`h-4 w-4 transition-colors ${
                       touched.name && errors.name
-                        ? 'text-[#EF4444]'
-                        : 'text-[#94A3B8]'
+                        ? 'text-[var(--danger-strong)]'
+                        : 'text-[var(--text-muted)]'
                     }`}
                   />
                 </div>
@@ -205,15 +205,15 @@ export function RegisterPage() {
                   }}
                   onBlur={() => setTouched((prev) => ({ ...prev, name: true }))}
                   placeholder="Tu nombre y apellido"
-                  className={`w-full h-10 pl-9 pr-3 rounded-[5px] border text-xs sm:text-[13px] text-[#111827] placeholder:text-[#94A3B8] bg-white outline-none transition-all shadow-2xs disabled:bg-[#F8FAFC] disabled:text-[#94A3B8] disabled:cursor-not-allowed ${
+                  className={`w-full h-10 pl-9 pr-3 rounded-[5px] border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-white outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
                     touched.name && errors.name
-                      ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]'
-                      : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]'
+                      ? 'border-[var(--danger-strong)] focus:border-[var(--danger-strong)] focus:ring-1 focus:ring-[var(--danger-strong)]'
+                      : 'border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]'
                   }`}
                 />
               </div>
               {touched.name && errors.name && (
-                <p className="mt-1.5 text-[11px] text-[#EF4444] flex items-center gap-1 leading-tight">
+                <p className="mt-1.5 text-[11px] text-[var(--danger-strong)] flex items-center gap-1 leading-tight">
                   <AlertCircle className="h-3 w-3 shrink-0" />
                   <span>{errors.name}</span>
                 </p>
@@ -224,7 +224,7 @@ export function RegisterPage() {
             <div>
               <label
                 htmlFor="register-email"
-                className="block text-xs font-semibold text-[#374151] mb-1.5"
+                className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
               >
                 Correo electrónico
               </label>
@@ -233,8 +233,8 @@ export function RegisterPage() {
                   <Mail
                     className={`h-4 w-4 transition-colors ${
                       touched.email && errors.email
-                        ? 'text-[#EF4444]'
-                        : 'text-[#94A3B8]'
+                        ? 'text-[var(--danger-strong)]'
+                        : 'text-[var(--text-muted)]'
                     }`}
                   />
                 </div>
@@ -250,15 +250,15 @@ export function RegisterPage() {
                   }}
                   onBlur={() => setTouched((prev) => ({ ...prev, email: true }))}
                   placeholder="nombre@ejemplo.com"
-                  className={`w-full h-10 pl-9 pr-3 rounded-[5px] border text-xs sm:text-[13px] text-[#111827] placeholder:text-[#94A3B8] bg-white outline-none transition-all shadow-2xs disabled:bg-[#F8FAFC] disabled:text-[#94A3B8] disabled:cursor-not-allowed ${
+                  className={`w-full h-10 pl-9 pr-3 rounded-[5px] border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-white outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
                     touched.email && errors.email
-                      ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]'
-                      : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]'
+                      ? 'border-[var(--danger-strong)] focus:border-[var(--danger-strong)] focus:ring-1 focus:ring-[var(--danger-strong)]'
+                      : 'border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]'
                   }`}
                 />
               </div>
               {touched.email && errors.email && (
-                <p className="mt-1.5 text-[11px] text-[#EF4444] flex items-center gap-1 leading-tight">
+                <p className="mt-1.5 text-[11px] text-[var(--danger-strong)] flex items-center gap-1 leading-tight">
                   <AlertCircle className="h-3 w-3 shrink-0" />
                   <span>{errors.email}</span>
                 </p>
@@ -269,7 +269,7 @@ export function RegisterPage() {
             <div>
               <label
                 htmlFor="register-password"
-                className="block text-xs font-semibold text-[#374151] mb-1.5"
+                className="block text-xs font-semibold text-[var(--text-secondary)] mb-1.5"
               >
                 Contraseña
               </label>
@@ -278,8 +278,8 @@ export function RegisterPage() {
                   <Lock
                     className={`h-4 w-4 transition-colors ${
                       touched.password && errors.password
-                        ? 'text-[#EF4444]'
-                        : 'text-[#94A3B8]'
+                        ? 'text-[var(--danger-strong)]'
+                        : 'text-[var(--text-muted)]'
                     }`}
                   />
                 </div>
@@ -295,10 +295,10 @@ export function RegisterPage() {
                   }}
                   onBlur={() => setTouched((prev) => ({ ...prev, password: true }))}
                   placeholder="Mínimo 6 caracteres"
-                  className={`w-full h-10 pl-9 pr-10 rounded-[5px] border text-xs sm:text-[13px] text-[#111827] placeholder:text-[#94A3B8] bg-white outline-none transition-all shadow-2xs disabled:bg-[#F8FAFC] disabled:text-[#94A3B8] disabled:cursor-not-allowed ${
+                  className={`w-full h-10 pl-9 pr-10 rounded-[5px] border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-white outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
                     touched.password && errors.password
-                      ? 'border-[#EF4444] focus:border-[#EF4444] focus:ring-1 focus:ring-[#EF4444]'
-                      : 'border-[#E2E8F0] focus:border-[#2563EB] focus:ring-1 focus:ring-[#2563EB]'
+                      ? 'border-[var(--danger-strong)] focus:border-[var(--danger-strong)] focus:ring-1 focus:ring-[var(--danger-strong)]'
+                      : 'border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]'
                   }`}
                 />
                 <button
@@ -306,14 +306,14 @@ export function RegisterPage() {
                   tabIndex={-1}
                   disabled={isFormDisabled}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[#94A3B8] hover:text-[#475569] transition-colors cursor-pointer"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer"
                   title={showPassword ? 'Ocultar' : 'Mostrar'}
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
               {touched.password && errors.password && (
-                <p className="mt-1.5 text-[11px] text-[#EF4444] flex items-center gap-1 leading-tight">
+                <p className="mt-1.5 text-[11px] text-[var(--danger-strong)] flex items-center gap-1 leading-tight">
                   <AlertCircle className="h-3 w-3 shrink-0" />
                   <span>{errors.password}</span>
                 </p>
@@ -322,7 +322,7 @@ export function RegisterPage() {
 
             {/* Aceptar términos */}
             <div>
-              <label className="flex items-start gap-2 text-xs text-[#475569] cursor-pointer select-none">
+              <label className="flex items-start gap-2 text-xs text-[var(--text-secondary)] cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={acceptTerms}
@@ -331,21 +331,21 @@ export function RegisterPage() {
                     setAcceptTerms(e.target.checked);
                     if (errors.terms) setErrors((prev) => ({ ...prev, terms: undefined }));
                   }}
-                  className="h-4 w-4 mt-0.5 rounded-[3px] border border-[#CBD5E1] text-[#2563EB] focus:ring-1 focus:ring-[#2563EB] cursor-pointer"
+                  className="h-4 w-4 mt-0.5 rounded-[3px] border border-[var(--border-strong)] text-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)] cursor-pointer"
                 />
                 <span className="leading-tight">
                   Acepto los{' '}
-                  <a href="#" className="text-[#2563EB] hover:underline">
+                  <a href="#" className="text-[var(--primary)] hover:underline">
                     Términos de Servicio
                   </a>{' '}
                   y la{' '}
-                  <a href="#" className="text-[#2563EB] hover:underline">
+                  <a href="#" className="text-[var(--primary)] hover:underline">
                     Política de Privacidad
                   </a>
                 </span>
               </label>
               {errors.terms && (
-                <p className="mt-1.5 text-[11px] text-[#EF4444] flex items-center gap-1 leading-tight">
+                <p className="mt-1.5 text-[11px] text-[var(--danger-strong)] flex items-center gap-1 leading-tight">
                   <AlertCircle className="h-3 w-3 shrink-0" />
                   <span>{errors.terms}</span>
                 </p>
@@ -357,7 +357,7 @@ export function RegisterPage() {
               <button
                 type="submit"
                 disabled={isFormDisabled}
-                className="w-full h-10 px-4 rounded-[5px] text-xs sm:text-[13px] font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-1 transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-10 px-4 rounded-[5px] text-xs sm:text-[13px] font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1 transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -372,11 +372,11 @@ export function RegisterPage() {
           </form>
 
           {/* Ir a Login */}
-          <div className="text-center text-xs text-[#64748B] mt-6 pt-5 border-t border-[#F1F5F9]">
+          <div className="text-center text-xs text-[var(--text-secondary)] mt-6 pt-5 border-t border-[var(--border-muted)]">
             ¿Ya tienes una cuenta?{' '}
             <Link
               to="/login"
-              className="font-semibold text-[#2563EB] hover:text-[#1D4ED8] hover:underline transition-colors ml-0.5"
+              className="font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline transition-colors ml-0.5"
             >
               Inicia sesión
             </Link>
@@ -385,7 +385,7 @@ export function RegisterPage() {
       </div>
 
       {/* Footer */}
-      <footer className="w-full max-w-[400px] text-center pt-6 pb-2 text-xs text-[#94A3B8]">
+      <footer className="w-full max-w-[400px] text-center pt-6 pb-2 text-xs text-[var(--text-muted)]">
         <p>© 2026 PrintShop. Todos los derechos reservados.</p>
       </footer>
     </div>
