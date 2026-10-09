@@ -95,7 +95,7 @@ export function CheckoutPage() {
           <div className="mb-7">
             <Link
               to="/cart"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#64748B] hover:text-[#111827] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Volver al carrito</span>
@@ -107,20 +107,20 @@ export function CheckoutPage() {
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full border border-success bg-surfaceMuted text-success">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <h1 className="text-xl font-bold text-[#111827]">
+              <h1 className="text-xl font-bold text-[var(--text-primary)]">
                 Demostración de flujo completada
               </h1>
-              <p className="text-xs sm:text-[13px] text-[#64748B] leading-relaxed max-w-sm mx-auto">
+              <p className="text-xs sm:text-[13px] text-[var(--text-secondary)] leading-relaxed max-w-sm mx-auto">
                 La experiencia visual del checkout está lista. En la siguiente
                 fase conectaremos la creación de órdenes con{" "}
-                <strong className="text-[#111827]">Supabase</strong> y el
+                <strong className="text-[var(--text-primary)]">Supabase</strong> y el
                 procesamiento de pagos con{" "}
-                <strong className="text-[#111827]">Mercado Pago</strong>.
+                <strong className="text-[var(--text-primary)]">Mercado Pago</strong>.
               </p>
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5">
                 <Link
                   to="/cart"
-                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-[#1E293B] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] rounded-[5px] transition-colors"
+                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-[var(--text-primary)] bg-white border border-[var(--border)] hover:bg-[var(--surface-muted)] rounded-[5px] transition-colors"
                 >
                   Regresar al carrito
                 </Link>
@@ -138,18 +138,18 @@ export function CheckoutPage() {
               <div className="min-w-0 space-y-6 lg:col-span-8">
                 {/* Paso 1: Datos de Entrega */}
                 <div className="space-y-5 rounded-card border border-border bg-surface p-5 shadow-card sm:p-7">
-                  <div className="flex items-center gap-2 pb-3 border-b border-[#F1F5F9]">
+                  <div className="flex items-center gap-2 pb-3 border-b border-[var(--border-muted)]">
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primaryForeground">
                       1
                     </span>
-                    <h2 className="text-sm sm:text-base font-bold text-[#111827]">
+                    <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
                       Dirección de envío
                     </h2>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div>
-                      <label className="block text-[#475569] font-semibold mb-1">
+                      <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                         Nombre completo *
                       </label>
                       <input
@@ -160,7 +160,7 @@ export function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[#475569] font-semibold mb-1">
+                      <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                         Correo electrónico *
                       </label>
                       <input
@@ -171,7 +171,7 @@ export function CheckoutPage() {
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-[#475569] font-semibold mb-1">
+                      <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                         Dirección de entrega *
                       </label>
                       <input
@@ -182,7 +182,7 @@ export function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[#475569] font-semibold mb-1">
+                      <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                         Ciudad *
                       </label>
                       <input
@@ -193,7 +193,7 @@ export function CheckoutPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-[#475569] font-semibold mb-1">
+                      <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                         Teléfono de contacto *
                       </label>
                       <input
@@ -208,11 +208,11 @@ export function CheckoutPage() {
 
                 {/* Paso 2: Método de Pago (Mercado Pago) */}
                 <div className="space-y-5 rounded-card border border-border bg-surface p-5 shadow-card sm:p-7">
-                  <div className="flex items-center gap-2 pb-3 border-b border-[#F1F5F9]">
+                  <div className="flex items-center gap-2 pb-3 border-b border-[var(--border-muted)]">
                     <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-xs font-bold text-primaryForeground">
                       2
                     </span>
-                    <h2 className="text-sm sm:text-base font-bold text-[#111827]">
+                    <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)]">
                       Método de pago
                     </h2>
                   </div>
@@ -239,10 +239,10 @@ export function CheckoutPage() {
                           <div className="flex items-center gap-3 min-w-0">
                             <MercadoPagoOfficialLogo className="h-6 sm:h-7 w-auto shrink-0" />
                             <div>
-                              <span className="text-xs sm:text-sm font-bold text-[#111827]">
+                              <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
                                 Mercado Pago
                               </span>
-                              <span className="text-[11px] text-[#64748B] block sm:inline sm:ml-2">
+                              <span className="text-[11px] text-[var(--text-secondary)] block sm:inline sm:ml-2">
                                 Tarjetas · PSE · Nequi · Efectivo
                               </span>
                             </div>
@@ -251,7 +251,7 @@ export function CheckoutPage() {
                             Recomendado
                           </span>
                         </div>
-                        <p className="text-[11px] text-[#64748B] mt-2 leading-relaxed">
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-2 leading-relaxed">
                           Pago con total seguridad mediante la plataforma oficial de Mercado Pago en Colombia.
                         </p>
                       </div>
@@ -276,15 +276,15 @@ export function CheckoutPage() {
                         <div className="flex items-center gap-3">
                           <WompiOfficialLogo className="h-8 w-auto shrink-0" />
                           <div>
-                            <span className="text-xs sm:text-sm font-bold text-[#111827]">
+                            <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
                               Wompi
                             </span>
-                            <span className="text-[11px] text-[#64748B] block sm:inline sm:ml-2">
+                            <span className="text-[11px] text-[var(--text-secondary)] block sm:inline sm:ml-2">
                               Tarjetas · Bancolombia · Nequi · PSE
                             </span>
                           </div>
                         </div>
-                        <p className="text-[11px] text-[#64748B] mt-2 leading-relaxed">
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-2 leading-relaxed">
                           Paga en línea con débito a tu cuenta Bancolombia, Nequi, PSE o tarjetas de crédito.
                         </p>
                       </div>
@@ -309,15 +309,15 @@ export function CheckoutPage() {
                         <div className="flex items-center gap-3">
                           <PSEOfficialLogo className="h-8 w-auto shrink-0" />
                           <div>
-                            <span className="text-xs sm:text-sm font-bold text-[#111827]">
+                            <span className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">
                               Transferencia bancaria (PSE)
                             </span>
-                            <span className="text-[11px] text-[#64748B] block sm:inline sm:ml-2">
+                            <span className="text-[11px] text-[var(--text-secondary)] block sm:inline sm:ml-2">
                               Débito desde cuenta de ahorros o corriente
                             </span>
                           </div>
                         </div>
-                        <p className="text-[11px] text-[#64748B] mt-2 leading-relaxed">
+                        <p className="text-[11px] text-[var(--text-secondary)] mt-2 leading-relaxed">
                           Pago inmediato y seguro a través de PSE ACH Colombia con cualquier banco del país.
                         </p>
                       </div>
@@ -329,7 +329,7 @@ export function CheckoutPage() {
               {/* Resumen Lateral en Checkout (4 cols) */}
               <div className="min-w-0 space-y-4 lg:sticky lg:top-24 lg:col-span-4">
                 <div className="space-y-5 rounded-card border border-border bg-surface p-5 shadow-card sm:p-6">
-                  <h2 className="text-sm sm:text-base font-bold text-[#111827] pb-3 border-b border-[#F1F5F9]">
+                  <h2 className="text-sm sm:text-base font-bold text-[var(--text-primary)] pb-3 border-b border-[var(--border-muted)]">
                     Resumen del pedido ({totalItemsCount}{" "}
                     {totalItemsCount === 1 ? "artículo" : "artículos"})
                   </h2>
@@ -338,9 +338,9 @@ export function CheckoutPage() {
                     {items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-2.5 text-xs text-[#475569]"
+                        className="flex items-center gap-2.5 text-xs text-[var(--text-secondary)]"
                       >
-                        <div className="h-10 w-10 rounded-[4px] bg-[#F8FAFC] border border-[#E2E8F0] p-1 shrink-0 flex items-center justify-center">
+                        <div className="h-10 w-10 rounded-[4px] bg-[var(--surface-muted)] border border-[var(--border)] p-1 shrink-0 flex items-center justify-center">
                           <img
                             src={item.image}
                             alt={item.name}
@@ -348,10 +348,10 @@ export function CheckoutPage() {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-[#111827] truncate">
+                          <p className="font-semibold text-[var(--text-primary)] truncate">
                             {item.name}
                           </p>
-                          <p className="text-[10px] text-[#64748B]">
+                          <p className="text-[10px] text-[var(--text-secondary)]">
                             Cant: {item.quantity}
                             {item.itemType === "design" ? (
                               <span className="ml-1 font-semibold text-primary">
@@ -373,7 +373,7 @@ export function CheckoutPage() {
                             )}
                           </p>
                         </div>
-                        <span className="font-bold text-[#111827]">
+                        <span className="font-bold text-[var(--text-primary)]">
                           {formatCurrency(item.price * item.quantity)}
                         </span>
                       </div>
@@ -381,10 +381,10 @@ export function CheckoutPage() {
                   </div>
 
                   {/* Totales */}
-                  <div className="pt-3 border-t border-[#F1F5F9] space-y-2 text-xs">
-                    <div className="flex justify-between text-[#64748B]">
+                  <div className="pt-3 border-t border-[var(--border-muted)] space-y-2 text-xs">
+                    <div className="flex justify-between text-[var(--text-secondary)]">
                       <span>Subtotal</span>
-                      <span className="font-semibold text-[#111827]">
+                      <span className="font-semibold text-[var(--text-primary)]">
                         {formatCurrency(subtotal)}
                       </span>
                     </div>
@@ -394,13 +394,13 @@ export function CheckoutPage() {
                         <span>-{formatCurrency(discount)}</span>
                       </div>
                     )}
-                    <div className="flex justify-between text-[#64748B]">
+                    <div className="flex justify-between text-[var(--text-secondary)]">
                       <span>Envío</span>
                       <span>
                         {shipping === 0 ? "Gratis" : formatCurrency(shipping)}
                       </span>
                     </div>
-                    <div className="pt-2 border-t border-[#E5E7EB] flex justify-between items-baseline font-bold text-[#111827]">
+                    <div className="pt-2 border-t border-[var(--border)] flex justify-between items-baseline font-bold text-[var(--text-primary)]">
                       <span className="text-sm">Total a pagar</span>
                       <span className="text-base font-black">
                         {formatCurrency(total)}
@@ -426,7 +426,7 @@ export function CheckoutPage() {
                     </button>
                   </form>
 
-                  <div className="flex items-center justify-center gap-1.5 text-[10.5px] text-[#64748B] pt-1">
+                  <div className="flex items-center justify-center gap-1.5 text-[10.5px] text-[var(--text-secondary)] pt-1">
                     <ShieldCheck className="h-3.5 w-3.5 text-success" />
                     <span>Transacción cifrada y protegida</span>
                   </div>
