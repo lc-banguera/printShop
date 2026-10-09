@@ -18,10 +18,10 @@ export const UserActions: React.FC<UserActionsProps> = ({ className, compact = f
   const favoritesCount = useFavoritesStore((s) => s.getFavoritesCount(user?.id));
 
   const actionLinkClass =
-    'flex items-center gap-1.5 text-[13.5px] font-medium text-[#374151] transition-colors duration-200 hover:text-[#5D46E8]';
+    'flex items-center gap-1.5 text-[13.5px] font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--primary)]';
 
   const iconBadgeClass =
-    'absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#5D46E8] px-1 text-[9px] font-bold leading-none text-white';
+    'absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--primary)] px-1 text-[9px] font-bold leading-none text-white';
 
   return (
     <div className={cn('flex items-center gap-3 sm:gap-4 lg:gap-5', className)} {...divProps}>
@@ -67,7 +67,7 @@ export const UserActions: React.FC<UserActionsProps> = ({ className, compact = f
 
           <Link
             to="/register"
-            className="flex items-center justify-center rounded-[9px] bg-[#5D46E8] px-4 py-2 text-[13.5px] font-semibold text-white shadow-[0_2px_8px_rgba(93,70,232,0.25)] transition-all duration-200 hover:bg-[#4F35E2] hover:scale-[1.02] sm:px-4.5 sm:py-2.5"
+            className="flex items-center justify-center rounded-[9px] bg-[var(--primary)] px-4 py-2 text-[13.5px] font-semibold text-white shadow-[0_2px_8px_rgba(93,70,232,0.25)] transition-all duration-200 hover:bg-[var(--primary-hover)] hover:scale-[1.02] sm:px-4.5 sm:py-2.5"
           >
             {headerData.registerLabel}
           </Link>

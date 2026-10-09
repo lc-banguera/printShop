@@ -11,15 +11,15 @@ export const NavLinks: React.FC<NavLinksProps> = ({ className, ...props }) => {
 
   const navLinkClass = (isActive: boolean, isDropdownTrigger = false) =>
     cn(
-      'relative flex items-center gap-1 whitespace-nowrap px-1 py-1.5 text-[14px] font-medium leading-none text-[#374151] transition-colors duration-200 hover:text-[#5D46E8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focusRing',
-      isActive && 'text-[#5D46E8] font-semibold',
+      'relative flex items-center gap-1 whitespace-nowrap px-1 py-1.5 text-[14px] font-medium leading-none text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focusRing',
+      isActive && 'text-[var(--primary)] font-semibold',
       isDropdownTrigger && 'rounded-md',
     );
 
   return (
     <nav
       className={cn(
-        'flex min-w-0 w-full flex-wrap items-center justify-start gap-x-4 gap-y-2 text-[14px] font-medium text-[#374151] lg:flex-nowrap lg:justify-center lg:gap-x-5 xl:gap-x-6',
+        'flex min-w-0 w-full flex-wrap items-center justify-start gap-x-4 gap-y-2 text-[14px] font-medium text-[var(--text-secondary)] lg:flex-nowrap lg:justify-center lg:gap-x-5 xl:gap-x-6',
         className,
       )}
       {...props}
