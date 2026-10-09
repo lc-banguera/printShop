@@ -933,7 +933,7 @@ export default function UsersPage() {
       {/* Notificación Flotante */}
       {modalNotice && (
         <div className="fixed bottom-5 right-5 z-50 bg-[var(--text-primary)] text-white text-xs px-3.5 py-2 rounded-[5px] shadow-lg flex items-center gap-2">
-          <Check className="h-4 w-4 text-emerald-400" />
+          <Check className="h-4 w-4 text-[var(--success)]" />
           <span>{modalNotice}</span>
         </div>
       )}

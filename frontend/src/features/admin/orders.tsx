@@ -585,9 +585,9 @@ export default function Orders() {
                           <div className="my-1 border-t border-[var(--surface-muted)]" />
                           <DropdownMenuItem
                             onClick={() => showNotice("Incidencia reportada")}
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-red-600 rounded hover:bg-red-50 cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--danger-strong)] rounded hover:bg-[var(--danger-muted)] cursor-pointer"
                           >
-                            <AlertTriangle className="h-3.5 w-3.5 text-red-600" />
+                            <AlertTriangle className="h-3.5 w-3.5 text-[var(--danger-strong)]" />
                             <span>Reportar incidencia</span>
                           </DropdownMenuItem>
                         </DropdownMenuContent>

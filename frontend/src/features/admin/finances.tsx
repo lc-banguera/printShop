@@ -494,7 +494,7 @@ export default function Finances() {
               >
                 {copiedId === detailMovement.id ? (
                   <>
-                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                    <Check className="h-3.5 w-3.5 text-[var(--success)]" />
                     <span>ID Copiado</span>
                   </>
                 ) : (
