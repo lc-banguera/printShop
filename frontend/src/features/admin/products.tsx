@@ -482,7 +482,7 @@ export default function Products() {
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
-                          className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-2xs focus:outline-none cursor-pointer"
+                          className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-2xs focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 cursor-pointer"
                           title="Más opciones"
                         >
                           <MoreVertical className="h-3.5 w-3.5" />
