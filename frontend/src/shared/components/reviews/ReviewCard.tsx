@@ -44,22 +44,22 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOpenImage }) =
       .toUpperCase();
 
   return (
-    <article className="border-b border-[#E5E7EB] pb-6 pt-1 last:border-b-0 last:pb-0">
+    <article className="border-b border-border pb-6 pt-1 last:border-b-0 last:pb-0">
       {/* User Header */}
       <div className="flex items-center gap-3">
         <Avatar
           src={review.user.avatar}
           alt={review.user.name}
           fallback={avatarFallback}
-          className="h-10 w-10 rounded-full border border-[#E5E7EB] bg-[#F1F5F9] text-xs font-bold text-[#111827]"
+          className="h-10 w-10 rounded-full border border-border bg-surfaceStrong text-xs font-bold text-foreground"
         />
         <div>
-          <h4 className="text-xs sm:text-sm font-bold text-[#111827]">
+          <h4 className="text-xs sm:text-sm font-bold text-foreground">
             {review.user.name}
           </h4>
           <div className="mt-0.5 flex items-center gap-2">
             <ReviewRatingStars rating={review.rating} sizeClassName="h-3.5 w-3.5" />
-            <span className="text-[11px] text-[#6B7280]">
+            <span className="text-[11px] text-foregroundMuted">
               · {review.date}
             </span>
           </div>
@@ -68,13 +68,13 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOpenImage }) =
 
       {/* Review Title */}
       {review.title && (
-        <h5 className="mt-3 text-xs sm:text-sm font-bold text-[#111827]">
+        <h5 className="mt-3 text-xs sm:text-sm font-bold text-foreground">
           {review.title}
         </h5>
       )}
 
       {/* Review Comment */}
-      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-[#4B5563]">
+      <p className="mt-1 text-xs sm:text-sm leading-relaxed text-foregroundMuted">
         {review.comment}
       </p>
 
@@ -87,7 +87,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOpenImage }) =
               type="button"
               onClick={() => onOpenImage(review, idx)}
               aria-label={`Ver foto ${idx + 1} de la reseña`}
-              className="group relative h-20 w-20 sm:h-22 sm:w-22 overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-[#F8FAFC] transition-transform hover:scale-102 hover:border-[#1D4ED8]"
+              className="group relative h-20 w-20 sm:h-22 sm:w-22 overflow-hidden rounded-[5px] border border-border bg-surfaceMuted transition-transform hover:scale-102 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
             >
               <img
                 src={img}
@@ -100,7 +100,7 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOpenImage }) =
       )}
 
       {/* Helpful controls */}
-      <div className="mt-3 flex items-center gap-3 text-xs text-[#6B7280]">
+      <div className="mt-3 flex items-center gap-3 text-xs text-foregroundMuted">
         <span className="text-[11px] sm:text-xs">¿Te resultó útil?</span>
         <div className="flex items-center gap-1.5">
           <button
@@ -108,9 +108,9 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOpenImage }) =
             onClick={handleVoteYes}
             className={`inline-flex items-center gap-1 rounded-[5px] border px-2.5 py-1 text-xs font-medium transition-colors ${
               userVote === 'yes'
-                ? 'border-[#1D4ED8] bg-[#EFF6FF] text-[#1D4ED8]'
-                : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:border-[#94A3B8] hover:bg-[#F8FAFC]'
-            }`}
+                ? 'border-primary bg-accentMuted text-primary'
+                : 'border-border bg-surface text-foregroundMuted hover:border-borderStrong hover:bg-surfaceMuted'
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
           >
             <ThumbsUp className="h-3.5 w-3.5" />
             <span>Sí {helpfulCount > 0 ? helpfulCount : ''}</span>
@@ -120,9 +120,9 @@ export const ReviewCard: React.FC<ReviewCardProps> = ({ review, onOpenImage }) =
             onClick={handleVoteNo}
             className={`inline-flex items-center gap-1 rounded-[5px] border px-2.5 py-1 text-xs font-medium transition-colors ${
               userVote === 'no'
-                ? 'border-[#6B7280] bg-[#F1F5F9] text-[#111827]'
-                : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:border-[#94A3B8] hover:bg-[#F8FAFC]'
-            }`}
+                ? 'border-borderStrong bg-surfaceStrong text-foreground'
+                : 'border-border bg-surface text-foregroundMuted hover:border-borderStrong hover:bg-surfaceMuted'
+            } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
           >
             <ThumbsDown className="h-3.5 w-3.5" />
             <span>No</span>

@@ -34,10 +34,10 @@ export const ReviewPhotosGallery: React.FC<ReviewPhotosGalleryProps> = ({
   const remainingCount = Math.max(1, countDisplay - 5);
 
   return (
-    <div className="mt-4 rounded-[5px] border border-[#E5E7EB] bg-white p-3.5 sm:p-4">
+    <div className="mt-4 rounded-[5px] border border-border bg-surface p-3.5 sm:p-4">
       {/* Header */}
-      <div className="flex items-center gap-2 text-xs font-bold text-[#111827] mb-3">
-        <Camera className="h-4 w-4 text-[#111827]" />
+      <div className="flex items-center gap-2 text-xs font-bold text-foreground mb-3">
+        <Camera className="h-4 w-4 text-foreground" />
         <span>Opiniones con fotos ({countDisplay})</span>
       </div>
 
@@ -49,7 +49,7 @@ export const ReviewPhotosGallery: React.FC<ReviewPhotosGalleryProps> = ({
               key={idx}
               type="button"
               onClick={() => onOpenPhoto(item.review, item.imageIndex)}
-              className="group relative aspect-square overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-[#F8FAFC] transition-transform hover:scale-102 hover:border-[#1D4ED8]"
+              className="group relative aspect-square overflow-hidden rounded-[5px] border border-border bg-surfaceMuted transition-transform hover:scale-102 hover:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
             >
               <img
                 src={item.url}
@@ -63,7 +63,7 @@ export const ReviewPhotosGallery: React.FC<ReviewPhotosGalleryProps> = ({
           <button
             type="button"
             onClick={() => onOpenPhoto(fifthPhoto.review, fifthPhoto.imageIndex)}
-            className="group relative aspect-square overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-[#F8FAFC] transition-transform hover:scale-102"
+            className="group relative aspect-square overflow-hidden rounded-[5px] border border-border bg-surfaceMuted transition-transform hover:scale-102 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
           >
             <img
               src={fifthPhoto.url}
@@ -81,7 +81,7 @@ export const ReviewPhotosGallery: React.FC<ReviewPhotosGalleryProps> = ({
           type="button"
           onClick={() => onOpenPhoto(fifthPhoto.review, fifthPhoto.imageIndex)}
           aria-label="Ver más opiniones con fotos"
-          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#374151] shadow-2xs transition-colors hover:border-[#1D4ED8] hover:text-[#1D4ED8]"
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foregroundMuted shadow-2xs transition-colors hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
         >
           <ChevronRight className="h-3.5 w-3.5" />
         </button>

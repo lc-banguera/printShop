@@ -98,7 +98,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         {/* Left Column: Title, Rating, Distribution & Opiniones con fotos */}
         <aside className="lg:col-span-4 xl:col-span-4 flex flex-col">
           {/* Main Title */}
-          <h3 className="text-base sm:text-lg font-bold text-[#111827] mb-3">
+          <h3 className="text-base sm:text-lg font-bold text-foreground mb-3">
             {title}
           </h3>
 
@@ -125,13 +125,13 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
         <main className="lg:col-span-8 xl:col-span-8 flex flex-col">
           {/* Top Sort Control (NO star filter buttons) */}
           <div className="flex items-center justify-end pb-3">
-            <div className="flex items-center gap-2 text-xs text-[#6B7280]">
+            <div className="flex items-center gap-2 text-xs text-foregroundMuted">
               <span>Ordenar por:</span>
               <select
                 aria-label="Ordenar reseñas"
                 value={activeSort}
                 onChange={(e) => setActiveSort(e.target.value as ReviewSortOption)}
-                className="rounded-[5px] border border-[#E5E7EB] bg-white px-3 py-1.5 text-xs font-medium text-[#111827] transition-colors hover:border-[#94A3B8] focus:border-[#1D4ED8] focus:outline-hidden cursor-pointer shadow-2xs"
+                className="rounded-[5px] border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-borderStrong focus:border-primary focus:outline-hidden focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 cursor-pointer shadow-2xs"
               >
                 <option value="relevance">Más relevantes</option>
                 <option value="recent">Más recientes</option>
@@ -153,8 +153,8 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
                 />
               ))
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-[5px] border border-dashed border-[#CBD5E1] bg-[#F8FAFC] p-8 text-center">
-                <p className="text-xs sm:text-sm font-medium text-[#64748B]">
+              <div className="flex flex-col items-center justify-center rounded-[5px] border border-dashed border-borderStrong bg-surfaceMuted p-8 text-center">
+                <p className="text-xs sm:text-sm font-medium text-foregroundMuted">
                   {emptyMessage}
                 </p>
               </div>
@@ -167,7 +167,7 @@ export const ReviewSection: React.FC<ReviewSectionProps> = ({
               <button
                 type="button"
                 onClick={() => setShowAllReviews((prev) => !prev)}
-                className="w-full sm:w-auto min-w-[280px] rounded-[5px] border border-[#1D4ED8] bg-white px-6 py-2.5 text-center text-xs sm:text-sm font-semibold text-[#1D4ED8] shadow-2xs transition-colors hover:bg-[#EFF6FF]"
+                className="w-full sm:w-auto min-w-[280px] rounded-[5px] border border-primary bg-surface px-6 py-2.5 text-center text-xs sm:text-sm font-semibold text-primary shadow-2xs transition-colors hover:bg-accentMuted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
               >
                 {showAllReviews
                   ? `Ver menos reseñas (${totalReviews})`

@@ -33,20 +33,20 @@ export const ReviewDistribution: React.FC<ReviewDistributionProps> = ({
             className="flex items-center gap-3 text-xs"
           >
             {/* Star label */}
-            <span className="w-18 shrink-0 text-[#374151] font-normal">
+            <span className="w-18 shrink-0 text-foregroundMuted font-normal">
               {label}
             </span>
 
             {/* Horizontal progress bar */}
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#E5E7EB]">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-border">
               <div
-                className="h-full rounded-full bg-[#2563EB] transition-all duration-300"
+                className="h-full rounded-full bg-accentBlue transition-all duration-300"
                 style={{ width: `${Math.min(100, Math.max(2, barWidth))}%` }}
               />
             </div>
 
             {/* Exact count on the right (NO percentage, matching reference) */}
-            <span className="w-7 shrink-0 text-right text-xs text-[#6B7280]">
+            <span className="w-7 shrink-0 text-right text-xs text-foregroundMuted">
               {item.count}
             </span>
           </div>

@@ -104,18 +104,18 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative flex flex-col max-h-[92vh] w-full max-w-[500px] sm:max-w-[520px] overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white text-[#111827] shadow-xl"
+        className="relative flex flex-col max-h-[92vh] w-full max-w-[500px] sm:max-w-[520px] overflow-hidden rounded-dialog border border-border bg-surface text-foreground shadow-modal"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header matching reference image: Title | Counter badge | Close button */}
-        <div className="flex items-center justify-between border-b border-[#E5E7EB] px-4 py-3 bg-white">
-          <span className="text-xs sm:text-sm font-bold text-[#111827]">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3 bg-surface">
+          <span className="text-xs sm:text-sm font-bold text-foreground">
             Foto del comprador
           </span>
 
           <div className="flex items-center gap-3">
             {images.length > 1 && (
-              <span className="rounded-[4px] bg-[#F1F5F9] px-2 py-0.5 text-xs font-medium text-[#64748B]">
+              <span className="rounded-[4px] bg-surfaceStrong px-2 py-0.5 text-xs font-medium text-foregroundMuted">
                 {currentIndex + 1} de {images.length}
               </span>
             )}
@@ -124,7 +124,7 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
               type="button"
               onClick={onClose}
               aria-label="Cerrar visor"
-              className="flex h-6 w-6 items-center justify-center rounded-[4px] text-[#6B7280] transition-colors hover:bg-[#F3F4F6] hover:text-[#111827]"
+              className="flex h-6 w-6 items-center justify-center rounded-[4px] text-foregroundMuted transition-colors hover:bg-surfaceMuted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
             >
               <X className="h-4 w-4" />
             </button>
@@ -134,7 +134,7 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
         {/* Scrollable container for image and review details */}
         <div className="overflow-y-auto max-h-[calc(92vh-50px)]">
           {/* Main Large Image Presentation */}
-          <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-[#F8FAFC]">
+          <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden bg-surfaceMuted">
             <img
               src={currentImage}
               alt="Foto del comprador en tamaño grande"
@@ -147,7 +147,7 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
                   type="button"
                   onClick={handlePrev}
                   aria-label="Foto anterior"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#2563EB] shadow-md transition-colors hover:bg-[#EFF6FF]"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-primary shadow-md transition-colors hover:bg-accentMuted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </button>
@@ -155,7 +155,7 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
                   type="button"
                   onClick={handleNext}
                   aria-label="Foto siguiente"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-[#E5E7EB] bg-white text-[#2563EB] shadow-md transition-colors hover:bg-[#EFF6FF]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-primary shadow-md transition-colors hover:bg-accentMuted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </button>
@@ -165,7 +165,7 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
 
           {/* Thumbnails strip (if multiple images) */}
           {images.length > 1 && (
-            <div className="flex items-center gap-2 border-b border-[#F1F5F9] bg-white px-4 py-2.5">
+            <div className="flex items-center gap-2 border-b border-borderMuted bg-surface px-4 py-2.5">
               {images.map((img, idx) => (
                 <button
                   key={idx}
@@ -173,9 +173,9 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
                   onClick={() => setCurrentIndex(idx)}
                   className={`relative h-14 w-14 shrink-0 overflow-hidden rounded-[5px] border-2 transition-all ${
                     idx === currentIndex
-                      ? 'border-[#2563EB]'
-                      : 'border-[#E5E7EB] opacity-70 hover:opacity-100'
-                  }`}
+                      ? 'border-primary'
+                      : 'border-border opacity-70 hover:opacity-100'
+                  } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
                 >
                   <img
                     src={img}
@@ -189,22 +189,22 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
 
           {/* Review Details Info */}
           {review && (
-            <div className="p-4 sm:p-5 bg-white">
+            <div className="p-4 sm:p-5 bg-surface">
               {/* User Header */}
               <div className="flex items-center gap-3">
                 <Avatar
                   src={review.user.avatar}
                   alt={review.user.name}
                   fallback={avatarFallback}
-                  className="h-9 w-9 rounded-full border border-[#E5E7EB] bg-[#F1F5F9] text-xs font-bold text-[#111827]"
+                  className="h-9 w-9 rounded-full border border-border bg-surfaceStrong text-xs font-bold text-foreground"
                 />
                 <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-[#111827]">
+                  <h4 className="text-xs sm:text-sm font-bold text-foreground">
                     {review.user.name}
                   </h4>
                   <div className="mt-0.5 flex items-center gap-2">
                     <ReviewRatingStars rating={review.rating} sizeClassName="h-3.5 w-3.5" />
-                    <span className="text-[11px] text-[#6B7280]">
+                    <span className="text-[11px] text-foregroundMuted">
                       · {review.date}
                     </span>
                   </div>
@@ -213,18 +213,18 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
 
               {/* Title */}
               {review.title && (
-                <h5 className="mt-3 text-xs sm:text-sm font-bold text-[#111827]">
+                <h5 className="mt-3 text-xs sm:text-sm font-bold text-foreground">
                   {review.title}
                 </h5>
               )}
 
               {/* Comment */}
-              <p className="mt-1.5 text-xs sm:text-sm leading-relaxed text-[#4B5563]">
+              <p className="mt-1.5 text-xs sm:text-sm leading-relaxed text-foregroundMuted">
                 {review.comment}
               </p>
 
               {/* Helpful feedback controls (NO verified purchase text) */}
-              <div className="mt-4 flex items-center gap-3 text-xs text-[#6B7280]">
+              <div className="mt-4 flex items-center gap-3 text-xs text-foregroundMuted">
                 <span>¿Te resultó útil?</span>
                 <div className="flex items-center gap-1.5">
                   <button
@@ -232,9 +232,9 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
                     onClick={handleVoteYes}
                     className={`inline-flex items-center gap-1 rounded-[5px] border px-2.5 py-1 text-xs font-medium transition-colors ${
                       userVote === 'yes'
-                        ? 'border-[#1D4ED8] bg-[#EFF6FF] text-[#1D4ED8]'
-                        : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:border-[#94A3B8] hover:bg-[#F8FAFC]'
-                    }`}
+                        ? 'border-primary bg-accentMuted text-primary'
+                        : 'border-border bg-surface text-foregroundMuted hover:border-borderStrong hover:bg-surfaceMuted'
+                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
                   >
                     <ThumbsUp className="h-3.5 w-3.5" />
                     <span>Sí {helpfulCount > 0 ? helpfulCount : ''}</span>
@@ -244,9 +244,9 @@ export const ReviewImageViewer: React.FC<ReviewImageViewerProps> = ({
                     onClick={handleVoteNo}
                     className={`inline-flex items-center gap-1 rounded-[5px] border px-2.5 py-1 text-xs font-medium transition-colors ${
                       userVote === 'no'
-                        ? 'border-[#6B7280] bg-[#F1F5F9] text-[#111827]'
-                        : 'border-[#E5E7EB] bg-white text-[#4B5563] hover:border-[#94A3B8] hover:bg-[#F8FAFC]'
-                    }`}
+                        ? 'border-borderStrong bg-surfaceStrong text-foreground'
+                        : 'border-border bg-surface text-foregroundMuted hover:border-borderStrong hover:bg-surfaceMuted'
+                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2`}
                   >
                     <ThumbsDown className="h-3.5 w-3.5" />
                     <span>No</span>

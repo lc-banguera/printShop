@@ -22,7 +22,7 @@ export const ReviewRatingStars: React.FC<ReviewRatingStarsProps> = ({
           <Star
             key={index}
             className={`${sizeClassName} ${
-              isFilled ? 'fill-[#F59E0B] text-[#F59E0B]' : 'text-[#D1D5DB]'
+              isFilled ? 'fill-[#F59E0B] text-[#F59E0B]' : 'text-borderStrong'
             }`}
           />
         );
