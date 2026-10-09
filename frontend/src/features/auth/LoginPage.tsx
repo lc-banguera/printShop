@@ -128,10 +128,10 @@ export function LoginPage() {
         <div className="mb-6 text-center">
           <Link
             to="/"
-            className="inline-flex items-center gap-2.5 transition-transform hover:opacity-95"
+            className="inline-flex items-center gap-2.5 rounded-control transition-transform hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
             title="Volver al inicio"
           >
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[6px] bg-[var(--primary)] text-base font-black text-white shadow-2xs">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-[var(--primary)] text-base font-black text-white shadow-2xs">
               P
             </span>
             <span className="text-[22px] font-black tracking-tight text-[var(--text-primary)]">
@@ -141,7 +141,7 @@ export function LoginPage() {
         </div>
 
         {/* ── Contenedor Principal (Tarjeta Minimalista SaaS) ─────────── */}
-        <div className="bg-white rounded-[5px] border border-[var(--border)] shadow-xs w-full max-w-[390px] p-6 sm:p-8">
+        <div className="bg-surface rounded-card border border-[var(--border)] shadow-card w-full max-w-[390px] p-6 sm:p-8">
           {/* ── 2 & 3. Título y Subtítulo ──────────────────────────────── */}
           <div className="text-center mb-6">
             <h1 className="text-xl sm:text-[22px] font-bold text-[var(--text-primary)] tracking-tight">
@@ -154,7 +154,7 @@ export function LoginPage() {
 
           {/* Mensaje de error general si ocurriese */}
           {errors.general && (
-            <div className="mb-4 p-3 rounded-[5px] bg-[var(--danger-muted)] border border-[var(--danger-muted)] text-xs text-[var(--danger-strong)] flex items-start gap-2 animate-in fade-in duration-150">
+            <div className="mb-4 p-3 rounded-control bg-[var(--danger-muted)] border border-[var(--danger-muted)] text-xs text-[var(--danger-strong)] flex items-start gap-2 animate-in fade-in duration-150">
               <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
               <span>{errors.general}</span>
             </div>
@@ -165,7 +165,7 @@ export function LoginPage() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={isFormDisabled}
-            className="w-full h-10 px-4 rounded-[5px] border border-[var(--border)] bg-white text-xs sm:text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] active:bg-[var(--border-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20 transition-all flex items-center justify-center gap-2.5 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-10 px-4 rounded-control border border-[var(--border)] bg-surface text-xs sm:text-[13px] font-medium text-[var(--text-primary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] active:bg-[var(--border-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/20 transition-all flex items-center justify-center gap-2.5 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isGoogleLoading ? (
               <>
@@ -185,7 +185,7 @@ export function LoginPage() {
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-[var(--border)]" />
             </div>
-            <div className="relative bg-white px-3 text-[11px] font-medium text-[var(--text-muted)] lowercase tracking-wide">
+            <div className="relative bg-surface px-3 text-[11px] font-medium text-[var(--text-muted)] lowercase tracking-wide">
               o continúa con tu correo
             </div>
           </div>
@@ -225,7 +225,7 @@ export function LoginPage() {
                   }}
                   onBlur={() => handleBlur('email')}
                   placeholder="nombre@ejemplo.com"
-                  className={`w-full h-10 pl-9 pr-3 rounded-[5px] border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-white outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
+                  className={`w-full h-10 pl-9 pr-3 rounded-control border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-surface outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
                     touched.email && errors.email
                       ? 'border-[var(--danger-strong)] focus:border-[var(--danger-strong)] focus:ring-1 focus:ring-[var(--danger-strong)]'
                       : 'border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]'
@@ -273,7 +273,7 @@ export function LoginPage() {
                   }}
                   onBlur={() => handleBlur('password')}
                   placeholder="Ingresa tu contraseña"
-                  className={`w-full h-10 pl-9 pr-10 rounded-[5px] border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-white outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
+                  className={`w-full h-10 pl-9 pr-10 rounded-control border text-xs sm:text-[13px] text-[var(--text-primary)] placeholder:text-[var(--text-muted)] bg-surface outline-none transition-all shadow-2xs disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)] disabled:cursor-not-allowed ${
                     touched.password && errors.password
                       ? 'border-[var(--danger-strong)] focus:border-[var(--danger-strong)] focus:ring-1 focus:ring-[var(--danger-strong)]'
                       : 'border-[var(--border)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]'
@@ -284,7 +284,7 @@ export function LoginPage() {
                   tabIndex={-1}
                   disabled={isFormDisabled}
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer disabled:cursor-not-allowed"
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors cursor-pointer disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30"
                   title={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                   aria-label={showPassword ? 'Ocultar contraseña' : 'Ver contraseña'}
                 >
@@ -318,7 +318,7 @@ export function LoginPage() {
 
               <Link
                 to="/forgot-password"
-                className="text-xs font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline transition-colors"
+                className="rounded-sm text-xs font-medium text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -329,7 +329,7 @@ export function LoginPage() {
               <button
                 type="submit"
                 disabled={isFormDisabled}
-                className="w-full h-10 px-4 rounded-[5px] text-xs sm:text-[13px] font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1 transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full h-10 px-4 rounded-control text-xs sm:text-[13px] font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] focus-visible:ring-offset-1 transition-all flex items-center justify-center gap-2 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
@@ -348,7 +348,7 @@ export function LoginPage() {
             ¿No tienes una cuenta?{' '}
             <Link
               to="/register"
-              className="font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline transition-colors ml-0.5"
+              className="rounded-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] hover:underline transition-colors ml-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
             >
               Crear cuenta
             </Link>
@@ -363,7 +363,7 @@ export function LoginPage() {
           <a
             href="#"
             onClick={(e) => e.preventDefault()}
-            className="hover:text-[var(--text-secondary)] transition-colors"
+            className="rounded-sm hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
           >
             Términos de servicio
           </a>
@@ -371,7 +371,7 @@ export function LoginPage() {
           <a
             href="#"
             onClick={(e) => e.preventDefault()}
-            className="hover:text-[var(--text-secondary)] transition-colors"
+            className="rounded-sm hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
           >
             Privacidad
           </a>
@@ -379,7 +379,7 @@ export function LoginPage() {
           <a
             href="#"
             onClick={(e) => e.preventDefault()}
-            className="hover:text-[var(--text-secondary)] transition-colors"
+            className="rounded-sm hover:text-[var(--text-secondary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
           >
             Soporte
           </a>
