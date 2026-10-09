@@ -9,14 +9,14 @@ export const VerificationHeader: React.FC<VerificationHeaderProps> = ({
   onClose,
 }) => {
   return (
-    <div className="flex items-center justify-between pb-5 border-b border-gray-100/80">
+    <div className="flex items-center justify-between pb-5 border-b border-[var(--border-muted)]">
       {/* Brand / Logo Oficial de PrintShop */}
       <div className="flex items-center gap-2.5">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-[#2563EB] text-sm font-black text-white shadow-2xs">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[6px] bg-[var(--primary)] text-sm font-black text-white shadow-2xs">
           P
         </span>
-        <span className="text-[18px] font-black tracking-tight text-[#111827]">
-          Print<span className="text-[#2563EB]">Shop</span>
+        <span className="text-[18px] font-black tracking-tight text-[var(--text-primary)]">
+          Print<span className="text-[var(--primary)]">Shop</span>
         </span>
       </div>
 
@@ -26,7 +26,7 @@ export const VerificationHeader: React.FC<VerificationHeaderProps> = ({
           type="button"
           onClick={onClose}
           aria-label="Cerrar verificación"
-          className="p-1 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100/60 transition-colors"
+          className="p-1 rounded-md text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors"
         >
           <X className="w-5 h-5" />
         </button>

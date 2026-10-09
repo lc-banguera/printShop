@@ -29,8 +29,8 @@ export const VerificationProgress: React.FC<VerificationProgressProps> = ({
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold transition-all ${
                     isCompleted || isActive
-                      ? 'bg-[#2563EB] text-white shadow-2xs'
-                      : 'bg-white border border-gray-300 text-gray-400'
+                      ? 'bg-[var(--primary)] text-white shadow-2xs'
+                      : 'bg-white border border-[var(--border-strong)] text-[var(--text-muted)]'
                   }`}
                 >
                   {isCompleted ? (
@@ -45,10 +45,10 @@ export const VerificationProgress: React.FC<VerificationProgressProps> = ({
                   <span
                     className={`text-[11px] block transition-colors leading-tight ${
                       isActive
-                        ? 'font-semibold text-[#2563EB]'
+                        ? 'font-semibold text-[var(--primary)]'
                         : isCompleted
-                        ? 'font-medium text-gray-600'
-                        : 'text-gray-400 font-normal'
+                        ? 'font-medium text-[var(--text-secondary)]'
+                        : 'text-[var(--text-muted)] font-normal'
                     }`}
                   >
                     {step.label}
@@ -56,7 +56,7 @@ export const VerificationProgress: React.FC<VerificationProgressProps> = ({
 
                   {/* Active Indicator Underline */}
                   {isActive && (
-                    <div className="w-full h-[2px] bg-[#2563EB] rounded-full mt-1 mx-auto" />
+                    <div className="w-full h-[2px] bg-[var(--primary)] rounded-full mt-1 mx-auto" />
                   )}
                 </div>
               </div>
@@ -66,7 +66,7 @@ export const VerificationProgress: React.FC<VerificationProgressProps> = ({
                 <div className="flex-1 -mt-7 mx-1.5 sm:mx-2">
                   <div
                     className={`h-[1.5px] w-full transition-colors ${
-                      currentStepIndex > idx + 1 ? 'bg-[#2563EB]' : 'bg-gray-200'
+                      currentStepIndex > idx + 1 ? 'bg-[var(--primary)]' : 'bg-[var(--border)]'
                     }`}
                   />
                 </div>
