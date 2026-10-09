@@ -47,23 +47,23 @@ export function PlanCard({
       }}
       className={[
         'group flex h-full cursor-pointer flex-col border bg-white p-5 shadow-sm transition-all duration-200 outline-none',
-        isSelected ? 'border-[#2563EB] bg-[#F8FBFF] ring-1 ring-[#BFDBFE]' : 'border-[#E2E8F0] bg-white hover:border-[#CBD5E1]',
+        isSelected ? 'border-[var(--primary)] bg-[var(--accent-muted)] ring-1 ring-[var(--accent-muted)]' : 'border-[var(--border)] bg-white hover:border-[var(--border-strong)]',
       ].join(' ')}
     >
 
       <div className="flex-1">
         <div className="mb-4">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[#2563EB]">{plan.shortLabel}</p>
-          <h2 className="mt-2 text-2xl font-bold tracking-tight text-[#111827]">{plan.name}</h2>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--primary)]">{plan.shortLabel}</p>
+          <h2 className="mt-2 text-2xl font-bold tracking-tight text-[var(--text-primary)]">{plan.name}</h2>
         </div>
 
-        <p className="min-h-[56px] text-sm leading-6 text-[#475569]">{plan.description}</p>
+        <p className="min-h-[56px] text-sm leading-6 text-[var(--text-secondary)]">{plan.description}</p>
 
         <div className="mt-6 flex items-end gap-2">
-          <span className="text-4xl font-black tracking-tight text-[#0F172A]">
+          <span className="text-4xl font-black tracking-tight text-[var(--text-primary)]">
             {plan.monthlyPriceLabel === 'A medida' ? 'A medida' : `$${displayPrice.toLocaleString('es-CO')}`}
           </span>
-          <span className="pb-1 text-sm text-[#64748B]">
+          <span className="pb-1 text-sm text-[var(--text-muted)]">
             {plan.monthlyPriceLabel === 'A medida' ? '' : `/ ${priceConfig.label}`}
           </span>
         </div>
@@ -71,16 +71,16 @@ export function PlanCard({
         <div className="mt-7 space-y-5">
           {plan.sections.map((section) => (
             <div key={section.title}>
-              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">{section.title}</p>
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--text-muted)]">{section.title}</p>
               <ul className="space-y-2.5">
                 {section.items.map((item) => (
-                  <li key={`${section.title}-${item.label}`} className="flex items-start gap-3 text-sm leading-5 text-[#334155]">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border border-[#D1FAE5] bg-[#ECFDF5] text-[#059669]">
-                      {item.included ? <Check className="h-3 w-3" /> : <Minus className="h-3 w-3 text-[#94A3B8]" />}
+                  <li key={`${section.title}-${item.label}`} className="flex items-start gap-3 text-sm leading-5 text-[var(--text-secondary)]">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center border border-[var(--success-muted)] bg-[var(--success-muted)] text-[var(--success)]">
+                      {item.included ? <Check className="h-3 w-3" /> : <Minus className="h-3 w-3 text-[var(--text-muted)]" />}
                     </span>
                     <span className="flex-1">
                       {item.label}
-                      {item.detail ? <span className="ml-1 text-[#64748B]">({item.detail})</span> : null}
+                      {item.detail ? <span className="ml-1 text-[var(--text-muted)]">({item.detail})</span> : null}
                     </span>
                   </li>
                 ))}
@@ -100,8 +100,8 @@ export function PlanCard({
         className={[
           'mt-7 flex w-full items-center justify-center border px-4 py-3 text-sm font-semibold transition-colors duration-200',
           isSelected
-            ? 'border-[#0F172A] bg-[#0F172A] text-white'
-            : 'border-[#CBD5E1] bg-white text-[#0F172A] hover:border-[#94A3B8] hover:bg-[#F8FAFC]',
+            ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+            : 'border-[var(--border-strong)] bg-white text-[var(--text-primary)] hover:border-[var(--text-muted)] hover:bg-[var(--surface-muted)]',
           isProcessing ? 'cursor-wait opacity-70' : '',
         ].join(' ')}
       >

@@ -147,20 +147,20 @@ export function PlansPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] px-4 py-10 text-[#0F172A] sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[var(--background)] px-4 py-10 text-[var(--text-primary)] sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-[#0F172A] sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--text-primary)] sm:text-4xl">
             Elige el plan con el que quieres comenzar
           </h1>
-          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[#475569] sm:text-base">
+          <p className="mx-auto mt-3 max-w-2xl text-sm leading-6 text-[var(--text-secondary)] sm:text-base">
             Cada plan está pensado para un nivel distinto de crecimiento. La activación real del acceso ocurre sólo
             cuando el sistema confirme el pago y valide la suscripción.
           </p>
         </div>
 
         <div className="mb-8 flex justify-center">
-          <div className="inline-flex flex-wrap items-center gap-2 border border-[#E2E8F0] bg-white p-1 shadow-sm">
+          <div className="inline-flex flex-wrap items-center gap-2 border border-[var(--border)] bg-white p-1 shadow-sm">
             {billingPeriods.map((period) => (
               <button
                 key={period.value}
@@ -169,8 +169,8 @@ export function PlansPage() {
                 className={[
                   'px-4 py-2 text-sm font-medium transition-colors duration-200',
                   selectedBillingPeriod === period.value
-                    ? 'bg-[#0F172A] text-white'
-                    : 'bg-white text-[#475569] hover:bg-[#F8FAFC]',
+                    ? 'bg-[var(--primary)] text-white'
+                    : 'bg-white text-[var(--text-secondary)] hover:bg-[var(--surface-muted)]',
                 ].join(' ')}
               >
                 {period.label}
