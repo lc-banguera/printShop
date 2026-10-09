@@ -8,15 +8,15 @@ export const Features: React.FC = () => {
     <section
       id="que-puedes-hacer"
       aria-label="Todo lo que puedes hacer con PrintShop"
-      className="w-full bg-[#F4F5FB] py-12 sm:py-16 lg:py-20"
+      className="w-full bg-[var(--surface-muted)] py-12 sm:py-16 lg:py-20"
     >
       <Container variant="wide">
         {/* ── Intro centrado ── */}
         <div className="mx-auto mb-12 max-w-3xl text-center lg:mb-14">
-          <h2 className="text-[1.9rem] font-black leading-[1.1] tracking-[-0.03em] text-[#111827] sm:text-[2.25rem] lg:text-[1.9rem]">
+          <h2 className="text-[1.9rem] font-black leading-[1.1] tracking-[-0.03em] text-[var(--text-primary)] sm:text-[2.25rem] lg:text-[1.9rem]">
             Diseña, personaliza y prepara desde un solo lugar.
           </h2>
-          <p className="mx-auto mt-3 max-w-[560px] text-[15.5px] leading-relaxed text-[#4B5563]">
+          <p className="mx-auto mt-3 max-w-[560px] text-[15.5px] leading-relaxed text-[var(--text-secondary)]">
             PrintShop reúne el diseñador, los productos, los recursos y el flujo
             de producción en un único espacio de trabajo.
           </p>
@@ -38,9 +38,9 @@ export const Features: React.FC = () => {
 
             {/* Floating tag */}
             <div className="absolute -bottom-4 -right-4 hidden items-center gap-2.5 rounded-xl bg-white px-4 py-3 shadow-[0_4px_20px_rgba(17,24,39,0.10)] ring-1 ring-black/[0.05] sm:flex lg:-right-6">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#5D46E8]/10">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
                 <svg
-                  className="h-4 w-4 text-[#5D46E8]"
+                  className="h-4 w-4 text-[var(--primary)]"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -54,10 +54,10 @@ export const Features: React.FC = () => {
                 </svg>
               </div>
               <div>
-                <p className="text-[12px] font-bold leading-tight text-[#111827]">
+                <p className="text-[12px] font-bold leading-tight text-[var(--text-primary)]">
                   Listo para producir
                 </p>
-                <p className="text-[11px] leading-tight text-[#6B7280]">
+                <p className="text-[11px] leading-tight text-[var(--text-secondary)]">
                   Diseña y envía a imprimir
                 </p>
               </div>
@@ -69,7 +69,7 @@ export const Features: React.FC = () => {
             <ul className="space-y-6">
               {featuresData.map(({ id, icon: Icon, title, description }) => (
                 <li key={id} className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#5D46E8] shadow-[0_2px_8px_rgba(93,70,232,0.10)] ring-1 ring-black/[0.04]">
+                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--primary)] shadow-[0_2px_8px_rgba(93,70,232,0.10)] ring-1 ring-black/[0.04]">
                     <Icon
                       className="h-5 w-5"
                       aria-hidden="true"
@@ -77,10 +77,10 @@ export const Features: React.FC = () => {
                     />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-[15px] font-bold leading-snug text-[#111827]">
+                    <h3 className="text-[15px] font-bold leading-snug text-[var(--text-primary)]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[13.5px] leading-relaxed text-[#6B7280]">
+                    <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--text-secondary)]">
                       {description}
                     </p>
                   </div>
@@ -89,8 +89,8 @@ export const Features: React.FC = () => {
             </ul>
 
             {/* Benefits strip */}
-            <div className="border-t border-[#E9EAF0] pt-6">
-              <p className="mb-4 text-[11.5px] font-semibold uppercase tracking-widest text-[#9CA3AF]">
+            <div className="border-t border-[var(--border)] pt-6">
+              <p className="mb-4 text-[11.5px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
                 Incluido en cada pedido
               </p>
               <div className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -102,10 +102,10 @@ export const Features: React.FC = () => {
                 ].map((label) => (
                   <div
                     key={label}
-                    className="flex items-center gap-2 text-[13px] text-[#374151]"
+                    className="flex items-center gap-2 text-[13px] text-[var(--text-secondary)]"
                   >
                     <svg
-                      className="h-3.5 w-3.5 shrink-0 text-[#5D46E8]"
+                      className="h-3.5 w-3.5 shrink-0 text-[var(--primary)]"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"
