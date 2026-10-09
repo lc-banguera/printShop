@@ -39,7 +39,7 @@ export default function Marketing() {
   };
 
   return (
-    <div className="p-4 space-y-4 bg-[#F8FAFC] min-h-full">
+    <div className="p-4 space-y-4 bg-[var(--surface-muted)] min-h-full">
       {/* Header */}
       <PageHeader
         title="Marketing y Campañas"
@@ -47,10 +47,10 @@ export default function Marketing() {
         icon={Megaphone}
         action={
           <>
-            <button className="flex items-center gap-1.5 text-xs font-medium text-[#475569] border border-[#E2E8F0] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[#F8FAFC] transition-colors shadow-2xs">
-              <Download className="h-3.5 w-3.5 text-[#64748B]" /> Exportar
+            <button className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors shadow-2xs">
+              <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" /> Exportar
             </button>
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-[5px] px-3.5 py-1.5 transition-colors shadow-2xs">
+            <button className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] rounded-[5px] px-3.5 py-1.5 transition-colors shadow-2xs">
               <Plus className="h-3.5 w-3.5" /> Nueva Campaña
             </button>
           </>
@@ -58,14 +58,14 @@ export default function Marketing() {
       />
 
       {/* Campaigns list table */}
-      <div className="bg-white rounded-[5px] border border-[#E5E7EB] shadow-2xs w-full overflow-hidden">
-        <div className="flex items-center justify-between p-3 border-b border-[#E5E7EB] bg-white">
-          <h2 className="text-xs sm:text-sm font-bold text-[#111827]">Lista de Campañas y Promociones</h2>
+      <div className="bg-white rounded-[5px] border border-[var(--border)] shadow-2xs w-full overflow-hidden">
+        <div className="flex items-center justify-between p-3 border-b border-[var(--border)] bg-white">
+          <h2 className="text-xs sm:text-sm font-bold text-[var(--text-primary)]">Lista de Campañas y Promociones</h2>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-xs text-left border-collapse min-w-[650px]">
             <thead>
-              <tr className="bg-[#2563EB] text-white">
+              <tr className="bg-[var(--primary)] text-white">
                 {['Campaña', 'Tipo', 'Alcance', 'Clicks', 'Conversión', 'Inversión', 'Estado', 'Acciones'].map((h) => (
                   <th key={h} className="px-3.5 py-2.5 font-semibold text-white uppercase tracking-wider whitespace-nowrap">
                     {h}
@@ -73,22 +73,22 @@ export default function Marketing() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F1F5F9]">
+            <tbody className="divide-y divide-[var(--border-muted)]">
               {list.map((camp, idx) => (
                 <tr
                   key={camp.id}
-                  className={`transition-colors ${idx % 2 === 0 ? 'bg-white hover:bg-[#F8FAFC]' : 'bg-[#F8FAFC] hover:bg-[#F1F5F9]'}`}
+                  className={`transition-colors ${idx % 2 === 0 ? 'bg-white hover:bg-[var(--surface-muted)]' : 'bg-[var(--surface-muted)] hover:bg-[var(--border-muted)]'}`}
                 >
-                  <td className="px-3.5 py-2.5 font-normal text-[#334155] border-b border-[#F1F5F9]">{camp.name}</td>
-                  <td className="px-3.5 py-2.5 font-normal text-[#334155] border-b border-[#F1F5F9]">{camp.type}</td>
-                  <td className="px-3.5 py-2.5 font-normal text-[#334155] border-b border-[#F1F5F9]">{camp.reach}</td>
-                  <td className="px-3.5 py-2.5 font-normal text-[#334155] border-b border-[#F1F5F9]">{camp.clicks}</td>
-                  <td className="px-3.5 py-2.5 font-normal text-[#334155] border-b border-[#F1F5F9]">{camp.conversion}</td>
-                  <td className="px-3.5 py-2.5 font-normal text-[#334155] border-b border-[#F1F5F9]">{camp.spend}</td>
-                  <td className="px-3.5 py-2.5 border-b border-[#F1F5F9]">
+                  <td className="px-3.5 py-2.5 font-normal text-[var(--text-secondary)] border-b border-[var(--border-muted)]">{camp.name}</td>
+                  <td className="px-3.5 py-2.5 font-normal text-[var(--text-secondary)] border-b border-[var(--border-muted)]">{camp.type}</td>
+                  <td className="px-3.5 py-2.5 font-normal text-[var(--text-secondary)] border-b border-[var(--border-muted)]">{camp.reach}</td>
+                  <td className="px-3.5 py-2.5 font-normal text-[var(--text-secondary)] border-b border-[var(--border-muted)]">{camp.clicks}</td>
+                  <td className="px-3.5 py-2.5 font-normal text-[var(--text-secondary)] border-b border-[var(--border-muted)]">{camp.conversion}</td>
+                  <td className="px-3.5 py-2.5 font-normal text-[var(--text-secondary)] border-b border-[var(--border-muted)]">{camp.spend}</td>
+                  <td className="px-3.5 py-2.5 border-b border-[var(--border-muted)]">
                     <StatusBadge status={camp.status} />
                   </td>
-                  <td className="px-3.5 py-2.5 border-b border-[#F1F5F9]">
+                  <td className="px-3.5 py-2.5 border-b border-[var(--border-muted)]">
                     <TableActions
                       actions={[
                         { label: 'Ver campaña', icon: Eye },
