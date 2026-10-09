@@ -464,7 +464,7 @@ function SimilarDesigns({ design }: { design: AdminDesign }) {
                 {item.colors.slice(0, 3).map((color) => (
                   <span
                     key={color}
-                    className="h-2.5 w-2.5 rounded-full border border-gray-300 shadow-2xs"
+                    className="h-2.5 w-2.5 rounded-full border border-[var(--border-strong)] shadow-2xs"
                     style={{ backgroundColor: color }}
                   />
                 ))}

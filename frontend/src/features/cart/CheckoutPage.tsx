@@ -363,7 +363,7 @@ export function CheckoutPage() {
                                   <span className="ml-1 inline-flex items-center gap-1">
                                     ·
                                     <span
-                                      className="inline-block h-2 w-2 rounded-full border border-gray-300"
+                                      className="inline-block h-2 w-2 rounded-full border border-[var(--border-strong)]"
                                       style={{ backgroundColor: item.color }}
                                     />
                                   </span>
