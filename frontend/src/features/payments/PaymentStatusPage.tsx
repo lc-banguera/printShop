@@ -109,14 +109,14 @@ export default function PaymentStatusPage() {
           {isActive ? (
             <Link
               to="/onboarding"
-              className="inline-flex min-h-11 items-center justify-center rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primaryForeground transition-colors hover:bg-primaryHover"
+              className="inline-flex min-h-11 items-center justify-center rounded-control bg-primary px-4 py-2.5 text-sm font-semibold text-primaryForeground transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               Continuar a la configuración
             </Link>
           ) : null}
           <Link
             to="/plans"
-            className="inline-flex min-h-11 items-center justify-center rounded-control border border-borderStrong bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surfaceMuted"
+            className="inline-flex min-h-11 items-center justify-center rounded-control border border-borderStrong bg-surface px-4 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-surfaceMuted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             Volver a planes
           </Link>
