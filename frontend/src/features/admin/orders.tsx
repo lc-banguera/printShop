@@ -430,14 +430,14 @@ export default function Orders() {
                 setExportNotice(true);
                 setTimeout(() => setExportNotice(false), 2000);
               }}
-              className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors"
+              className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
               {exportNotice ? "Exportando..." : "Exportar"}
             </button>
             <button
               type="button"
-              className="flex items-center gap-1.5 text-xs font-semibold text-[var(--primary)] border border-[var(--border-strong)] rounded-[5px] px-3 py-1.5 bg-[var(--info-muted)] hover:bg-[var(--info-muted)] transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-[var(--primary)] border border-[var(--border-strong)] rounded-[5px] px-3 py-1.5 bg-[var(--info-muted)] hover:bg-[var(--info-muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Filter className="h-3.5 w-3.5 text-[var(--primary)]" />
               <span>Filtros</span>
@@ -455,7 +455,7 @@ export default function Orders() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar pedido, cliente o tienda..."
-            className="w-full h-9 pl-9 pr-3.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] shadow-2xs"
+            className="w-full h-9 pl-9 pr-3.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] focus-visible:ring-2 focus-visible:ring-primary shadow-2xs"
           />
         </div>
 
@@ -464,7 +464,7 @@ export default function Orders() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-primary shadow-2xs"
             >
               <option value="Todos">Todos los estados</option>
               <option value="Pendiente">Pendiente</option>
@@ -480,7 +480,7 @@ export default function Orders() {
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus-visible:ring-2 focus-visible:ring-primary shadow-2xs"
             >
               <option value="Todos">Todos los pagos</option>
               <option value="Pagado">Pagado</option>
@@ -492,7 +492,7 @@ export default function Orders() {
 
           <button
             type="button"
-            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors"
+            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Filter className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
             <span>Filtros</span>
@@ -529,7 +529,7 @@ export default function Orders() {
                         <DropdownMenuTrigger asChild>
                           <button
                             type="button"
-                            className="h-7 w-7 -mr-0.5 flex items-center justify-center rounded-[5px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-muted)] transition-colors focus:outline-none shrink-0"
+                            className="h-7 w-7 -mr-0.5 flex items-center justify-center rounded-[5px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-muted)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary shrink-0"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
