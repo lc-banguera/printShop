@@ -23,21 +23,21 @@ export const MobileVerificationCard: React.FC<MobileVerificationCardProps> = ({
   };
 
   return (
-    <div className="mt-6 bg-[#EFF6FF]/60 border border-[#BFDBFE] rounded-2xl p-5">
-      <div className="flex items-center gap-2.5 text-[#2563EB] mb-3">
+    <div className="mt-6 bg-[var(--info-muted)] border border-[var(--border)] rounded-2xl p-5">
+      <div className="flex items-center gap-2.5 text-[var(--primary)] mb-3">
         <Smartphone className="w-5 h-5" />
         <h4 className="text-xs font-bold uppercase tracking-wider">
           Continuar desde tu celular
         </h4>
       </div>
 
-      <p className="text-xs text-gray-600 mb-4 leading-relaxed">
+      <p className="text-xs text-[var(--text-secondary)] mb-4 leading-relaxed">
         Escanea este código con la cámara de tu celular para fotografiar tu documento y realizar la selfie con tu cámara móvil en alta resolución.
       </p>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-[#DBEAFE] shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center gap-4 bg-white p-4 rounded-xl border border-[var(--border)] shadow-2xs">
         {/* QR Code Graphic Mockup */}
-        <div className="w-32 h-32 bg-white p-2 border border-gray-200 rounded-lg flex items-center justify-center shrink-0 shadow-2xs">
+        <div className="w-32 h-32 bg-white p-2 border border-[var(--border)] rounded-lg flex items-center justify-center shrink-0 shadow-2xs">
           <svg className="w-28 h-28" viewBox="0 0 100 100" fill="none">
             {/* Corner Top-Left */}
             <rect x="10" y="10" width="28" height="28" rx="4" fill="#0F172A" />
@@ -73,14 +73,14 @@ export const MobileVerificationCard: React.FC<MobileVerificationCardProps> = ({
 
         {/* Instructions & Session Info */}
         <div className="flex-1 text-center sm:text-left">
-          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-blue-50 text-[#2563EB] text-[10px] font-semibold mb-1.5">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-[var(--accent-muted)] text-[var(--primary)] text-[10px] font-semibold mb-1.5">
             <QrCode className="w-3 h-3" />
             Sesión: {sessionId}
           </div>
-          <p className="text-xs font-semibold text-gray-800">
+          <p className="text-xs font-semibold text-[var(--text-primary)]">
             Apunta la cámara de tu celular
           </p>
-          <p className="text-[11px] text-gray-500 mt-1 leading-snug">
+          <p className="text-[11px] text-[var(--text-secondary)] mt-1 leading-snug">
             Tus fotos se sincronizarán en tiempo real con esta pantalla de PrintShop.
           </p>
 
@@ -88,7 +88,7 @@ export const MobileVerificationCard: React.FC<MobileVerificationCardProps> = ({
             type="button"
             onClick={handleSimulate}
             disabled={isSimulating}
-            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:text-blue-800 transition-colors cursor-pointer bg-blue-50/80 hover:bg-blue-100/60 px-3 py-1.5 rounded-lg border border-[#BFDBFE]"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--primary)] hover:text-[var(--primary-hover)] transition-colors cursor-pointer bg-[var(--accent-muted)] hover:bg-[var(--surface-muted)] px-3 py-1.5 rounded-lg border border-[var(--border)]"
           >
             {isSimulating ? (
               <>
