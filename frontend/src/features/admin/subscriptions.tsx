@@ -72,14 +72,14 @@ export default function Subscriptions() {
             <button
               type="button"
               onClick={() => showNotice('Listado de suscripciones exportado')}
-              className="flex items-center gap-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] px-3 py-1.5 bg-surface hover:bg-surfaceMuted transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] px-3 py-1.5 bg-surface hover:bg-surfaceMuted transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Download className="h-3.5 w-3.5 text-foregroundSubtle" /> Exportar
             </button>
             <button
               type="button"
               onClick={() => showNotice('Nueva suscripción')}
-              className="flex items-center gap-1.5 text-xs font-semibold text-primaryForeground bg-primary hover:bg-primaryHover rounded-[5px] px-3.5 py-1.5 transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-primaryForeground bg-primary hover:bg-primaryHover rounded-[5px] px-3.5 py-1.5 transition-colors shadow-2xs cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Plus className="h-3.5 w-3.5" /> Nueva Suscripción
             </button>

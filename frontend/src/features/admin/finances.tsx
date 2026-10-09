@@ -224,7 +224,7 @@ export default function Finances() {
           <button
             type="button"
             onClick={handleExport}
-            className="flex items-center gap-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] px-3 py-1.5 bg-surface hover:bg-surfaceMuted transition-colors cursor-pointer shadow-2xs"
+            className="flex items-center gap-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] px-3 py-1.5 bg-surface hover:bg-surfaceMuted transition-colors cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
           >
             <Download className="h-3.5 w-3.5 text-foregroundSubtle" />
             {exportNotice ? "Exportando..." : "Exportar reporte"}
@@ -260,7 +260,7 @@ export default function Finances() {
                 onChange={(e) =>
                   setTypeFilter(e.target.value as typeof typeFilter)
                 }
-                className="h-10 max-w-full appearance-none rounded-control border border-border bg-surface pl-3.5 pr-8 text-sm text-foregroundMuted shadow-subtle outline-none transition-colors duration-normal hover:border-borderStrong focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="h-10 max-w-full appearance-none rounded-control border border-border bg-surface pl-3.5 pr-8 text-sm text-foregroundMuted shadow-subtle outline-none transition-colors duration-normal hover:border-borderStrong focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <option value="Todos">Todos los tipos</option>
                 <option value="Ingreso">Solo Ingresos</option>
@@ -415,7 +415,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setDetailMovement(null)}
-                className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer"
+                className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -490,7 +490,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => handleCopyId(detailMovement.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] bg-surface hover:bg-surfaceMuted transition-colors cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] bg-surface hover:bg-surfaceMuted transition-colors cursor-pointer shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {copiedId === detailMovement.id ? (
                   <>
@@ -507,7 +507,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setDetailMovement(null)}
-                className="px-4 py-1.5 text-xs font-medium text-foregroundMuted bg-surfaceMuted border border-border rounded-[5px] hover:bg-surfaceMuted transition-colors cursor-pointer"
+                className="px-4 py-1.5 text-xs font-medium text-foregroundMuted bg-surfaceMuted border border-border rounded-[5px] hover:bg-surfaceMuted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Cerrar
               </button>
@@ -530,7 +530,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setVoucherMovement(null)}
-                className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer"
+                className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -591,7 +591,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setVoucherMovement(null)}
-                className="px-4 py-1.5 text-xs font-semibold text-primaryForeground bg-primary rounded-[5px] hover:bg-primaryHover transition-colors"
+                className="px-4 py-1.5 text-xs font-semibold text-primaryForeground bg-primary rounded-[5px] hover:bg-primaryHover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Cerrar Comprobante
               </button>
@@ -614,7 +614,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setCardModalInfo(null)}
-                className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -637,7 +637,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setCardModalInfo(null)}
-                className="px-4 py-1.5 text-xs font-semibold text-primaryForeground bg-primary rounded-[5px] hover:bg-primaryHover transition-colors"
+                className="px-4 py-1.5 text-xs font-semibold text-primaryForeground bg-primary rounded-[5px] hover:bg-primaryHover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 Aceptar
               </button>
