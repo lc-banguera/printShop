@@ -128,7 +128,7 @@ export function StoreSidebar({
             <button
               type="button"
               onClick={onToggle}
-              className="absolute right-[-11px] top-1/2 z-[60] hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-control border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] shadow-subtle transition-all duration-normal hover:bg-[var(--surface-strong)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2 lg:flex"
+              className="absolute right-[-11px] top-1/2 z-[60] hidden h-6 w-6 -translate-y-1/2 items-center justify-center rounded-control border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] shadow-subtle transition-all duration-normal active:scale-[0.96] motion-reduce:active:scale-100 hover:bg-[var(--surface-strong)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2 lg:flex"
               title={collapsed ? "Expandir menú" : "Contraer menú"}
             >
               {collapsed ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronLeft className="h-3.5 w-3.5" />}
@@ -151,7 +151,7 @@ export function StoreSidebar({
                 onClick={() => onMobileClose && onMobileClose()}
                 className={({ isActive }) =>
                   cn(
-                    "group relative flex h-10 w-full shrink-0 items-center rounded-control text-sm font-medium transition-all duration-normal",
+                    "group relative flex h-10 w-full shrink-0 items-center rounded-control text-sm font-medium transition-all duration-normal active:scale-[0.99] motion-reduce:active:scale-100",
                     collapsed ? "justify-center px-0" : "gap-2.5 px-2.5",
                     isActive
                       ? "bg-[var(--surface-strong)] text-[var(--primary)] shadow-[inset_0_0_0_1px_rgba(93,70,232,0.08)]"
