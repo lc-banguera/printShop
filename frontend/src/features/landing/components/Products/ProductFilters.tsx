@@ -28,7 +28,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({ filters }) => {
           >
             <span>{filter.label}</span>
             {filter.isDropdown && (
-              <ChevronDown className="w-3.5 h-3.5 text-[#8E96A6]" />
+              <ChevronDown className="w-3.5 h-3.5 text-foregroundSubtle" />
             )}
           </button>
         );

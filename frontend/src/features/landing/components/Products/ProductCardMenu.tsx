@@ -152,12 +152,12 @@ export const ProductCardMenu: React.FC<ProductCardMenuProps> = ({
         zIndex: 9999,
       }}
       className={`
-        bg-white
-        border border-[#E9EBF3]
-        rounded-xl
-        shadow-[0_4px_20px_rgba(15,23,42,0.08)]
+        bg-surface
+        border border-border
+        rounded-control
+        shadow-elevated
         py-1.5
-        transition-all duration-150 ease-out
+        transition-all duration-150 ease-out motion-reduce:transform-none motion-reduce:transition-opacity
         ${animate ? "opacity-100 scale-100" : "opacity-0 scale-95"}
       `}
     >
@@ -177,12 +177,13 @@ export const ProductCardMenu: React.FC<ProductCardMenuProps> = ({
               flex items-center gap-2.5
               px-3.5 py-2
               text-left text-xs font-semibold
-              text-[#161823]
-              hover:bg-[#F5F6FA]
+              text-foreground
+              hover:bg-surfaceMuted
+              focus-visible:outline-none focus-visible:bg-surfaceMuted
               transition-colors duration-150
             "
           >
-            <Icon className="w-4 h-4 text-[#8E96A6] shrink-0" />
+            <Icon className="w-4 h-4 text-foregroundSubtle shrink-0" />
             <span>{item.label}</span>
           </button>
         );

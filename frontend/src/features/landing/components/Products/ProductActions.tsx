@@ -12,7 +12,7 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ href }) => {
       <Link
         to="/designer/personalize"
         className="
-          inline-flex items-center justify-center
+          inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2
           px-3 py-2 text-xs font-bold text-white
           bg-gradient-to-r from-[#5D46E8] via-[#8534E0] to-[#E50C74]
           hover:opacity-95 rounded-lg shadow-xs
@@ -26,10 +26,10 @@ export const ProductActions: React.FC<ProductActionsProps> = ({ href }) => {
       <a
         href={href}
         className="
-          inline-flex items-center justify-center
-          px-3 py-2 text-xs font-semibold text-[#161823]
-          bg-white hover:bg-[#F4F5FA]
-          border border-[#E9EBF3] rounded-lg
+          inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2
+          px-3 py-2 text-xs font-semibold text-foreground
+          bg-surface hover:bg-surfaceMuted
+          border border-border rounded-lg
           transition-all duration-200 text-center
         "
       >
