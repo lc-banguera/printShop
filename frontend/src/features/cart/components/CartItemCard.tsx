@@ -23,7 +23,7 @@ export function CartItemCard({
     <div
       className={`relative rounded-card border border-border bg-surface shadow-subtle transition-all duration-normal hover:shadow-card ${
         compact ? "p-3" : "p-4 sm:p-5"
-      } ${!item.inStock ? "bg-[#FAFAFA]" : ""}`}
+      } ${!item.inStock ? "bg-[var(--surface-muted)]" : ""}`}
     >
       <div className="flex items-start gap-3 sm:gap-4">
         {/* ── 1. Imagen del Producto ──────────────────────────────────── */}
@@ -47,7 +47,7 @@ export function CartItemCard({
               }`}
             />
           ) : (
-            <span className="text-xs text-[#94A3B8]">Sin imagen</span>
+            <span className="text-xs text-[var(--text-muted)]">Sin imagen</span>
           )}
         </Link>
 
@@ -61,7 +61,7 @@ export function CartItemCard({
                     ? `/admin/designs/${item.itemId || item.designId || item.productId}`
                     : `/products/${item.productId}`
                 }
-                className="text-xs sm:text-sm font-bold text-[#111827] hover:text-[#1D4ED8] transition-colors leading-snug line-clamp-2"
+                className="text-xs sm:text-sm font-bold text-[var(--text-primary)] hover:text-[var(--primary-hover)] transition-colors leading-snug line-clamp-2"
               >
                 {item.name}
               </Link>
@@ -71,7 +71,7 @@ export function CartItemCard({
                 <button
                   type="button"
                   onClick={() => onRemove(item)}
-                  className="shrink-0 text-[#94A3B8] hover:text-[#DC2626] transition-colors p-1 rounded-[4px] hover:bg-[#FEF2F2] cursor-pointer"
+                  className="shrink-0 text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors p-1 rounded-[4px] hover:bg-[var(--danger-muted)] cursor-pointer"
                   title="Eliminar producto"
                   aria-label={`Eliminar ${item.name} del carrito`}
                 >
@@ -82,20 +82,20 @@ export function CartItemCard({
 
             {/* Metadatos según tipo: DISEÑO vs PRODUCTO FÍSICO */}
             {item.itemType === "design" ? (
-              <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[11px] text-[#64748B]">
-                <span className="inline-flex items-center font-semibold text-[#1D4ED8] bg-[#EFF6FF] px-1.5 py-0.5 rounded-[3px] text-[10px]">
+              <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[11px] text-[var(--text-secondary)]">
+                <span className="inline-flex items-center font-semibold text-[var(--primary-hover)] bg-[var(--info-muted)] px-1.5 py-0.5 rounded-[3px] text-[10px]">
                   Diseño
                 </span>
                 {item.author && <span>· Por: {item.author}</span>}
-                {item.format && <span className="text-[#94A3B8]">({item.format})</span>}
+                {item.format && <span className="text-[var(--text-muted)]">({item.format})</span>}
               </div>
             ) : (
-              <div className="flex items-center gap-2 flex-wrap mt-1 text-[11px] text-[#64748B]">
+              <div className="flex items-center gap-2 flex-wrap mt-1 text-[11px] text-[var(--text-secondary)]">
                 {item.color && (
                   <span className="inline-flex items-center gap-1">
                     <span>Color:</span>
                     <span
-                      className="h-2.5 w-2.5 rounded-[2px] border border-[#CBD5E1] inline-block shrink-0"
+                      className="h-2.5 w-2.5 rounded-[2px] border border-[var(--border-strong)] inline-block shrink-0"
                       style={{ backgroundColor: item.color }}
                     />
                   </span>
@@ -116,7 +116,7 @@ export function CartItemCard({
 
             {/* ── Aviso Producto Físico Agotado (no aplica a diseños digitales) ── */}
             {item.itemType !== "design" && !item.inStock && (
-              <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-[#FFFBEB] border border-[#FEF3C7] text-[11px] font-medium text-[#D97706]">
+              <div className="mt-1.5 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-[4px] bg-[var(--warning-muted)] border border-[var(--warning-muted)] text-[11px] font-medium text-[var(--warning-foreground)]">
                 <AlertTriangle className="h-3 w-3 shrink-0" />
                 <span>Producto no disponible</span>
               </div>
@@ -125,7 +125,7 @@ export function CartItemCard({
 
           {/* ── 3. Fila de Precio, Cantidad y Subtotal ──────────────────── */}
           <div
-            className={`flex items-center justify-between gap-3 mt-3 pt-2.5 border-t border-[#F1F5F9] flex-wrap ${
+            className={`flex items-center justify-between gap-3 mt-3 pt-2.5 border-t border-[var(--border-muted)] flex-wrap ${
               compact ? "text-xs" : "text-xs sm:text-sm"
             }`}
           >
@@ -146,7 +146,7 @@ export function CartItemCard({
                 <button
                   type="button"
                   onClick={() => onRemove(item)}
-                  className="inline-flex items-center gap-1 text-[11px] text-[#94A3B8] hover:text-[#DC2626] transition-colors px-2 py-1 rounded-[4px] hover:bg-[#FEF2F2] cursor-pointer ml-2"
+                  className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors px-2 py-1 rounded-[4px] hover:bg-[var(--danger-muted)] cursor-pointer ml-2"
                 >
                   <Trash2 className="h-3 w-3" />
                   <span>Eliminar</span>
@@ -156,7 +156,7 @@ export function CartItemCard({
 
             {/* Precios: Unitario y Subtotal */}
             <div className="text-right ml-auto">
-              <div className="font-extrabold text-[#111827] text-xs sm:text-sm">
+              <div className="font-extrabold text-[var(--text-primary)] text-xs sm:text-sm">
                 {formatCurrency(itemTotal)}
               </div>
             </div>
