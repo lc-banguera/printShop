@@ -51,7 +51,7 @@ export const Inspiration: React.FC = () => {
   };
 
   return (
-    <section id="plantillas" className="w-full overflow-hidden bg-[#F4F5FB] py-12 sm:py-16 lg:py-20">
+    <section id="plantillas" className="w-full overflow-hidden bg-surfaceMuted py-12 sm:py-16 lg:py-20">
       <Container variant="wide">
         {/* Encabezado */}
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
@@ -76,7 +76,7 @@ export const Inspiration: React.FC = () => {
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white border border-[#E5E7EB] shadow-md flex items-center justify-center text-[#111827] hover:bg-[#F9FAFB] transition-all"
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-surface border border-border shadow-md flex items-center justify-center text-foreground hover:bg-surfaceMuted transition-all"
               aria-label="Anterior"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -96,7 +96,7 @@ export const Inspiration: React.FC = () => {
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-white border border-[#E5E7EB] shadow-md flex items-center justify-center text-[#111827] hover:bg-[#F9FAFB] transition-all"
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-surface border border-border shadow-md flex items-center justify-center text-foreground hover:bg-surfaceMuted transition-all"
               aria-label="Siguiente"
             >
               <ChevronRight className="w-4 h-4" />

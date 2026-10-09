@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         <div className="mt-2.5">
           {/* Precio Anterior (tachado) */}
           {product.originalPrice ? (
-            <span className="block text-[11px] sm:text-xs text-[#94A3B8] line-through leading-none">
+            <span className="block text-[11px] sm:text-xs text-foregroundSubtle line-through leading-none">
               {product.originalPrice}
             </span>
           ) : (
@@ -68,7 +68,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           )}
 
           {/* Precio Actual */}
-          <div className="text-base sm:text-lg md:text-xl font-extrabold text-[#111827] leading-tight mt-1">
+          <div className="text-base sm:text-lg md:text-xl font-extrabold text-foreground leading-tight mt-1">
             {product.price}
           </div>
 
@@ -85,7 +85,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Colores disponibles (solo visuales, no interactivos) */}
         {product.colors && product.colors.length > 0 && (
           <div className="flex items-center gap-1.5 mt-2.5 sm:mt-3">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-[#64748B] uppercase tracking-wide">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-foreground-muted uppercase tracking-wide">
               COLOR:
             </span>
             <div className="flex items-center gap-1">
