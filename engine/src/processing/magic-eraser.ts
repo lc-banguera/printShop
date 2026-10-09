@@ -17,6 +17,59 @@ export interface ConnectedRegionOptions {
   alphaTolerance?: number;
 }
 
+export interface SimilarColorSelectionOptions {
+  x: number;
+  y: number;
+  tolerance: number;
+  alphaTolerance?: number;
+}
+
+export function createSimilarColorMask(
+  source: ImageBuffer,
+  options: SimilarColorSelectionOptions,
+): AlphaData {
+  const { width, height, data } = source;
+  if (
+    !Number.isInteger(options.x) ||
+    !Number.isInteger(options.y) ||
+    options.x < 0 ||
+    options.y < 0 ||
+    options.x >= width ||
+    options.y >= height
+  ) {
+    throw new RangeError("The selected seed must be inside the image.");
+  }
+  if (!Number.isFinite(options.tolerance) || options.tolerance < 0 || options.tolerance > 441) {
+    throw new RangeError("Color tolerance must be between 0 and 441.");
+  }
+  const alphaTolerance = options.alphaTolerance ?? Math.min(255, options.tolerance);
+  if (!Number.isFinite(alphaTolerance) || alphaTolerance < 0 || alphaTolerance > 255) {
+    throw new RangeError("Alpha tolerance must be between 0 and 255.");
+  }
+
+  const seedOffset = (options.y * width + options.x) * 4;
+  const seedAlpha = data[seedOffset + 3];
+  const mask = new Uint8Array(width * height);
+  if (seedAlpha === 0) return createAlphaData(width, height, mask);
+
+  const seedRed = data[seedOffset];
+  const seedGreen = data[seedOffset + 1];
+  const seedBlue = data[seedOffset + 2];
+  const maxDistanceSquared = options.tolerance * options.tolerance;
+  for (let pixel = 0; pixel < mask.length; pixel += 1) {
+    const offset = pixel * 4;
+    const alpha = data[offset + 3];
+    if (alpha === 0 || Math.abs(alpha - seedAlpha) > alphaTolerance) continue;
+    const red = data[offset] - seedRed;
+    const green = data[offset + 1] - seedGreen;
+    const blue = data[offset + 2] - seedBlue;
+    if (red * red + green * green + blue * blue <= maxDistanceSquared) {
+      mask[pixel] = 255;
+    }
+  }
+  return createAlphaData(width, height, mask);
+}
+
 export function createConnectedColorMask(
   source: ImageBuffer,
   options: ConnectedRegionOptions,

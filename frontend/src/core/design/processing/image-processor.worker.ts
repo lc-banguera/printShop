@@ -7,23 +7,26 @@ import type {
 } from './image-processor-contract';
 import {
   applyHalftone,
+  combineSelectionMasks,
   createAlphaData,
   createConnectedColorMask,
+  createSimilarColorMask,
   cleanupSemitransparency,
   createImageBuffer,
   eraseWithAlphaMask,
   extractAlpha,
   exportRaster,
+  invertSelectionMask,
   removeBackgroundLocal,
 } from '../../../../../engine/src/processing';
-import type { ImageBuffer } from '../../../../../engine/src/processing';
+import type { AlphaData, ImageBuffer, MaskSelectionOperation } from '../../../../../engine/src/processing';
 import { rasterizePathSelection } from '../../../../../engine/src/paths';
 
 self.addEventListener('message', async (event: MessageEvent<ImageProcessingRequest>) => {
   try {
     const request = event.data;
     const bitmap = await createImageBitmap(request.source);
-    let maskBitmap: ImageBitmap | undefined;
+    const maskBitmaps: ImageBitmap[] = [];
 
     try {
       let width = bitmap.width;
@@ -51,6 +54,30 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
       }
       let processed: ImageBuffer | undefined;
       let blob: Blob | undefined;
+      const readMask = async (maskBlob: Blob): Promise<AlphaData> => {
+        const maskBitmap = await createImageBitmap(maskBlob);
+        maskBitmaps.push(maskBitmap);
+        if (maskBitmap.width !== width || maskBitmap.height !== height) {
+          throw new RangeError('Image and selection mask dimensions must match.');
+        }
+        const maskCanvas = new OffscreenCanvas(width, height);
+        const maskContext = maskCanvas.getContext('2d');
+        if (!maskContext) throw new Error('Could not create a mask processing context.');
+        maskContext.drawImage(maskBitmap, 0, 0);
+        const pixels = maskContext.getImageData(0, 0, width, height);
+        return extractAlpha(createImageBuffer(width, height, pixels.data));
+      };
+      const renderMask = (mask: AlphaData): ImageBuffer => {
+        const output = createImageBuffer(width, height);
+        for (let index = 0; index < mask.values.length; index += 1) {
+          const offset = index * 4;
+          output.data[offset] = 255;
+          output.data[offset + 1] = 64;
+          output.data[offset + 2] = 64;
+          output.data[offset + 3] = mask.values[index];
+        }
+        return output;
+      };
 
       if (request.kind === 'filters') {
         if (!('filter' in context)) {
@@ -75,14 +102,38 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
               connectivity: request.operation.connectivity ?? 8,
               alphaTolerance: request.operation.alphaTolerance,
             });
-            processed = createImageBuffer(width, height);
-            for (let index = 0; index < mask.values.length; index += 1) {
-              const pixelOffset = index * 4;
-              processed.data[pixelOffset] = 255;
-              processed.data[pixelOffset + 1] = 64;
-              processed.data[pixelOffset + 2] = 64;
-              processed.data[pixelOffset + 3] = mask.values[index];
+            processed = renderMask(mask);
+            break;
+          }
+          case 'select-similar-colors': {
+            const mask = createSimilarColorMask(sourceBuffer, {
+              x: request.operation.x,
+              y: request.operation.y,
+              tolerance: request.operation.tolerance,
+              alphaTolerance: request.operation.alphaTolerance,
+            });
+            processed = renderMask(mask);
+            break;
+          }
+          case 'combine-selection-mask': {
+            const base = request.operation.base ? await readMask(request.operation.base) : undefined;
+            const overlay = request.operation.overlay ? await readMask(request.operation.overlay) : undefined;
+            let mask: AlphaData;
+            if (request.operation.mode === 'replace') {
+              if (!overlay) throw new TypeError('Replace selection requires an overlay mask.');
+              mask = overlay;
+            } else if (request.operation.mode === 'invert') {
+              if (!base) throw new TypeError('Invert selection requires a base mask.');
+              mask = invertSelectionMask(base);
+            } else {
+              if (!base || !overlay) throw new TypeError('Mask combination requires base and overlay masks.');
+              mask = combineSelectionMasks(
+                base,
+                overlay,
+                request.operation.mode as MaskSelectionOperation,
+              );
             }
+            processed = renderMask(mask);
             break;
           }
           case 'create-path-selection': {
@@ -102,21 +153,9 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
             break;
           }
           case 'erase-mask': {
-            maskBitmap = await createImageBitmap(request.operation.mask);
-            if (maskBitmap.width !== width || maskBitmap.height !== height) {
-              throw new RangeError('Image and eraser mask dimensions must match.');
-            }
-            const maskCanvas = new OffscreenCanvas(width, height);
-            const maskContext = maskCanvas.getContext('2d');
-            if (!maskContext) {
-              throw new Error('Could not create a mask processing context.');
-            }
-            maskContext.drawImage(maskBitmap, 0, 0);
-            const maskPixels = maskContext.getImageData(0, 0, width, height);
-            const maskBuffer = createImageBuffer(width, height, maskPixels.data);
             processed = eraseWithAlphaMask(
               sourceBuffer,
-              createAlphaData(width, height, extractAlpha(maskBuffer).values),
+              await readMask(request.operation.mask),
             );
             break;
           }
@@ -166,7 +205,7 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
       self.postMessage(response);
     } finally {
       bitmap.close();
-      maskBitmap?.close();
+      maskBitmaps.forEach((maskBitmap) => maskBitmap.close());
     }
   } catch (error) {
     const response: ImageProcessingResponse = {

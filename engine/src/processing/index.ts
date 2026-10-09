@@ -80,8 +80,8 @@ export type {
 export { combineSelectionMasks, invertSelectionMask } from './mask-refinement';
 export { applyHalftone } from './halftone';
 export type { HalftoneOptions } from './halftone';
-export { createConnectedColorMask, eraseWithAlphaMask } from './magic-eraser';
-export type { ConnectedRegionOptions } from './magic-eraser';
+export { createConnectedColorMask, createSimilarColorMask, eraseWithAlphaMask } from './magic-eraser';
+export type { ConnectedRegionOptions, SimilarColorSelectionOptions } from './magic-eraser';
 export { cleanupSemitransparency } from './semitransparency';
 export type {
   SemitransparencyCleanupOptions,

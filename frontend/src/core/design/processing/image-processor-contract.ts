@@ -4,6 +4,7 @@ import type {
   RemoveBackgroundOptions,
   SemitransparencyCleanupOptions,
 } from '../../../../../engine/src/processing';
+import type { MaskSelectionOperation } from '../../../../../engine/src/processing';
 import type { VectorPath } from '../../../../../engine/src/paths';
 
 export type RasterImageOperation =
@@ -15,6 +16,20 @@ export type RasterImageOperation =
       tolerance: number;
       connectivity?: 4 | 8;
       alphaTolerance?: number;
+    }
+  | {
+      kind: 'select-similar-colors';
+      x: number;
+      y: number;
+      tolerance: number;
+      alphaTolerance?: number;
+    }
+  | {
+      kind: 'combine-selection-mask';
+      mode: 'replace' | 'add' | 'subtract' | 'intersect' | 'invert';
+      base?: Blob;
+      overlay?: Blob;
+      operation?: MaskSelectionOperation;
     }
   | { kind: 'create-path-selection'; path: VectorPath }
   | { kind: 'erase-mask'; mask: Blob }

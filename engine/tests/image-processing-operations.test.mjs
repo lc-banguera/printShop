@@ -77,6 +77,30 @@ test('magic selection exposes connectivity and respects alpha tolerance', () => 
   assert.deepEqual([...tolerantAlpha.values], [255, 255]);
 });
 
+test('similar-color selection includes disconnected matches without selecting different colors', () => {
+  const source = buffer(5, 1, [
+    0, 0, 0, 255,
+    255, 255, 255, 255,
+    4, 0, 0, 255,
+    0, 0, 0, 255,
+    32, 0, 0, 255,
+  ]);
+  const mask = engine.createSimilarColorMask(source, {
+    x: 0,
+    y: 0,
+    tolerance: 5,
+  });
+
+  assert.deepEqual([...mask.values], [255, 0, 255, 255, 0]);
+  assert.deepEqual([...source.data], [
+    0, 0, 0, 255,
+    255, 255, 255, 255,
+    4, 0, 0, 255,
+    0, 0, 0, 255,
+    32, 0, 0, 255,
+  ]);
+});
+
 test('background removal learns multiple edge colors while preserving enclosed foreground', () => {
   const width = 9;
   const height = 5;
