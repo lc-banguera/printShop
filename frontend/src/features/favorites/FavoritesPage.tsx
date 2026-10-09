@@ -97,7 +97,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
 
         {/* Información del producto */}
         <div className="flex flex-col min-w-0 flex-1">
-          <span className="text-[11px] uppercase tracking-wider font-bold text-[#64748B]">
+          <span className="text-[11px] uppercase tracking-wider font-bold text-[var(--text-secondary)]">
             {getCategoryDisplayName(product.category)}
           </span>
 
@@ -107,11 +107,11 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
             </Link>
           </h2>
 
-          <p className="text-xs sm:text-[13px] text-[#64748B] mt-0.5 line-clamp-1">
+          <p className="text-xs sm:text-[13px] text-[var(--text-secondary)] mt-0.5 line-clamp-1">
             {product.description}
           </p>
 
-          <div className="text-base sm:text-lg font-extrabold text-[#111827] mt-2 sm:mt-2.5">
+          <div className="text-base sm:text-lg font-extrabold text-[var(--text-primary)] mt-2 sm:mt-2.5">
             {product.price}
           </div>
 
@@ -126,7 +126,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
           </div>
 
           {/* Fecha de agregado */}
-          <span className="text-[11px] text-[#94A3B8] mt-2">
+          <span className="text-[11px] text-[var(--text-muted)] mt-2">
             Agregado el 3 de septiembre de 2026
           </span>
         </div>
@@ -137,7 +137,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
         {/* Selector de Color */}
         {hasColors && (
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-[#475569] w-12 shrink-0">
+            <span className="text-xs font-semibold text-[var(--text-secondary)] w-12 shrink-0">
               Color:
             </span>
             <div className="flex items-center gap-2 flex-wrap">
@@ -152,7 +152,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
                       e.stopPropagation();
                       setSelectedColor(colorHex);
                     }}
-                    className={`w-5 h-5 rounded-full border border-[#CBD5E1] transition-all cursor-pointer ${
+                    className={`w-5 h-5 rounded-full border border-[var(--border-strong)] transition-all cursor-pointer ${
                       isSelected
                         ? "ring-2 ring-primary ring-offset-2 shadow-xs"
                         : "hover:scale-105 opacity-85 hover:opacity-100"
@@ -170,7 +170,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
         {/* Selector de Talla */}
         {hasSizes && (
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-[#475569] w-12 shrink-0">
+            <span className="text-xs font-semibold text-[var(--text-secondary)] w-12 shrink-0">
               Talla:
             </span>
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -229,7 +229,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
         <button
           type="button"
           onClick={handleRemove}
-          className="flex-1 sm:flex-none h-10 px-4 rounded-[5px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[#E5E7EB] hover:border-[#EF4444] text-[#EF4444] hover:bg-[#FEF2F2] bg-white active:scale-[0.99]"
+          className="flex-1 sm:flex-none h-10 px-4 rounded-[5px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--border)] hover:border-[var(--danger-strong)] text-[var(--danger-strong)] hover:bg-[var(--danger-muted)] bg-white active:scale-[0.99]"
         >
           <Heart className="h-4 w-4" />
           <span>Eliminar</span>
@@ -324,12 +324,12 @@ export const FavoritesPage: React.FC = () => {
         <Container variant="wide" className="space-y-7">
           {/* ── Encabezado y Breadcrumb ─────────────────────────────── */}
           <div>
-            <div className="flex items-center gap-2 text-xs text-[#64748B] mb-2">
-              <Link to="/" className="hover:text-[#111827] transition-colors">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
+              <Link to="/" className="hover:text-[var(--text-primary)] transition-colors">
                 Inicio
               </Link>
               <span>/</span>
-              <span className="text-[#111827] font-medium">Favoritos</span>
+              <span className="text-[var(--text-primary)] font-medium">Favoritos</span>
             </div>
 
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
@@ -339,7 +339,7 @@ export const FavoritesPage: React.FC = () => {
                     Mis Favoritos
                   </h1>
                 </div>
-                <p className="text-xs sm:text-sm text-[#64748B] mt-1">
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mt-1">
                   Aquí encontrarás todos los productos que has guardado para comprar más adelante.
                 </p>
               </div>
@@ -349,7 +349,7 @@ export const FavoritesPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#DC2626] hover:text-[#B91C1C] border border-[#E5E7EB] hover:border-[#FCA5A5] hover:bg-[#FEF2F2] px-3 py-2 rounded-[5px] transition-colors cursor-pointer self-start sm:self-auto bg-white shadow-2xs"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--danger-strong)] hover:text-[var(--danger-strong)] border border-[var(--border)] hover:border-[var(--danger-muted)] hover:bg-[var(--danger-muted)] px-3 py-2 rounded-[5px] transition-colors cursor-pointer self-start sm:self-auto bg-white shadow-2xs"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>Vaciar favoritos</span>
@@ -358,17 +358,17 @@ export const FavoritesPage: React.FC = () => {
             </div>
 
             {/* Línea divisoria horizontal */}
-            <div className="border-b border-[#E2E8F0]" />
+            <div className="border-b border-[var(--border)]" />
           </div>
 
           {/* ── Estado 1: Usuario no autenticado ────────────────────── */}
           {!isAuthenticated ? (
-            <div className="bg-white rounded-[6px] border border-[#E5E7EB] p-10 sm:p-16 flex flex-col items-center text-center shadow-2xs max-w-xl mx-auto my-8">
+            <div className="bg-white rounded-[6px] border border-[var(--border)] p-10 sm:p-16 flex flex-col items-center text-center shadow-2xs max-w-xl mx-auto my-8">
       
-              <h2 className="text-lg sm:text-xl font-bold text-[#111827] mb-2">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] mb-2">
                 Inicia sesión para ver tus favoritos
               </h2>
-              <p className="text-xs sm:text-sm text-[#64748B] mb-6 max-w-md leading-relaxed">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-6 max-w-md leading-relaxed">
                 Tus productos guardados se sincronizan automáticamente con tu cuenta de PrintShop para que puedas consultarlos desde cualquier dispositivo.
               </p>
               <button
@@ -382,14 +382,14 @@ export const FavoritesPage: React.FC = () => {
             </div>
           ) : rawFavoriteProducts.length === 0 ? (
             /* ── Estado 2: Lista vacía ──────────────────────────────── */
-            <div className="bg-white rounded-[6px] border border-[#E5E7EB] p-10 sm:p-16 flex flex-col items-center text-center shadow-2xs max-w-xl mx-auto my-8">
-              <div className="h-16 w-16 rounded-full bg-[#F1F5F9] border border-[#E2E8F0] flex items-center justify-center text-[#94A3B8] mb-4">
+            <div className="bg-white rounded-[6px] border border-[var(--border)] p-10 sm:p-16 flex flex-col items-center text-center shadow-2xs max-w-xl mx-auto my-8">
+              <div className="h-16 w-16 rounded-full bg-[var(--border-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] mb-4">
                 <Heart className="h-8 w-8" />
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-[#111827] mb-2">
+              <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] mb-2">
                 Aún no tienes productos favoritos
               </h2>
-              <p className="text-xs sm:text-sm text-[#64748B] mb-6 max-w-md leading-relaxed">
+              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-6 max-w-md leading-relaxed">
                 Explora nuestro catálogo y guarda los productos que más te gusten para comprarlos después.
               </p>
               <Link
@@ -412,7 +412,7 @@ export const FavoritesPage: React.FC = () => {
                     className={`text-xs sm:text-sm pb-2.5 font-semibold transition-all relative cursor-pointer ${
                       activeTab === "todos"
                         ? "text-primary"
-                        : "text-[#64748B] hover:text-[#111827]"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
                     <span>Todos ({totalCount})</span>
@@ -427,7 +427,7 @@ export const FavoritesPage: React.FC = () => {
                     className={`text-xs sm:text-sm pb-2.5 font-semibold transition-all relative cursor-pointer ${
                       activeTab === "disponibles"
                         ? "text-primary"
-                        : "text-[#64748B] hover:text-[#111827]"
+                        : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                     }`}
                   >
                     <span>Disponibles ({availableCount})</span>
@@ -441,7 +441,7 @@ export const FavoritesPage: React.FC = () => {
                 <div className="flex flex-col items-stretch gap-3 sm:flex-row sm:items-center">
                   {/* Buscador */}
                   <div className="relative min-w-0 flex-1 sm:flex-none">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#94A3B8]" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-muted)]" />
                     <input
                       type="text"
                       placeholder="Buscar en mis favoritos"
@@ -453,7 +453,7 @@ export const FavoritesPage: React.FC = () => {
 
                   {/* Ordenar por */}
                   <div className="flex items-center gap-2">
-                    <span className="text-xs text-[#64748B] whitespace-nowrap hidden sm:inline">
+                    <span className="text-xs text-[var(--text-secondary)] whitespace-nowrap hidden sm:inline">
                       Ordenar por:
                     </span>
                     <div className="relative flex-1 sm:flex-none">
@@ -473,7 +473,7 @@ export const FavoritesPage: React.FC = () => {
                         </option>
                         <option value="nombre-asc">Nombre: A-Z</option>
                       </select>
-                      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748B]" />
+                      <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-secondary)]" />
                     </div>
                   </div>
                 </div>
