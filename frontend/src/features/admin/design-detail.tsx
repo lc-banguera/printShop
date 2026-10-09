@@ -26,8 +26,8 @@ function RatingStars({ rating }: { rating: number }) {
           key={index}
           className={`h-3.5 w-3.5 ${
             index < Math.round(rating)
-              ? 'fill-[#F59E0B] text-[#F59E0B]'
-              : 'text-[#D1D5DB]'
+              ? 'fill-[var(--warning)] text-[var(--warning)]'
+              : 'text-[var(--border-strong)]'
           }`}
         />
       ))}
@@ -56,7 +56,7 @@ function DesignGallery({ design }: { design: AdminDesign }) {
 
   return (
     <div className="flex w-full flex-col gap-2.5">
-      <div className="relative flex aspect-[5/4] max-h-[380px] w-full items-center justify-center overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-[#F8FAFC]">
+      <div className="relative flex aspect-[5/4] max-h-[380px] w-full items-center justify-center overflow-hidden rounded-[5px] border border-[var(--border)] bg-[var(--surface-muted)]">
         <img
           src={design.images[activeIndex] || design.image}
           alt={design.name}
@@ -68,7 +68,7 @@ function DesignGallery({ design }: { design: AdminDesign }) {
             <button
               type="button"
               onClick={prev}
-              className="absolute left-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center border border-[#E5E7EB] bg-white text-[#374151] shadow-2xs transition-colors hover:bg-[#F9FAFB]"
+              className="absolute left-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center border border-[var(--border)] bg-white text-[var(--text-secondary)] shadow-2xs transition-colors hover:bg-[var(--surface-muted)]"
               aria-label="Imagen anterior"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -76,7 +76,7 @@ function DesignGallery({ design }: { design: AdminDesign }) {
             <button
               type="button"
               onClick={next}
-              className="absolute right-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center border border-[#E5E7EB] bg-white text-[#374151] shadow-2xs transition-colors hover:bg-[#F9FAFB]"
+              className="absolute right-2 top-1/2 z-10 flex h-7 w-7 -translate-y-1/2 items-center justify-center border border-[var(--border)] bg-white text-[var(--text-secondary)] shadow-2xs transition-colors hover:bg-[var(--surface-muted)]"
               aria-label="Imagen siguiente"
             >
               <ChevronRight className="h-4 w-4" />
@@ -93,10 +93,10 @@ function DesignGallery({ design }: { design: AdminDesign }) {
               key={`${design.id}-${src}`}
               type="button"
               onClick={() => setActiveIndex(index)}
-              className={`h-12 w-12 flex-shrink-0 overflow-hidden rounded-[4px] border-2 bg-[#F8FAFC] transition-all sm:h-14 sm:w-14 ${
+              className={`h-12 w-12 flex-shrink-0 overflow-hidden rounded-[4px] border-2 bg-[var(--surface-muted)] transition-all sm:h-14 sm:w-14 ${
                 isActive
-                  ? 'border-[#1D4ED8] shadow-2xs'
-                  : 'border-[#E5E7EB] hover:border-[#94A3B8]'
+                  ? 'border-[var(--primary-hover)] shadow-2xs'
+                  : 'border-[var(--border)] hover:border-[var(--border-strong)]'
               }`}
               aria-label={`Miniatura ${index + 1}`}
             >
@@ -160,54 +160,54 @@ function DesignInfo({ design }: { design: AdminDesign }) {
 
   return (
     <div className="flex w-full flex-col gap-3.5">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280] sm:text-xs">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-secondary)] sm:text-xs">
         {design.category}
       </span>
 
-      <h1 className="text-xl font-bold leading-tight text-[#111827] sm:text-2xl">
+      <h1 className="text-xl font-bold leading-tight text-[var(--text-primary)] sm:text-2xl">
         {design.name}
       </h1>
 
-      <div className="text-xs text-[#4B5563] sm:text-sm">
+      <div className="text-xs text-[var(--text-secondary)] sm:text-sm">
         Diseño creado por:{' '}
-        <span className="font-semibold text-[#111827]">{design.author}</span>
+        <span className="font-semibold text-[var(--text-primary)]">{design.author}</span>
       </div>
 
-      <p className="text-xs leading-relaxed text-[#4B5563] sm:text-sm">
+      <p className="text-xs leading-relaxed text-[var(--text-secondary)] sm:text-sm">
         {design.description}
       </p>
 
       <div className="flex flex-wrap items-center gap-2">
         <RatingStars rating={design.rating} />
-        <span className="text-xs font-semibold text-[#111827]">
+        <span className="text-xs font-semibold text-[var(--text-primary)]">
           {design.rating.toFixed(1)} / 5.0
         </span>
-        <span className="text-xs text-[#6B7280]">
+        <span className="text-xs text-[var(--text-secondary)]">
           ({design.reviewsCount} reseñas)
         </span>
       </div>
 
       <div className="flex flex-wrap items-center gap-2.5">
-        <span className="text-xl font-extrabold text-[#111827] sm:text-2xl">
+        <span className="text-xl font-extrabold text-[var(--text-primary)] sm:text-2xl">
           {design.price}
         </span>
         {design.originalPrice && (
-          <span className="text-xs text-[#9CA3AF] line-through sm:text-sm">
+          <span className="text-xs text-[var(--text-muted)] line-through sm:text-sm">
             {design.originalPrice}
           </span>
         )}
         {design.discount && (
-          <span className="text-xs font-semibold text-[#1D4ED8]">
+          <span className="text-xs font-semibold text-[var(--primary-hover)]">
             {design.discount}
           </span>
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs text-[#475569]">
+      <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
         <StatusBadge status={design.status} />
-        <span className="text-[#CBD5E1]">•</span>
+        <span className="text-[var(--border-strong)]">•</span>
         <span>{design.format}</span>
-        <span className="text-[#CBD5E1]">•</span>
+        <span className="text-[var(--border-strong)]">•</span>
         <span>{design.license}</span>
       </div>
 
@@ -216,7 +216,7 @@ function DesignInfo({ design }: { design: AdminDesign }) {
         <button
           type="button"
           onClick={handleBuyNow}
-          className="flex h-10 w-full flex-1 items-center justify-center gap-2 rounded-[5px] bg-[#1D4ED8] px-4 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[#1E3A8A] cursor-pointer sm:text-sm"
+          className="flex h-10 w-full flex-1 items-center justify-center gap-2 rounded-[5px] bg-[var(--primary-hover)] px-4 text-xs font-semibold text-white shadow-2xs transition-colors hover:bg-[var(--primary-hover)] cursor-pointer sm:text-sm"
         >
           <span>Comprar ahora</span>
         </button>
@@ -225,8 +225,8 @@ function DesignInfo({ design }: { design: AdminDesign }) {
           onClick={handleAddToCart}
           className={`flex h-10 w-full flex-1 items-center justify-center gap-2 rounded-[5px] border-2 font-semibold text-xs transition-colors cursor-pointer sm:text-sm ${
             addedSuccess
-              ? 'bg-[#16A34A] border-[#16A34A] text-white'
-              : 'border-[#1D4ED8] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]'
+              ? 'bg-[var(--success)] border-[var(--success)] text-white'
+              : 'border-[var(--primary-hover)] bg-white text-[var(--primary-hover)] hover:bg-[var(--info-muted)]'
           }`}
         >
           {addedSuccess ? (
@@ -248,7 +248,7 @@ function DesignInfo({ design }: { design: AdminDesign }) {
           type="button"
           onClick={() => setIsFavorite((current) => !current)}
           className={`inline-flex items-center gap-1.5 text-xs font-medium transition-colors ${
-            isFavorite ? 'text-[#EF4444]' : 'text-[#4B5563] hover:text-[#1D4ED8]'
+            isFavorite ? 'text-[var(--danger-strong)]' : 'text-[var(--text-secondary)] hover:text-[var(--primary-hover)]'
           }`}
         >
           <Heart className={`h-3.5 w-3.5 ${isFavorite ? 'fill-current' : ''}`} />
@@ -256,26 +256,26 @@ function DesignInfo({ design }: { design: AdminDesign }) {
         </button>
       </div>
 
-      <div className="flex flex-col gap-2.5 border-t border-[#F1F5F9] pt-3.5">
+      <div className="flex flex-col gap-2.5 border-t border-[var(--border-muted)] pt-3.5">
         <div className="flex items-start gap-2.5">
-          <Package className="mt-0.5 h-4 w-4 shrink-0 text-[#1D4ED8]" />
+          <Package className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary-hover)]" />
           <div>
-            <p className="text-xs font-bold text-[#111827]">Entrega digital</p>
-            <p className="text-[11px] text-[#6B7280]">Archivo disponible tras la compra</p>
+            <p className="text-xs font-bold text-[var(--text-primary)]">Entrega digital</p>
+            <p className="text-[11px] text-[var(--text-secondary)]">Archivo disponible tras la compra</p>
           </div>
         </div>
         <div className="flex items-start gap-2.5">
-          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[#1D4ED8]" />
+          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary-hover)]" />
           <div>
-            <p className="text-xs font-bold text-[#111827]">Pagos seguros</p>
-            <p className="text-[11px] text-[#6B7280]">Tus pagos 100% protegidos</p>
+            <p className="text-xs font-bold text-[var(--text-primary)]">Pagos seguros</p>
+            <p className="text-[11px] text-[var(--text-secondary)]">Tus pagos 100% protegidos</p>
           </div>
         </div>
         <div className="flex items-start gap-2.5">
-          <Headphones className="mt-0.5 h-4 w-4 shrink-0 text-[#1D4ED8]" />
+          <Headphones className="mt-0.5 h-4 w-4 shrink-0 text-[var(--primary-hover)]" />
           <div>
-            <p className="text-xs font-bold text-[#111827]">Atención 24/7</p>
-            <p className="text-[11px] text-[#6B7280]">Soporte para compras de diseños</p>
+            <p className="text-xs font-bold text-[var(--text-primary)]">Atención 24/7</p>
+            <p className="text-[11px] text-[var(--text-secondary)]">Soporte para compras de diseños</p>
           </div>
         </div>
       </div>
@@ -330,7 +330,7 @@ function DesignTabs({ design }: { design: AdminDesign }) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center gap-6 overflow-x-auto border-b border-[#E5E7EB] pb-0 sm:gap-8">
+      <div className="flex items-center gap-6 overflow-x-auto border-b border-[var(--border)] pb-0 sm:gap-8">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
@@ -339,12 +339,12 @@ function DesignTabs({ design }: { design: AdminDesign }) {
               type="button"
               onClick={() => setActiveTab(tab.key)}
               className={`relative whitespace-nowrap py-2 text-xs font-semibold transition-all sm:text-sm ${
-                isActive ? 'text-[#111827]' : 'text-[#6B7280] hover:text-[#111827]'
+                isActive ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
               }`}
             >
               {tab.label}
               {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 -mb-[1px] h-0.5 bg-[#1D4ED8]" />
+                <span className="absolute bottom-0 left-0 right-0 -mb-[1px] h-0.5 bg-[var(--primary-hover)]" />
               )}
             </button>
           );
@@ -353,7 +353,7 @@ function DesignTabs({ design }: { design: AdminDesign }) {
 
       <div className="pt-4">
         {activeTab === 'descripcion' && (
-          <div className="max-w-3xl space-y-3 text-xs leading-relaxed text-[#4B5563] sm:text-sm">
+          <div className="max-w-3xl space-y-3 text-xs leading-relaxed text-[var(--text-secondary)] sm:text-sm">
             <p>
               <strong>{design.name}</strong> pertenece a la categoría {design.category} y fue creado por {design.author}. Está preparado para compra digital y uso bajo la licencia indicada por el diseñador.
             </p>
@@ -367,7 +367,7 @@ function DesignTabs({ design }: { design: AdminDesign }) {
           <div className="w-full overflow-x-auto">
             <table className="w-full min-w-[520px] border-collapse text-left text-xs">
               <thead>
-                <tr className="bg-[#2563EB] text-white">
+                <tr className="bg-[var(--primary)] text-white">
                   <th className="w-1/3 px-4 py-2.5 font-semibold text-white">Característica</th>
                   <th className="w-2/3 px-4 py-2.5 font-semibold text-white">Detalle</th>
                 </tr>
@@ -376,14 +376,14 @@ function DesignTabs({ design }: { design: AdminDesign }) {
                 {design.specs.map((row, index) => (
                   <tr
                     key={row.characteristic}
-                    className={`border-b border-[#F1F5F9] transition-colors ${
-                      index % 2 === 0 ? 'bg-white' : 'bg-[#F8FAFC]'
+                    className={`border-b border-[var(--border-muted)] transition-colors ${
+                      index % 2 === 0 ? 'bg-white' : 'bg-[var(--surface-muted)]'
                     }`}
                   >
-                    <td className="px-4 py-2.5 font-bold text-[#111827]">
+                    <td className="px-4 py-2.5 font-bold text-[var(--text-primary)]">
                       {row.characteristic}
                     </td>
-                    <td className="px-4 py-2.5 text-[#4B5563]">{row.detail}</td>
+                    <td className="px-4 py-2.5 text-[var(--text-secondary)]">{row.detail}</td>
                   </tr>
                 ))}
               </tbody>
@@ -421,14 +421,14 @@ function SimilarDesigns({ design }: { design: AdminDesign }) {
   return (
     <section className="w-full">
       <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-base font-bold text-[#111827] sm:text-lg">
+        <h2 className="text-base font-bold text-[var(--text-primary)] sm:text-lg">
           Diseños similares
         </h2>
         {relatedDesigns.length > 6 && (
           <button
             type="button"
             onClick={() => setIsExpanded((current) => !current)}
-            className="text-xs font-semibold text-[#1D4ED8] transition-colors hover:text-[#1E3A8A]"
+            className="text-xs font-semibold text-[var(--primary-hover)] transition-colors hover:text-[var(--primary-hover)]"
           >
             {isExpanded ? 'Ver menos diseños ←' : 'Ver todos los diseños →'}
           </button>
@@ -440,9 +440,9 @@ function SimilarDesigns({ design }: { design: AdminDesign }) {
           <Link
             key={item.id}
             to={`/admin/designs/${item.id}`}
-            className="group flex flex-col overflow-hidden rounded-[5px] border border-[#E5E7EB] bg-white transition-all duration-200 hover:border-[#94A3B8]"
+            className="group flex flex-col overflow-hidden rounded-[5px] border border-[var(--border)] bg-white transition-all duration-200 hover:border-[var(--border-strong)]"
           >
-            <div className="flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F8FAFC] p-2.5 sm:p-3">
+            <div className="flex aspect-square w-full items-center justify-center overflow-hidden bg-[var(--surface-muted)] p-2.5 sm:p-3">
               <img
                 src={item.image}
                 alt={item.name}
@@ -450,17 +450,17 @@ function SimilarDesigns({ design }: { design: AdminDesign }) {
               />
             </div>
             <div className="flex flex-1 flex-col gap-1 p-2.5 sm:p-3">
-              <h3 className="line-clamp-1 text-xs font-bold text-[#111827] transition-colors group-hover:text-[#1D4ED8] sm:text-sm">
+              <h3 className="line-clamp-1 text-xs font-bold text-[var(--text-primary)] transition-colors group-hover:text-[var(--primary-hover)] sm:text-sm">
                 {item.name}
               </h3>
-              <p className="line-clamp-1 text-[11px] text-[#6B7280]">{item.author}</p>
-              <p className="text-[11px] font-medium text-[#475569]">{item.category}</p>
+              <p className="line-clamp-1 text-[11px] text-[var(--text-secondary)]">{item.author}</p>
+              <p className="text-[11px] font-medium text-[var(--text-secondary)]">{item.category}</p>
               <div className="flex items-center gap-1">
-                <Star className="h-3 w-3 fill-[#F59E0B] text-[#F59E0B]" />
-                <span className="text-[11px] text-[#64748B]">{item.rating.toFixed(1)}</span>
+                <Star className="h-3 w-3 fill-[var(--warning)] text-[var(--warning)]" />
+                <span className="text-[11px] text-[var(--text-secondary)]">{item.rating.toFixed(1)}</span>
               </div>
               <div className="flex flex-wrap items-center gap-1">
-                <span className="text-xs font-extrabold text-[#111827]">{item.price}</span>
+                <span className="text-xs font-extrabold text-[var(--text-primary)]">{item.price}</span>
                 {item.colors.slice(0, 3).map((color) => (
                   <span
                     key={color}
@@ -494,23 +494,23 @@ export default function DesignDetail() {
   }
 
   return (
-    <div className="min-h-full bg-[#F8FAFC] p-4">
+    <div className="min-h-full bg-[var(--surface-muted)] p-4">
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2 text-xs text-[#94A3B8]">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--border-strong)]">
           <span>Admin</span>
-          <ChevronRight className="h-3 w-3 text-[#CBD5E1]" />
+          <ChevronRight className="h-3 w-3 text-[var(--border-strong)]" />
           <button
             type="button"
             onClick={() => navigate('/admin/designs')}
-            className="font-medium text-[#64748B] transition-colors hover:text-[#2563EB]"
+            className="font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--primary)]"
           >
             Diseños
           </button>
-          <ChevronRight className="h-3 w-3 text-[#CBD5E1]" />
-          <span className="font-bold text-[#111827]">{design.name}</span>
+          <ChevronRight className="h-3 w-3 text-[var(--border-strong)]" />
+          <span className="font-bold text-[var(--text-primary)]">{design.name}</span>
         </div>
 
-        <div className="grid grid-cols-1 items-start gap-5 rounded-[5px] border border-[#E5E7EB] bg-white p-4 shadow-2xs sm:p-5 lg:grid-cols-12 lg:gap-8">
+        <div className="grid grid-cols-1 items-start gap-5 rounded-[5px] border border-[var(--border)] bg-white p-4 shadow-2xs sm:p-5 lg:grid-cols-12 lg:gap-8">
           <div className="lg:col-span-6">
             <DesignGallery design={design} />
           </div>
@@ -519,11 +519,11 @@ export default function DesignDetail() {
           </div>
         </div>
 
-        <div className="rounded-[5px] border border-[#E5E7EB] bg-white p-4 shadow-2xs sm:p-5">
+        <div className="rounded-[5px] border border-[var(--border)] bg-white p-4 shadow-2xs sm:p-5">
           <DesignTabs design={design} />
         </div>
 
-        <div className="rounded-[5px] border border-[#E5E7EB] bg-white p-4 shadow-2xs sm:p-5">
+        <div className="rounded-[5px] border border-[var(--border)] bg-white p-4 shadow-2xs sm:p-5">
           <SimilarDesigns design={design} />
         </div>
       </div>
