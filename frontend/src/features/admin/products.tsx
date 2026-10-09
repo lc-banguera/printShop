@@ -167,10 +167,10 @@ function ProductCardImage({ src, alt }: { src: string; alt: string }) {
 
   return error || !src ? (
     <div
-      className="h-full w-full bg-[#F8FAFC] flex flex-col items-center justify-center text-[#9CA3AF]"
+      className="h-full w-full bg-[var(--surface-muted)] flex flex-col items-center justify-center text-[var(--text-muted)]"
       title={alt}
     >
-      <Package className="h-9 w-9 text-[#CBD5E1]" />
+      <Package className="h-9 w-9 text-[var(--border-strong)]" />
     </div>
   ) : (
     <img
@@ -262,14 +262,14 @@ export default function Products() {
     : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-5";
 
   return (
-    <div className="p-4 sm:p-5 md:p-6 space-y-4 bg-[#FBFBFD] min-h-full">
+    <div className="p-4 sm:p-5 md:p-6 space-y-4 bg-[var(--background)] min-h-full">
       {/* ── Encabezado Principal ──────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-[20px] sm:text-[22px] font-bold text-[#111827] leading-tight tracking-tight">
+          <h1 className="text-[20px] sm:text-[22px] font-bold text-[var(--text-primary)] leading-tight tracking-tight">
             Productos
           </h1>
-          <p className="text-[12.5px] text-[#6B7280] mt-0.5">
+          <p className="text-[12.5px] text-[var(--text-secondary)] mt-0.5">
             Explora, administra y consulta todos los productos de las tiendas.
           </p>
         </div>
@@ -281,15 +281,15 @@ export default function Products() {
               setExportNotice(true);
               setTimeout(() => setExportNotice(false), 2000);
             }}
-            className="flex items-center gap-1.5 text-[12.5px] font-medium text-[#374151] border border-[#E5E7EB] rounded-[5px] px-3.5 py-1.5 bg-white hover:bg-[#F9FAFB] transition-colors"
+            className="flex items-center gap-1.5 text-[12.5px] font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3.5 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors"
           >
-            <Download className="h-3.5 w-3.5 text-[#6B7280]" />
+            <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
             <span>{exportNotice ? "Exportando..." : "Exportar"}</span>
           </button>
           <button
             type="button"
             onClick={() => showNotice("Formulario de nuevo producto")}
-            className="flex items-center gap-1.5 text-[12.5px] font-medium text-white bg-[#2563EB] rounded-[5px] px-3.5 py-1.5 hover:bg-[#1D4ED8] transition-colors shadow-2xs"
+            className="flex items-center gap-1.5 text-[12.5px] font-medium text-white bg-[var(--primary)] rounded-[5px] px-3.5 py-1.5 hover:bg-[var(--primary-hover)] transition-colors shadow-2xs"
           >
             <Plus className="h-3.5 w-3.5" />
             <span>Nuevo producto</span>
@@ -298,10 +298,10 @@ export default function Products() {
       </div>
 
       {/* ── Barra de Búsqueda y Filtros ────────────────────────── */}
-      <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white rounded-[5px] border border-[var(--border)] p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         {/* Input de Búsqueda */}
         <div className="relative flex-1 min-w-[220px] max-w-[320px]">
-          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#9CA3AF]" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
@@ -310,7 +310,7 @@ export default function Products() {
               setCurrentPage(1);
             }}
             placeholder="Buscar producto, SKU o tienda..."
-            className="w-full h-8 pl-8 pr-3 text-[12px] text-[#111827] placeholder-[#9CA3AF] bg-white border border-[#E5E7EB] rounded-[5px] outline-none transition-all hover:border-[#D1D5DB] focus:border-[#2563EB]"
+            className="w-full h-8 pl-8 pr-3 text-[12px] text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)]"
           />
         </div>
 
@@ -318,7 +318,7 @@ export default function Products() {
         <div className="flex flex-wrap items-end gap-2.5">
           {/* Categoría */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-[#6B7280] font-normal leading-none mb-1">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal leading-none mb-1">
               Categoría
             </span>
             <div className="relative inline-flex items-center">
@@ -328,7 +328,7 @@ export default function Products() {
                   setCategoryFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-[5px] border border-[#E5E7EB] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[#374151] outline-none transition-all appearance-none cursor-pointer hover:border-[#D0D3E0] focus:border-[#2563EB]"
+                className="h-8 rounded-[5px] border border-[var(--border)] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)]"
               >
                 <option value="Todas">Todas</option>
                 {categoriesList.map((c) => (
@@ -337,13 +337,13 @@ export default function Products() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[#6B7280]" />
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[var(--text-secondary)]" />
             </div>
           </div>
 
           {/* Tienda */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-[#6B7280] font-normal leading-none mb-1">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal leading-none mb-1">
               Tienda
             </span>
             <div className="relative inline-flex items-center">
@@ -353,7 +353,7 @@ export default function Products() {
                   setStoreFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-[5px] border border-[#E5E7EB] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[#374151] outline-none transition-all appearance-none cursor-pointer hover:border-[#D0D3E0] focus:border-[#2563EB]"
+                className="h-8 rounded-[5px] border border-[var(--border)] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)]"
               >
                 <option value="Todas">Todas</option>
                 {storesList.map((s) => (
@@ -362,13 +362,13 @@ export default function Products() {
                   </option>
                 ))}
               </select>
-              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[#6B7280]" />
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[var(--text-secondary)]" />
             </div>
           </div>
 
           {/* Estado */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-[#6B7280] font-normal leading-none mb-1">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal leading-none mb-1">
               Estado
             </span>
             <div className="relative inline-flex items-center">
@@ -378,20 +378,20 @@ export default function Products() {
                   setStatusFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-[5px] border border-[#E5E7EB] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[#374151] outline-none transition-all appearance-none cursor-pointer hover:border-[#D0D3E0] focus:border-[#2563EB]"
+                className="h-8 rounded-[5px] border border-[var(--border)] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)]"
               >
                 <option value="Todos">Todos</option>
                 <option value="Activo">Activo</option>
                 <option value="Pendiente">Pendiente</option>
                 <option value="Deshabilitado">Deshabilitado</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[#6B7280]" />
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[var(--text-secondary)]" />
             </div>
           </div>
 
           {/* Disponibilidad */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-[#6B7280] font-normal leading-none mb-1">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal leading-none mb-1">
               Disponibilidad
             </span>
             <div className="relative inline-flex items-center">
@@ -401,27 +401,27 @@ export default function Products() {
                   setAvailabilityFilter(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="h-8 rounded-[5px] border border-[#E5E7EB] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[#374151] outline-none transition-all appearance-none cursor-pointer hover:border-[#D0D3E0] focus:border-[#2563EB]"
+                className="h-8 rounded-[5px] border border-[var(--border)] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)]"
               >
                 <option value="Todas">Todas</option>
                 <option value="Disponible">Disponible</option>
                 <option value="Pocas unidades">Pocas unidades</option>
                 <option value="Agotado">Agotado</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[#6B7280]" />
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[var(--text-secondary)]" />
             </div>
           </div>
 
           {/* Ordenar por */}
           <div className="flex flex-col">
-            <span className="text-[10px] text-[#6B7280] font-normal leading-none mb-1">
+            <span className="text-[10px] text-[var(--text-secondary)] font-normal leading-none mb-1">
               Ordenar por
             </span>
             <div className="relative inline-flex items-center">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="h-8 rounded-[5px] border border-[#E5E7EB] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[#374151] outline-none transition-all appearance-none cursor-pointer hover:border-[#D0D3E0] focus:border-[#2563EB]"
+                className="h-8 rounded-[5px] border border-[var(--border)] bg-white pl-2.5 pr-6 text-[11.5px] font-normal text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)]"
               >
                 <option value="Más recientes">Más recientes</option>
                 <option value="Precio: menor a mayor">
@@ -432,16 +432,16 @@ export default function Products() {
                 </option>
                 <option value="Nombre A-Z">Nombre A-Z</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[#6B7280]" />
+              <ChevronDown className="pointer-events-none absolute right-1.5 h-3 w-3 text-[var(--text-secondary)]" />
             </div>
           </div>
 
           {/* Botón Filtros */}
           <button
             type="button"
-            className="flex h-8 items-center gap-1.5 rounded-[5px] border border-[#E2E8F0] bg-white px-3 text-xs font-normal text-[#475569] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-colors cursor-pointer shadow-2xs"
+            className="flex h-8 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3 text-xs font-normal text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors cursor-pointer shadow-2xs"
           >
-            <Filter className="h-3 w-3 text-[#64748B]" />
+            <Filter className="h-3 w-3 text-[var(--text-secondary)]" />
             <span>Filtros</span>
           </button>
         </div>
@@ -454,11 +454,11 @@ export default function Products() {
           return (
             <div
               key={product.id}
-              className="group bg-white rounded-[5px] border border-[#E5E7EB] hover:border-[#CBD5E1] transition-all duration-200 p-3 flex flex-col justify-between shadow-2xs"
+              className="group bg-white rounded-[5px] border border-[var(--border)] hover:border-[var(--border-strong)] transition-all duration-200 p-3 flex flex-col justify-between shadow-2xs"
             >
               {/* Imagen del Producto + Botones Heart / More en la esquina */}
               <div>
-                <div className="relative aspect-square w-full bg-[#F8FAFC] rounded-[5px] overflow-hidden mb-2.5 border border-[#E5E7EB]">
+                <div className="relative aspect-square w-full bg-[var(--surface-muted)] rounded-[5px] overflow-hidden mb-2.5 border border-[var(--border)]">
                   <ProductCardImage src={product.image} alt={product.name} />
 
                   {/* Acciones superiores derechas: Corazón y 3 Puntos */}
@@ -466,14 +466,14 @@ export default function Products() {
                     <button
                       type="button"
                       onClick={(e) => toggleFavorite(product.id, e)}
-                      className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[#9CA3AF] hover:text-rose-500 transition-all shadow-2xs focus:outline-none cursor-pointer"
+                      className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[var(--text-muted)] hover:text-rose-500 transition-all shadow-2xs focus:outline-none cursor-pointer"
                       title={isFav ? "Quitar de favoritos" : "Guardar favorito"}
                     >
                       <Heart
                         className={`h-3.5 w-3.5 transition-colors ${
                           isFav
                             ? "fill-rose-500 text-rose-500"
-                            : "text-[#9CA3AF]"
+                            : "text-[var(--text-muted)]"
                         }`}
                       />
                     </button>
@@ -482,7 +482,7 @@ export default function Products() {
                       <DropdownMenuTrigger asChild>
                         <button
                           type="button"
-                          className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[#9CA3AF] hover:text-[#111827] transition-all shadow-2xs focus:outline-none cursor-pointer"
+                          className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-all shadow-2xs focus:outline-none cursor-pointer"
                           title="Más opciones"
                         >
                           <MoreVertical className="h-3.5 w-3.5" />
@@ -490,29 +490,29 @@ export default function Products() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="min-w-[150px] rounded-[5px] p-1 shadow-md border border-[#E5E7EB] bg-white z-50"
+                        className="min-w-[150px] rounded-[5px] p-1 shadow-md border border-[var(--border)] bg-white z-50"
                       >
                         <DropdownMenuItem
                           onClick={() => showNotice(`Detalles de ${product.name}`)}
-                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[#374151] rounded-[4px] hover:bg-[#F3F4F6] cursor-pointer"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[var(--text-secondary)] rounded-[4px] hover:bg-[var(--surface-muted)] cursor-pointer"
                         >
-                          <Eye className="h-3.5 w-3.5 text-[#64748B]" />
+                          <Eye className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                           <span>Ver detalles</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() =>
                             showNotice(`Viendo ${product.name} en tienda`)
                           }
-                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[#374151] rounded-[4px] hover:bg-[#F3F4F6] cursor-pointer"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[var(--text-secondary)] rounded-[4px] hover:bg-[var(--surface-muted)] cursor-pointer"
                         >
-                          <ExternalLink className="h-3.5 w-3.5 text-[#64748B]" />
+                          <ExternalLink className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                           <span>Ver en tienda</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => navigate("/designer/personalize")}
-                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[#374151] rounded-[4px] hover:bg-[#F3F4F6] cursor-pointer"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[var(--text-secondary)] rounded-[4px] hover:bg-[var(--surface-muted)] cursor-pointer"
                         >
-                          <Paintbrush className="h-3.5 w-3.5 text-[#64748B]" />
+                          <Paintbrush className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                           <span>Personalizar</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -523,26 +523,26 @@ export default function Products() {
                 {/* Información del Producto */}
                 <div>
                   <h3
-                    className="text-xs font-bold text-[#111827] leading-snug truncate"
+                    className="text-xs font-bold text-[var(--text-primary)] leading-snug truncate"
                     title={product.name}
                   >
                     {product.name}
                   </h3>
 
-                  <p className="text-[10.5px] text-[#94A3B8] mt-0.5 font-normal">
+                  <p className="text-[10.5px] text-[var(--text-muted)] mt-0.5 font-normal">
                     SKU: {product.sku}
                   </p>
 
-                  <p className="text-xs font-bold text-[#111827] mt-1.5">
+                  <p className="text-xs font-bold text-[var(--text-primary)] mt-1.5">
                     {product.price}
                   </p>
 
-                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[#64748B]">
-                    <Store className="h-3 w-3 text-[#94A3B8] shrink-0" />
+                  <div className="flex items-center gap-1.5 mt-1 text-[11px] text-[var(--text-secondary)]">
+                    <Store className="h-3 w-3 text-[var(--text-muted)] shrink-0" />
                     <span className="truncate">{product.store}</span>
                   </div>
 
-                  <p className="text-[10.5px] text-[#64748B] mt-1 font-normal">
+                  <p className="text-[10.5px] text-[var(--text-secondary)] mt-1 font-normal">
                     {product.availability}
                   </p>
                 </div>
@@ -553,14 +553,14 @@ export default function Products() {
                 <button
                   type="button"
                   onClick={() => showNotice(`Detalles de ${product.name}`)}
-                  className="flex-1 h-8 rounded-[5px] border border-[#E2E8F0] bg-white text-xs font-semibold text-[#2563EB] hover:bg-[#EFF6FF] hover:border-[#2563EB] transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="flex-1 h-8 rounded-[5px] border border-[var(--border)] bg-white text-xs font-semibold text-[var(--primary)] hover:bg-[var(--info-muted)] hover:border-[var(--primary)] transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
                   Ver detalles
                 </button>
                 <button
                   type="button"
                   onClick={() => showNotice(`Añadido al carrito: ${product.name}`)}
-                  className="h-8 w-8 rounded-[5px] bg-[#2563EB] text-white hover:bg-[#1D4ED8] transition-colors flex items-center justify-center shrink-0 shadow-2xs cursor-pointer"
+                  className="h-8 w-8 rounded-[5px] bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors flex items-center justify-center shrink-0 shadow-2xs cursor-pointer"
                   title="Comprar producto"
                 >
                   <ShoppingCart className="h-3.5 w-3.5" />
@@ -572,14 +572,14 @@ export default function Products() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-12 text-center text-[#64748B]">
+        <div className="bg-white rounded-[5px] border border-[var(--border)] p-12 text-center text-[var(--text-secondary)]">
           No se encontraron productos con los filtros seleccionados.
         </div>
       )}
 
       {/* ── Paginación Fiel a la Referencia ───────────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-        <p className="shrink-0 text-xs text-[#64748B]">
+        <p className="shrink-0 text-xs text-[var(--text-secondary)]">
           Mostrando <span className="font-normal">1 a 8 de 248 productos</span>
         </p>
 
@@ -588,7 +588,7 @@ export default function Products() {
             type="button"
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <ChevronLeft className="h-3.5 w-3.5" />
           </button>
@@ -598,8 +598,8 @@ export default function Products() {
             onClick={() => setCurrentPage(1)}
             className={`h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer ${
               currentPage === 1
-                ? "bg-[#2563EB] text-white font-bold shadow-2xs"
-                : "border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569]"
+                ? "bg-[var(--primary)] text-white font-bold shadow-2xs"
+                : "border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
             }`}
           >
             1
@@ -609,8 +609,8 @@ export default function Products() {
             onClick={() => setCurrentPage(2)}
             className={`h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer ${
               currentPage === 2
-                ? "bg-[#2563EB] text-white font-bold shadow-2xs"
-                : "border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569]"
+                ? "bg-[var(--primary)] text-white font-bold shadow-2xs"
+                : "border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
             }`}
           >
             2
@@ -620,8 +620,8 @@ export default function Products() {
             onClick={() => setCurrentPage(3)}
             className={`h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer ${
               currentPage === 3
-                ? "bg-[#2563EB] text-white font-bold shadow-2xs"
-                : "border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569]"
+                ? "bg-[var(--primary)] text-white font-bold shadow-2xs"
+                : "border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
             }`}
           >
             3
@@ -631,8 +631,8 @@ export default function Products() {
             onClick={() => setCurrentPage(4)}
             className={`h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer ${
               currentPage === 4
-                ? "bg-[#2563EB] text-white font-bold shadow-2xs"
-                : "border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569]"
+                ? "bg-[var(--primary)] text-white font-bold shadow-2xs"
+                : "border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
             }`}
           >
             4
@@ -642,14 +642,14 @@ export default function Products() {
             onClick={() => setCurrentPage(5)}
             className={`h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer ${
               currentPage === 5
-                ? "bg-[#2563EB] text-white font-bold shadow-2xs"
-                : "border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569]"
+                ? "bg-[var(--primary)] text-white font-bold shadow-2xs"
+                : "border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
             }`}
           >
             5
           </button>
 
-          <span className="h-[34px] w-7 min-w-7 shrink-0 flex items-center justify-center text-xs text-[#94A3B8]">
+          <span className="h-[34px] w-7 min-w-7 shrink-0 flex items-center justify-center text-xs text-[var(--text-muted)]">
             ...
           </span>
 
@@ -658,8 +658,8 @@ export default function Products() {
             onClick={() => setCurrentPage(31)}
             className={`h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer ${
               currentPage === 31
-                ? "bg-[#2563EB] text-white font-bold shadow-2xs"
-                : "border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569]"
+                ? "bg-[var(--primary)] text-white font-bold shadow-2xs"
+                : "border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)]"
             }`}
           >
             31
@@ -669,7 +669,7 @@ export default function Products() {
             type="button"
             onClick={() => setCurrentPage((p) => Math.min(31, p + 1))}
             disabled={currentPage === 31}
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
           >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
@@ -678,8 +678,8 @@ export default function Products() {
 
       {/* Notificación Flotante */}
       {notice && (
-        <div className="fixed bottom-5 right-5 z-50 bg-[#111827] text-white text-xs px-3.5 py-2 rounded-[5px] shadow-lg flex items-center gap-2">
-          <Check className="h-4 w-4 text-[#2563EB]" />
+        <div className="fixed bottom-5 right-5 z-50 bg-[var(--text-primary)] text-white text-xs px-3.5 py-2 rounded-[5px] shadow-lg flex items-center gap-2">
+          <Check className="h-4 w-4 text-[var(--primary)]" />
           <span>{notice}</span>
         </div>
       )}
