@@ -34,10 +34,10 @@ export const MethodSelectionStep: React.FC<MethodSelectionStepProps> = ({
     <div className="w-full">
       {/* Title & Description */}
       <div className="mt-6 mb-6">
-        <h2 className="text-[22px] sm:text-2xl font-bold text-gray-900 tracking-tight">
+        <h2 className="text-[22px] sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
           Verifica tu identidad
         </h2>
-        <p className="text-xs sm:text-[13px] text-gray-500 mt-1.5 leading-relaxed">
+        <p className="text-xs sm:text-[13px] text-[var(--text-secondary)] mt-1.5 leading-relaxed">
           Elige el método que prefieras para completar tu verificación.
           <br className="hidden sm:inline" /> Es rápido, seguro y te permite
           activar los cobros en tu cuenta.
@@ -52,13 +52,13 @@ export const MethodSelectionStep: React.FC<MethodSelectionStepProps> = ({
           onClick={() => handleCardClick("document")}
           className={`w-full text-left p-4 rounded-xl ${
             selectedMethod === "document"
-              ? "border-2 border-[#2563EB] bg-white hover:bg-blue-50/10"
-              : "border border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+              ? "border-2 border-[var(--primary)] bg-white hover:bg-[var(--accent-muted)]"
+              : "border border-[var(--border)] bg-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)]"
           } transition-all flex items-center gap-3.5 group shadow-xs focus:outline-hidden cursor-pointer`}
         >
-          <div className="w-11 h-11 rounded-lg bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-lg bg-[var(--info-muted)] text-[var(--primary)] flex items-center justify-center shrink-0">
             <svg
-              className="w-6 h-6 text-[#2563EB]"
+              className="w-6 h-6 text-[var(--primary)]"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
@@ -76,17 +76,17 @@ export const MethodSelectionStep: React.FC<MethodSelectionStepProps> = ({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-bold text-gray-900 tracking-tight">
+              <span className="text-[14px] font-bold text-[var(--text-primary)] tracking-tight">
                 Documento de identidad
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1 leading-snug">
+            <p className="text-xs text-[var(--text-secondary)] mt-1 leading-snug">
               Toma una foto de tu documento de identidad y una selfie. La
               verificación suele completarse en pocos minutos.
             </p>
           </div>
 
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors shrink-0 ml-1" />
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors shrink-0 ml-1" />
         </button>
 
         {/* Card 2: Verificación facial */}
@@ -95,27 +95,27 @@ export const MethodSelectionStep: React.FC<MethodSelectionStepProps> = ({
           onClick={() => handleCardClick("facial")}
           className={`w-full text-left p-4 rounded-xl ${
             selectedMethod === "facial"
-              ? "border-2 border-[#2563EB] bg-white hover:bg-blue-50/10"
-              : "border border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+              ? "border-2 border-[var(--primary)] bg-white hover:bg-[var(--accent-muted)]"
+              : "border border-[var(--border)] bg-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)]"
           } transition-all flex items-center gap-3.5 group shadow-xs focus:outline-hidden cursor-pointer`}
         >
-          <div className="w-11 h-11 rounded-lg bg-[#EFF6FF] text-[#2563EB] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-lg bg-[var(--info-muted)] text-[var(--primary)] flex items-center justify-center shrink-0">
             <ScanFace className="w-6 h-6 stroke-[1.8]" />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-bold text-gray-900 tracking-tight">
+              <span className="text-[14px] font-bold text-[var(--text-primary)] tracking-tight">
                 Verificación facial
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1 leading-snug">
+            <p className="text-xs text-[var(--text-secondary)] mt-1 leading-snug">
               Realiza un escaneo facial en tiempo real. Es seguro, fácil y no
               requiere documentos adicionales.
             </p>
           </div>
 
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors shrink-0 ml-1" />
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors shrink-0 ml-1" />
         </button>
 
         {/* Card 3: A través de tu banco */}
@@ -124,27 +124,27 @@ export const MethodSelectionStep: React.FC<MethodSelectionStepProps> = ({
           onClick={() => handleCardClick("bank")}
           className={`w-full text-left p-4 rounded-xl ${
             selectedMethod === "bank"
-              ? "border-2 border-[#2563EB] bg-white hover:bg-blue-50/10"
-              : "border border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50/50"
+              ? "border-2 border-[var(--primary)] bg-white hover:bg-[var(--accent-muted)]"
+              : "border border-[var(--border)] bg-white hover:border-[var(--border-strong)] hover:bg-[var(--surface-muted)]"
           } transition-all flex items-center gap-3.5 group shadow-xs focus:outline-hidden cursor-pointer`}
         >
-          <div className="w-11 h-11 rounded-lg bg-[#ECFDF5] text-[#059669] flex items-center justify-center shrink-0">
+          <div className="w-11 h-11 rounded-lg bg-[var(--success-muted)] text-[var(--success)] flex items-center justify-center shrink-0">
             <Landmark className="w-6 h-6 stroke-[1.8]" />
           </div>
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <span className="text-[14px] font-bold text-gray-900 tracking-tight">
+              <span className="text-[14px] font-bold text-[var(--text-primary)] tracking-tight">
                 A través de tu banco
               </span>
             </div>
-            <p className="text-xs text-gray-500 mt-1 leading-snug">
+            <p className="text-xs text-[var(--text-secondary)] mt-1 leading-snug">
               Verifica tu identidad usando tu cuenta bancaria. Es un proceso
               rápido y confiable.
             </p>
           </div>
 
-          <ChevronRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors shrink-0 ml-1" />
+          <ChevronRight className="w-5 h-5 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors shrink-0 ml-1" />
         </button>
       </div>
 
