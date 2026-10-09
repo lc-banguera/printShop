@@ -297,7 +297,7 @@ export default function Stores() {
   const gridClass = `grid ${gridColsClass} gap-4 transition-all duration-300`;
 
   return (
-    <div className="p-3.5 sm:p-4 space-y-4 bg-[#FBFBFD] min-h-full">
+    <div className="p-3.5 sm:p-4 space-y-4 bg-[var(--background)] min-h-full">
       {/* ── Header ─────────────────────────────────────────────── */}
       <PageHeader
         title="Tiendas"
@@ -308,15 +308,15 @@ export default function Stores() {
             <button
               type="button"
               onClick={handleExport}
-              className="flex items-center gap-1.5 text-xs font-medium text-[#475569] border border-[#E2E8F0] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[#F8FAFC] transition-colors cursor-pointer shadow-2xs"
+              className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors cursor-pointer shadow-2xs"
             >
-              <Download className="h-3.5 w-3.5 text-[#64748B]" />
+              <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
               {exportNotice ? "Exportando..." : "Exportar"}
             </button>
             <button
               type="button"
               onClick={() => setIsNewStoreModalOpen(true)}
-              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[#2563EB] rounded-[5px] px-3.5 py-1.5 hover:bg-[#1D4ED8] transition-colors shadow-2xs cursor-pointer"
+              className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[var(--primary)] rounded-[5px] px-3.5 py-1.5 hover:bg-[var(--primary-hover)] transition-colors shadow-2xs cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
               <span>Nueva Tienda</span>
@@ -326,16 +326,16 @@ export default function Stores() {
       />
 
       {/* ── Barra de Búsqueda y Filtros ────────────────────────── */}
-      <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white rounded-[5px] border border-[var(--border)] p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         {/* Input de Búsqueda */}
         <div className="relative flex-1 min-w-[280px] max-w-xl">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#94A3B8]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar tienda por nombre, correo o propietario..."
-            className="w-full h-9 pl-9 pr-3.5 text-xs text-[#111827] placeholder-[#94A3B8] bg-white border border-[#E2E8F0] rounded-[5px] outline-none transition-all hover:border-[#CBD5E1] focus:border-[#2563EB] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] shadow-2xs"
+            className="w-full h-9 pl-9 pr-3.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] shadow-2xs"
           />
         </div>
 
@@ -346,14 +346,14 @@ export default function Stores() {
             <select
               value={planFilter}
               onChange={(e) => setPlanFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[#E2E8F0] bg-white pl-3.5 pr-8 text-xs font-medium text-[#475569] outline-none transition-all appearance-none cursor-pointer hover:border-[#CBD5E1] focus:border-[#2563EB] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
             >
               <option value="Todos">Todos los planes</option>
               <option value="Básico">Plan Básico</option>
               <option value="Profesional">Plan Profesional</option>
               <option value="Premium">Plan Premium</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[#64748B]" />
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[var(--text-secondary)]" />
           </div>
 
           {/* Selector de Estados */}
@@ -361,22 +361,22 @@ export default function Stores() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[#E2E8F0] bg-white pl-3.5 pr-8 text-xs font-medium text-[#475569] outline-none transition-all appearance-none cursor-pointer hover:border-[#CBD5E1] focus:border-[#2563EB] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
             >
               <option value="Todos">Todos los estados</option>
               <option value="Activa">Activa</option>
               <option value="Inactiva">Inactiva</option>
               <option value="Pendiente">Pendiente</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[#64748B]" />
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[var(--text-secondary)]" />
           </div>
 
           {/* Botón Filtros */}
           <button
             type="button"
-            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[#E2E8F0] bg-white px-3.5 text-xs font-medium text-[#475569] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-colors cursor-pointer shadow-2xs"
+            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3.5 text-xs font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors cursor-pointer shadow-2xs"
           >
-            <Filter className="h-3.5 w-3.5 text-[#64748B]" />
+            <Filter className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
             <span>Filtros</span>
           </button>
         </div>
@@ -387,11 +387,11 @@ export default function Stores() {
         {filtered.map((store) => (
           <div
             key={store.id}
-            className="bg-white rounded-[5px] border border-[#E5E7EB] shadow-2xs overflow-hidden flex flex-col justify-between hover:border-[#CBD5E1] transition-all"
+            className="bg-white rounded-[5px] border border-[var(--border)] shadow-2xs overflow-hidden flex flex-col justify-between hover:border-[var(--border-strong)] transition-all"
           >
             <div>
               {/* Parte Superior: Imagen de cabecera + Menú 3 puntos + Logo + Avatar */}
-              <div className="relative h-28 w-full bg-[#E5E7EB]">
+              <div className="relative h-28 w-full bg-[var(--surface-strong)]">
                 <img
                   src={store.banner}
                   alt={store.name}
@@ -411,46 +411,46 @@ export default function Stores() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
-                      className="min-w-[185px] rounded-[5px] p-1 shadow-md border border-[#E5E7EB] bg-white z-50"
+                      className="min-w-[185px] rounded-[5px] p-1 shadow-md border border-[var(--border)] bg-white z-50"
                     >
                       <DropdownMenuItem
                         onClick={() => setSelectedStore(store)}
-                        className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[#374151] rounded-[4px] hover:bg-[#F3F4F6] cursor-pointer"
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-xs text-[var(--text-secondary)] rounded-[4px] hover:bg-[var(--surface-muted)] cursor-pointer"
                       >
-                        <Eye className="h-3.5 w-3.5 text-[#6B7280]" />
+                        <Eye className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                         <span>Ver detalles</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() =>
                           setModalNotice(`Viendo pedidos de ${store.name}`)
                         }
-                        className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                       >
-                        <ShoppingBag className="h-3.5 w-3.5 text-[#6B7280]" />
+                        <ShoppingBag className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                         <span>Ver pedidos</span>
                       </DropdownMenuItem>
                       {store.status === "Activa" ? (
                         <DropdownMenuItem
                           onClick={() => setStoreToToggle(store)}
-                          className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                         >
-                          <Ban className="h-3.5 w-3.5 text-[#6B7280]" />
+                          <Ban className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                           <span>Suspender tienda</span>
                         </DropdownMenuItem>
                       ) : (
                         <DropdownMenuItem
                           onClick={() => setStoreToToggle(store)}
-                          className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                          className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                         >
-                          <CheckCircle2 className="h-3.5 w-3.5 text-[#6B7280]" />
+                          <CheckCircle2 className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                           <span>Activar tienda</span>
                         </DropdownMenuItem>
                       )}
                       <DropdownMenuItem
                         onClick={() => setStoreToDelete(store)}
-                        className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                        className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                       >
-                        <Trash2 className="h-3.5 w-3.5 text-[#6B7280]" />
+                        <Trash2 className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                         <span>Eliminar tienda</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
@@ -461,8 +461,8 @@ export default function Stores() {
                 <div
                   className="absolute -bottom-5 left-3.5 h-11 w-11 rounded-full border-2 border-white shadow-xs flex items-center justify-center font-bold text-[13px] z-10 select-none overflow-hidden"
                   style={{
-                    backgroundColor: store.logoBg || "#FFFFFF",
-                    color: store.logoColor || "#111827",
+                    backgroundColor: store.logoBg || "var(--surface)",
+                    color: store.logoColor || "var(--text-primary)",
                   }}
                 >
                   {store.logo}
@@ -477,7 +477,7 @@ export default function Stores() {
                       className="h-8 w-8 rounded-full border-2 border-white object-cover shadow-xs"
                     />
                   ) : (
-                    <div className="h-8 w-8 rounded-full border-2 border-white bg-[#E5E7EB] flex items-center justify-center text-[#9CA3AF] shadow-xs">
+                    <div className="h-8 w-8 rounded-full border-2 border-white bg-[var(--border)] flex items-center justify-center text-[var(--text-muted)] shadow-xs">
                       <UserRound className="h-4 w-4" />
                     </div>
                   )}
@@ -488,37 +488,37 @@ export default function Stores() {
               <div className="pt-6 px-3.5 pb-2">
                 {/* Nombre de la Tienda */}
                 <h3
-                  className="text-[14px] font-bold text-[#111827] leading-tight truncate"
+                  className="text-[14px] font-bold text-[var(--text-primary)] leading-tight truncate"
                   title={store.name}
                 >
                   {store.name}
                 </h3>
 
                 {/* Nombre del Propietario — información secundaria */}
-                <p className="text-[12px] text-[#6B7280] font-medium leading-tight mt-1.5 truncate">
+                <p className="text-[12px] text-[var(--text-secondary)] font-medium leading-tight mt-1.5 truncate">
                   {store.owner}
                 </p>
 
                 {/* Plan — información terciaria, gris más claro */}
-                <p className="text-[11px] text-[#9CA3AF] font-semibold leading-tight mt-0.5 leading-none">
+                <p className="text-[11px] text-[var(--text-muted)] font-semibold leading-tight mt-0.5 leading-none">
                   Plan {store.plan}
                 </p>
 
                 {/* Fecha de Registro — limpia y centrada */}
-                <div className="py-2.5 my-2.5 border-y border-[#F3F4F6] text-left">
-                  <p className="text-[11.5px] text-[#6B7280] font-semibold leading-tight truncate">
+                <div className="py-2.5 my-2.5 border-y border-[var(--surface-muted)] text-left">
+                  <p className="text-[11.5px] text-[var(--text-secondary)] font-semibold leading-tight truncate">
                     Registrado el {formatFullDate(store.joined)}
                   </p>
                 </div>
 
                 {/* Contacto: Correo y Teléfono */}
                 <div className="space-y-1 my-2">
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#6B7280]">
-                    <Mail className="h-3 w-3 text-[#9CA3AF] shrink-0" />
+                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
+                    <Mail className="h-3 w-3 text-[var(--text-muted)] shrink-0" />
                     <span className="truncate">{store.email}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] text-[#6B7280]">
-                    <Phone className="h-3 w-3 text-[#9CA3AF] shrink-0" />
+                  <div className="flex items-center gap-1.5 text-[11px] text-[var(--text-secondary)]">
+                    <Phone className="h-3 w-3 text-[var(--text-muted)] shrink-0" />
                     <span className="truncate">{store.phone}</span>
                   </div>
                 </div>
@@ -531,14 +531,14 @@ export default function Stores() {
                 <button
                   type="button"
                   onClick={() => setSelectedStore(store)}
-                  className="h-8 rounded-[5px] border border-[#E2E8F0] bg-white text-xs font-semibold text-[#374151] hover:bg-[#F8FAFC] hover:border-[#CBD5E1] transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
+                  className="h-8 rounded-[5px] border border-[var(--border)] bg-white text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors flex items-center justify-center cursor-pointer shadow-2xs"
                 >
                   Ver Tienda
                 </button>
                 <button
                   type="button"
                   onClick={() => setEditingStore(store)}
-                  className="h-8 rounded-[5px] bg-[#2563EB] text-xs font-semibold text-white hover:bg-[#1D4ED8] transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
+                  className="h-8 rounded-[5px] bg-[var(--primary)] text-xs font-semibold text-white hover:bg-[var(--primary-hover)] transition-colors flex items-center justify-center gap-1 shadow-2xs cursor-pointer"
                 >
                   <Pencil className="h-3 w-3" />
                   <span>Editar</span>
@@ -550,88 +550,88 @@ export default function Stores() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-12 text-center text-[#6B7280]">
+        <div className="bg-white rounded-[5px] border border-[var(--border)] p-12 text-center text-[var(--text-secondary)]">
           No se encontraron tiendas con los filtros seleccionados.
         </div>
       )}
 
       {/* ── Paginación ─────────────────────────────────────────── */}
-      <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-3 px-4 shadow-2xs flex flex-wrap items-center justify-between gap-3">
-        <p className="shrink-0 text-xs text-[#475569]">
-          Mostrando <span className="font-semibold text-[#111827]">1</span> a{" "}
-          <span className="font-semibold text-[#111827]">
+      <div className="bg-white rounded-[5px] border border-[var(--border)] p-3 px-4 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+        <p className="shrink-0 text-xs text-[var(--text-secondary)]">
+          Mostrando <span className="font-semibold text-[var(--text-primary)]">1</span> a{" "}
+          <span className="font-semibold text-[var(--text-primary)]">
             {filtered.length > 0
               ? Math.min(Number(perPage), filtered.length)
               : 0}
           </span>{" "}
-          de <span className="font-semibold text-[#111827]">248</span> tiendas
+          de <span className="font-semibold text-[var(--text-primary)]">248</span> tiendas
         </p>
 
         {/* Botones de Navegación Numérica */}
         <div className="flex max-w-full shrink-0 items-center gap-2 overflow-x-auto">
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs cursor-pointer"
             aria-label="Primera página"
           >
             «
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs cursor-pointer"
             aria-label="Página anterior"
           >
             ‹
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] bg-[#2563EB] text-white flex items-center justify-center text-xs font-bold shadow-2xs"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold shadow-2xs"
           >
             1
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
           >
             2
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
           >
             3
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
           >
             4
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
           >
             5
           </button>
-          <span className="h-[34px] w-7 min-w-7 shrink-0 flex items-center justify-center text-xs text-[#94A3B8]">
+          <span className="h-[34px] w-7 min-w-7 shrink-0 flex items-center justify-center text-xs text-[var(--text-muted)]">
             ...
           </span>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors cursor-pointer"
           >
             21
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs cursor-pointer"
             aria-label="Página siguiente"
           >
             ›
           </button>
           <button
             type="button"
-            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs cursor-pointer"
+            className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs cursor-pointer"
             aria-label="Última página"
           >
             »
@@ -643,7 +643,7 @@ export default function Stores() {
           <select
             value={perPage}
             onChange={(e) => setPerPage(e.target.value)}
-            className="h-[34px] min-w-[132px] rounded-[5px] border border-[#E2E8F0] bg-white pl-3 pr-8 text-xs text-[#475569] outline-none appearance-none cursor-pointer hover:border-[#CBD5E1] focus:border-[#2563EB] shadow-2xs"
+            className="h-[34px] min-w-[132px] rounded-[5px] border border-[var(--border)] bg-white pl-3 pr-8 text-xs text-[var(--text-secondary)] outline-none appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
           >
             <option value="5">5 por página</option>
             <option value="10">10 por página</option>
@@ -653,24 +653,24 @@ export default function Stores() {
             <option value="30">30 por página</option>
             <option value="50">50 por página</option>
           </select>
-          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#6B7280]" />
+          <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-secondary)]" />
         </div>
       </div>
 
       {/* ── Modal: Ver Detalles de Tienda ──────────────────────── */}
       {selectedStore && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-[5px] max-w-lg w-full p-5 sm:p-6 shadow-xl border border-[#E5E7EB] relative">
-            <div className="flex items-center justify-between pb-3.5 border-b border-[#E5E7EB]">
+          <div className="bg-white rounded-[5px] max-w-lg w-full p-5 sm:p-6 shadow-xl border border-[var(--border)] relative">
+            <div className="flex items-center justify-between pb-3.5 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-[#111827]">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
                   Detalles de la Tienda
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedStore(null)}
-                className="h-7 w-7 rounded-[4px] hover:bg-[#F3F4F6] text-[#6B7280] flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -678,7 +678,7 @@ export default function Stores() {
 
             <div className="py-4 space-y-4">
               {/* Imagen del banner de la tienda */}
-              <div className="h-32 w-full rounded-[5px] overflow-hidden border border-[#E5E7EB] bg-[#F3F4F6] -mt-1">
+              <div className="h-32 w-full rounded-[5px] overflow-hidden border border-[var(--border)] bg-[var(--surface-muted)] -mt-1">
                 <img
                   src={selectedStore.banner}
                   alt={selectedStore.name}
@@ -689,70 +689,70 @@ export default function Stores() {
               {/* Logo + Nombre + Propietario y Plan */}
               <div className="flex items-center gap-3.5">
                 <div
-                  className="h-12 w-12 rounded-full flex items-center justify-center font-bold text-sm shadow-xs border border-[#E5E7EB] shrink-0"
+                  className="h-12 w-12 rounded-full flex items-center justify-center font-bold text-sm shadow-xs border border-[var(--border)] shrink-0"
                   style={{
-                    backgroundColor: selectedStore.logoBg || "#FFFFFF",
-                    color: selectedStore.logoColor || "#111827",
+                    backgroundColor: selectedStore.logoBg || "var(--surface)",
+                    color: selectedStore.logoColor || "var(--text-primary)",
                   }}
                 >
                   {selectedStore.logo}
                 </div>
                 <div className="min-w-0">
-                  <h4 className="text-base font-bold text-[#111827] truncate">
+                  <h4 className="text-base font-bold text-[var(--text-primary)] truncate">
                     {selectedStore.name}
                   </h4>
-                  <p className="text-xs text-[#64748B]">
+                  <p className="text-xs text-[var(--text-secondary)]">
                     Propietario: {selectedStore.owner} <br /> Plan{" "}
                     {selectedStore.plan}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-[#F8FAFC] p-3.5 rounded-[5px] border border-[#E2E8F0] text-xs space-y-2">
+              <div className="bg-[var(--surface-muted)] p-3.5 rounded-[5px] border border-[var(--border)] text-xs space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Estado:</span>
-                  <span className="font-medium text-[#111827]">
+                  <span className="text-[var(--text-secondary)]">Estado:</span>
+                  <span className="font-medium text-[var(--text-primary)]">
                     {selectedStore.status}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Total de Pedidos:</span>
-                  <span className="font-medium text-[#111827]">
+                  <span className="text-[var(--text-secondary)]">Total de Pedidos:</span>
+                  <span className="font-medium text-[var(--text-primary)]">
                     {selectedStore.orders} pedidos
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Ingresos Mensuales:</span>
-                  <span className="font-medium text-[#111827]">
+                  <span className="text-[var(--text-secondary)]">Ingresos Mensuales:</span>
+                  <span className="font-medium text-[var(--text-primary)]">
                     {selectedStore.revenue}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Fecha de Registro:</span>
-                  <span className="font-medium text-[#111827]">
+                  <span className="text-[var(--text-secondary)]">Fecha de Registro:</span>
+                  <span className="font-medium text-[var(--text-primary)]">
                     {selectedStore.joined}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Correo Electrónico:</span>
-                  <span className="font-medium text-[#111827]">
+                  <span className="text-[var(--text-secondary)]">Correo Electrónico:</span>
+                  <span className="font-medium text-[var(--text-primary)]">
                     {selectedStore.email}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-[#64748B]">Teléfono de Contacto:</span>
-                  <span className="font-medium text-[#111827]">
+                  <span className="text-[var(--text-secondary)]">Teléfono de Contacto:</span>
+                  <span className="font-medium text-[var(--text-primary)]">
                     {selectedStore.phone}
                   </span>
                 </div>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#E5E7EB] flex justify-end gap-2">
+            <div className="pt-3 border-t border-[var(--border)] flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setSelectedStore(null)}
-                className="px-4 py-1.5 text-xs font-medium text-[#374151] bg-[#F8FAFC] border border-[#E2E8F0] rounded-[5px] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                className="px-4 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--surface-muted)] border border-[var(--border)] rounded-[5px] hover:bg-[var(--border-muted)] transition-colors cursor-pointer"
               >
                 Cerrar
               </button>
@@ -764,18 +764,18 @@ export default function Stores() {
       {/* ── Modal: Editar Tienda ───────────────────────────────── */}
       {editingStore && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-[5px] max-w-md w-full p-5 sm:p-6 shadow-xl border border-[#E5E7EB] relative">
-            <div className="flex items-center justify-between pb-3.5 border-b border-[#E5E7EB]">
+          <div className="bg-white rounded-[5px] max-w-md w-full p-5 sm:p-6 shadow-xl border border-[var(--border)] relative">
+            <div className="flex items-center justify-between pb-3.5 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <Pencil className="h-4 w-4 text-[#2563EB]" />
-                <h3 className="text-sm font-bold text-[#111827]">
+                <Pencil className="h-4 w-4 text-[var(--primary)]" />
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
                   Editar Tienda
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingStore(null)}
-                className="h-7 w-7 rounded-[4px] hover:bg-[#F3F4F6] text-[#6B7280] flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -796,7 +796,7 @@ export default function Stores() {
               className="py-4 space-y-3 text-xs"
             >
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Nombre de la Tienda
                 </label>
                 <input
@@ -805,13 +805,13 @@ export default function Stores() {
                   onChange={(e) =>
                     setEditingStore({ ...editingStore, name: e.target.value })
                   }
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Propietario
                 </label>
                 <input
@@ -820,13 +820,13 @@ export default function Stores() {
                   onChange={(e) =>
                     setEditingStore({ ...editingStore, owner: e.target.value })
                   }
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Plan
                 </label>
                 <select
@@ -837,7 +837,7 @@ export default function Stores() {
                       plan: e.target.value as AdminStore["plan"],
                     })
                   }
-                  className="w-full h-8 px-2 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                 >
                   <option value="Básico">Básico</option>
                   <option value="Profesional">Profesional</option>
@@ -846,7 +846,7 @@ export default function Stores() {
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Correo Electrónico
                 </label>
                 <input
@@ -855,13 +855,13 @@ export default function Stores() {
                   onChange={(e) =>
                     setEditingStore({ ...editingStore, email: e.target.value })
                   }
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Teléfono de Contacto
                 </label>
                 <input
@@ -870,21 +870,21 @@ export default function Stores() {
                   onChange={(e) =>
                     setEditingStore({ ...editingStore, phone: e.target.value })
                   }
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#E5E7EB] flex justify-end gap-2">
+              <div className="pt-3 border-t border-[var(--border)] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setEditingStore(null)}
-                  className="px-4 py-1.5 text-xs font-medium text-[#374151] bg-[#F8FAFC] border border-[#E2E8F0] rounded-[5px] hover:bg-[#F1F5F9] transition-colors"
+                  className="px-4 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--surface-muted)] border border-[var(--border)] rounded-[5px] hover:bg-[var(--border-muted)] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[#2563EB] rounded-[5px] hover:bg-[#1D4ED8] transition-colors shadow-2xs"
+                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[var(--primary)] rounded-[5px] hover:bg-[var(--primary-hover)] transition-colors shadow-2xs"
                 >
                   Guardar Cambios
                 </button>
@@ -897,17 +897,17 @@ export default function Stores() {
       {/* ── Modal: Nueva Tienda ────────────────────────────────── */}
       {isNewStoreModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-[5px] max-w-md w-full p-5 sm:p-6 shadow-xl border border-[#E5E7EB] relative">
-            <div className="flex items-center justify-between pb-3.5 border-b border-[#E5E7EB]">
+          <div className="bg-white rounded-[5px] max-w-md w-full p-5 sm:p-6 shadow-xl border border-[var(--border)] relative">
+            <div className="flex items-center justify-between pb-3.5 border-b border-[var(--border)]">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-bold text-[#111827]">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">
                   Registrar Nueva Tienda
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setIsNewStoreModalOpen(false)}
-                className="h-7 w-7 rounded-[4px] hover:bg-[#F3F4F6] text-[#6B7280] flex items-center justify-center transition-colors"
+                className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -953,39 +953,39 @@ export default function Stores() {
               className="py-4 space-y-3 text-xs"
             >
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Nombre de la Tienda
                 </label>
                 <input
                   name="name"
                   type="text"
                   placeholder="Ej. Print & Craft Studio"
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Propietario
                 </label>
                 <input
                   name="owner"
                   type="text"
                   placeholder="Ej. Santiago Morales"
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Plan Inicial
                 </label>
                 <select
                   name="plan"
                   defaultValue="Profesional"
-                  className="w-full h-8 px-2 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                 >
                   <option value="Básico">Básico</option>
                   <option value="Profesional">Profesional</option>
@@ -994,41 +994,41 @@ export default function Stores() {
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Correo Electrónico
                 </label>
                 <input
                   name="email"
                   type="email"
                   placeholder="contacto@tienda.com"
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-[#475569] font-semibold mb-1">
+                <label className="block text-[var(--text-secondary)] font-semibold mb-1">
                   Teléfono
                 </label>
                 <input
                   name="phone"
                   type="text"
                   placeholder="(300) 123-4567"
-                  className="w-full h-8 px-2.5 border border-[#E2E8F0] rounded-[5px] text-xs outline-none focus:border-[#2563EB] shadow-2xs"
+                  className="w-full h-8 px-2.5 border border-[var(--border)] rounded-[5px] text-xs outline-none focus:border-[var(--primary)] shadow-2xs"
                 />
               </div>
 
-              <div className="pt-3 border-t border-[#E5E7EB] flex justify-end gap-2">
+              <div className="pt-3 border-t border-[var(--border)] flex justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsNewStoreModalOpen(false)}
-                  className="px-4 py-1.5 text-xs font-medium text-[#374151] bg-[#F8FAFC] border border-[#E2E8F0] rounded-[5px] hover:bg-[#F1F5F9] transition-colors"
+                  className="px-4 py-1.5 text-xs font-medium text-[var(--text-secondary)] bg-[var(--surface-muted)] border border-[var(--border)] rounded-[5px] hover:bg-[var(--border-muted)] transition-colors"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[#2563EB] rounded-[5px] hover:bg-[#1D4ED8] transition-colors shadow-2xs"
+                  className="px-4 py-1.5 text-xs font-semibold text-white bg-[var(--primary)] rounded-[5px] hover:bg-[var(--primary-hover)] transition-colors shadow-2xs"
                 >
                   Crear Tienda
                 </button>
