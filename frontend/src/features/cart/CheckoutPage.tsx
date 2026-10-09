@@ -76,7 +76,7 @@ export function CheckoutPage() {
         <Container variant="wide" className="flex items-center justify-between">
           <Link
             to="/"
-            className="inline-flex min-h-10 items-center gap-2 rounded-control"
+            className="inline-flex min-h-10 items-center gap-2 rounded-control focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             title="Volver a PrintShop"
           >
             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-primary text-sm font-black text-primaryForeground shadow-subtle">
@@ -95,7 +95,7 @@ export function CheckoutPage() {
           <div className="mb-7">
             <Link
               to="/cart"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Volver al carrito</span>
@@ -120,13 +120,13 @@ export function CheckoutPage() {
               <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-2.5">
                 <Link
                   to="/cart"
-                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-[var(--text-primary)] bg-white border border-[var(--border)] hover:bg-[var(--surface-muted)] rounded-[5px] transition-colors"
+                  className="w-full sm:w-auto px-5 py-2 text-xs font-semibold text-[var(--text-primary)] bg-white border border-[var(--border)] hover:bg-[var(--surface-muted)] rounded-[5px] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   Regresar al carrito
                 </Link>
                 <Link
                   to="/"
-                  className="w-full rounded-control bg-primary px-5 py-2 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover sm:w-auto"
+                  className="w-full rounded-control bg-primary px-5 py-2 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
                 >
                   Ir al catálogo
                 </Link>
@@ -156,7 +156,7 @@ export function CheckoutPage() {
                         type="text"
                         placeholder="Tu nombre y apellido"
                         defaultValue="Carlos Gómez"
-                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary"
+                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                       />
                     </div>
                     <div>
@@ -167,7 +167,7 @@ export function CheckoutPage() {
                         type="email"
                         placeholder="correo@ejemplo.com"
                         defaultValue="carlos.gomez@email.com"
-                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary"
+                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -178,7 +178,7 @@ export function CheckoutPage() {
                         type="text"
                         placeholder="Calle, carrera, número, apartamento"
                         defaultValue="Carrera 43A # 18 Sur - 125, Apto 802"
-                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary"
+                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                       />
                     </div>
                     <div>
@@ -189,7 +189,7 @@ export function CheckoutPage() {
                         type="text"
                         placeholder="Ciudad"
                         defaultValue="Medellín"
-                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary"
+                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                       />
                     </div>
                     <div>
@@ -200,7 +200,7 @@ export function CheckoutPage() {
                         type="tel"
                         placeholder="300 123 4567"
                         defaultValue="300 987 6543"
-                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary"
+                        className="h-10 w-full rounded-control border border-borderStrong px-3 text-sm text-foreground shadow-subtle outline-none focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                       />
                     </div>
                   </div>
@@ -413,7 +413,7 @@ export function CheckoutPage() {
                     <button
                       type="submit"
                       disabled={isProcessing || items.length === 0}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover active:bg-primaryActive disabled:cursor-not-allowed disabled:opacity-50"
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover active:bg-primaryActive disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       {isProcessing ? (
                         <>
