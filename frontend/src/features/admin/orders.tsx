@@ -324,7 +324,7 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
 
   return error || !src ? (
     <div
-      className="h-9 w-9 rounded-[5px] shrink-0 border border-[#E2E8F0] bg-[#F8FAFC] flex items-center justify-center overflow-hidden"
+      className="h-9 w-9 rounded-[5px] shrink-0 border border-[var(--border)] bg-[var(--surface-muted)] flex items-center justify-center overflow-hidden"
       title={alt}
     >
       <svg
@@ -332,7 +332,7 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
         height="15"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="#9CA3AF"
+        stroke="var(--text-muted)"
         strokeWidth="1.5"
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -343,7 +343,7 @@ function ProductImage({ src, alt }: { src: string; alt: string }) {
       </svg>
     </div>
   ) : (
-    <div className="h-9 w-9 rounded-[5px] shrink-0 border border-[#E2E8F0] overflow-hidden bg-[#F8FAFC]">
+    <div className="h-9 w-9 rounded-[5px] shrink-0 border border-[var(--border)] overflow-hidden bg-[var(--surface-muted)]">
       <img
         src={src}
         alt={alt}
@@ -416,7 +416,7 @@ export default function Orders() {
   const gridClass = `grid ${gridColsClass} gap-4 transition-all duration-300`;
 
   return (
-    <div className="p-3.5 sm:p-4 space-y-4 bg-[#FBFBFD] min-h-full">
+    <div className="p-3.5 sm:p-4 space-y-4 bg-[var(--background)] min-h-full">
       {/* ── Header ─────────────────────────────────────────────── */}
       <PageHeader
         title="Pedidos"
@@ -430,16 +430,16 @@ export default function Orders() {
                 setExportNotice(true);
                 setTimeout(() => setExportNotice(false), 2000);
               }}
-              className="flex items-center gap-1.5 text-[12px] font-medium text-[#4B5563] border border-[#E5E7EB] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[#F3F4F6] transition-colors"
+              className="flex items-center gap-1.5 text-[12px] font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors"
             >
-              <Download className="h-3.5 w-3.5 text-[#6B7280]" />
+              <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
               {exportNotice ? "Exportando..." : "Exportar"}
             </button>
             <button
               type="button"
-              className="flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] border border-[#BFDBFE] rounded-[5px] px-3 py-1.5 bg-[#EFF6FF] hover:bg-[#DBEAFE] transition-colors"
+              className="flex items-center gap-1.5 text-xs font-semibold text-[var(--primary)] border border-[var(--border-strong)] rounded-[5px] px-3 py-1.5 bg-[var(--info-muted)] hover:bg-[var(--info-muted)] transition-colors"
             >
-              <Filter className="h-3.5 w-3.5 text-[#2563EB]" />
+              <Filter className="h-3.5 w-3.5 text-[var(--primary)]" />
               <span>Filtros</span>
             </button>
           </>
@@ -447,15 +447,15 @@ export default function Orders() {
       />
 
       {/* ── Barra de Búsqueda y Filtros ────────────────────────── */}
-      <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white rounded-[5px] border border-[var(--border)] p-3 shadow-2xs flex flex-wrap items-center justify-between gap-3">
         <div className="relative flex-1 min-w-[240px] max-w-md">
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9CA3AF]" />
+          <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar pedido, cliente o tienda..."
-            className="w-full h-9 pl-9 pr-3.5 text-xs text-[#111827] placeholder-[#9CA3AF] bg-white border border-[#E2E8F0] rounded-[5px] outline-none transition-all hover:border-[#CBD5E1] focus:border-[#2563EB] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] shadow-2xs"
+            className="w-full h-9 pl-9 pr-3.5 text-xs text-[var(--text-primary)] placeholder-[var(--text-muted)] bg-white border border-[var(--border)] rounded-[5px] outline-none transition-all hover:border-[var(--border-strong)] focus:border-[var(--primary)] focus:shadow-[0_0_0_2px_rgba(37,99,235,0.08)] shadow-2xs"
           />
         </div>
 
@@ -464,7 +464,7 @@ export default function Orders() {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[#E2E8F0] bg-white pl-3.5 pr-8 text-xs font-medium text-[#475569] outline-none transition-all appearance-none cursor-pointer hover:border-[#CBD5E1] focus:border-[#2563EB] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
             >
               <option value="Todos">Todos los estados</option>
               <option value="Pendiente">Pendiente</option>
@@ -473,28 +473,28 @@ export default function Orders() {
               <option value="Entregado">Entregado</option>
               <option value="Cancelado">Cancelado</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[#64748B]" />
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[var(--text-secondary)]" />
           </div>
 
           <div className="relative inline-flex items-center">
             <select
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="h-9 rounded-[5px] border border-[#E2E8F0] bg-white pl-3.5 pr-8 text-xs font-medium text-[#475569] outline-none transition-all appearance-none cursor-pointer hover:border-[#CBD5E1] focus:border-[#2563EB] shadow-2xs"
+              className="h-9 rounded-[5px] border border-[var(--border)] bg-white pl-3.5 pr-8 text-xs font-medium text-[var(--text-secondary)] outline-none transition-all appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
             >
               <option value="Todos">Todos los pagos</option>
               <option value="Pagado">Pagado</option>
               <option value="Pendiente">Pendiente</option>
               <option value="Reembolsado">Reembolsado</option>
             </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[#64748B]" />
+            <ChevronDown className="pointer-events-none absolute right-2.5 h-3.5 w-3.5 text-[var(--text-secondary)]" />
           </div>
 
           <button
             type="button"
-            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[#E5E7EB] bg-white px-3.5 text-[12px] font-medium text-[#4B5563] hover:bg-[#F9FAFB] hover:border-[#D1D5DB] transition-colors"
+            className="flex h-9 items-center gap-1.5 rounded-[5px] border border-[var(--border)] bg-white px-3.5 text-[12px] font-medium text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:border-[var(--border-strong)] transition-colors"
           >
-            <Filter className="h-3.5 w-3.5 text-[#6B7280]" />
+            <Filter className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
             <span>Filtros</span>
           </button>
         </div>
@@ -512,16 +512,16 @@ export default function Orders() {
               return (
                 <div
                   key={order.id}
-                  className="bg-white rounded-[5px] border border-[#E5E7EB] shadow-2xs hover:border-[#D1D5DB] hover:shadow-xs transition-all duration-200 flex flex-col"
+                  className="bg-white rounded-[5px] border border-[var(--border)] shadow-2xs hover:border-[var(--border-strong)] hover:shadow-xs transition-all duration-200 flex flex-col"
                 >
                   <div className="p-4 flex-1 flex flex-col">
                     {/* Encabezado: ID + menú */}
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="text-[14px] font-bold text-[#111827] leading-tight">
+                        <h3 className="text-[14px] font-bold text-[var(--text-primary)] leading-tight">
                           {order.id}
                         </h3>
-                        <p className="text-[12px] font-bold text-[#111827] mt-0.5">
+                        <p className="text-[12px] font-bold text-[var(--text-primary)] mt-0.5">
                           {order.status}
                         </p>
                       </div>
@@ -529,60 +529,60 @@ export default function Orders() {
                         <DropdownMenuTrigger asChild>
                           <button
                             type="button"
-                            className="h-7 w-7 -mr-0.5 flex items-center justify-center rounded-[5px] text-[#9CA3AF] hover:text-[#111827] hover:bg-[#F3F4F6] transition-colors focus:outline-none shrink-0"
+                            className="h-7 w-7 -mr-0.5 flex items-center justify-center rounded-[5px] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-muted)] transition-colors focus:outline-none shrink-0"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent
                           align="end"
-                          className="min-w-[185px] rounded-[5px] p-1 shadow-md border border-[#E5E7EB] bg-white z-50"
+                          className="min-w-[185px] rounded-[5px] p-1 shadow-md border border-[var(--border)] bg-white z-50"
                         >
                           <DropdownMenuItem
                             onClick={() => setSelectedOrder(order)}
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded-[5px] hover:bg-[#F3F4F6] cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded-[5px] hover:bg-[var(--surface-muted)] cursor-pointer"
                           >
-                            <Eye className="h-3.5 w-3.5 text-[#6B7280]" />
+                            <Eye className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                             <span>Ver detalles</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => showNotice("Abriendo factura...")}
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                           >
-                            <FileText className="h-3.5 w-3.5 text-[#6B7280]" />
+                            <FileText className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                             <span>Ver factura</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => showNotice("Abriendo pago...")}
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                           >
-                            <CreditCard className="h-3.5 w-3.5 text-[#6B7280]" />
+                            <CreditCard className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                             <span>Ver pago</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() =>
                               showNotice("Abriendo seguimiento...")
                             }
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                           >
-                            <MapPin className="h-3.5 w-3.5 text-[#6B7280]" />
+                            <MapPin className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                             <span>Ver seguimiento</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => showNotice("Abriendo historial...")}
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                           >
-                            <History className="h-3.5 w-3.5 text-[#6B7280]" />
+                            <History className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                             <span>Ver historial</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => showNotice("Exportando PDF...")}
-                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[#374151] rounded hover:bg-[#F3F4F6] cursor-pointer"
+                            className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-[var(--text-secondary)] rounded hover:bg-[var(--surface-muted)] cursor-pointer"
                           >
-                            <FileDown className="h-3.5 w-3.5 text-[#6B7280]" />
+                            <FileDown className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                             <span>Exportar PDF</span>
                           </DropdownMenuItem>
-                          <div className="my-1 border-t border-[#F3F4F6]" />
+                          <div className="my-1 border-t border-[var(--surface-muted)]" />
                           <DropdownMenuItem
                             onClick={() => showNotice("Incidencia reportada")}
                             className="flex items-center gap-2 px-2.5 py-1.5 text-[11.5px] text-red-600 rounded hover:bg-red-50 cursor-pointer"
@@ -597,27 +597,27 @@ export default function Orders() {
                     {/* Info: Cliente, Tienda, Fecha */}
                     <div className="space-y-1.5 mb-3">
                       <div className="flex items-center gap-2 text-[12px]">
-                        <UserRound className="h-3.5 w-3.5 text-[#9CA3AF] shrink-0" />
-                        <span className="font-medium text-[#374151] truncate">
+                        <UserRound className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
+                        <span className="font-medium text-[var(--text-secondary)] truncate">
                           {order.customer}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-[12px]">
-                        <Store className="h-3.5 w-3.5 text-[#9CA3AF] shrink-0" />
-                        <span className="text-[#6B7280] truncate">
+                        <Store className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
+                        <span className="text-[var(--text-secondary)] truncate">
                           {order.store}
                         </span>
                       </div>
                       <div className="flex items-center gap-2 text-[12px]">
-                        <CalendarDays className="h-3.5 w-3.5 text-[#9CA3AF] shrink-0" />
-                        <span className="text-[#6B7280] truncate">
+                        <CalendarDays className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
+                        <span className="text-[var(--text-secondary)] truncate">
                           Registrado el {order.date} - {order.time}
                         </span>
                       </div>
                     </div>
 
                     {/* Separador */}
-                    <div className="border-t border-[#F3F4F6] my-2" />
+                    <div className="border-t border-[var(--surface-muted)] my-2" />
 
                     {/* Productos — máximo 3 con contenedor circular */}
                     <div className="space-y-2 flex-1">
@@ -625,31 +625,31 @@ export default function Orders() {
                         <div key={i} className="flex items-center gap-2.5">
                           <ProductImage src={p.image} alt={p.name} />
                           <div className="flex-1 min-w-0">
-                            <p className="text-[11.5px] font-medium text-[#374151] truncate leading-tight">
+                            <p className="text-[11.5px] font-medium text-[var(--text-secondary)] truncate leading-tight">
                               {p.name}
                             </p>
                           </div>
                           <div className="flex items-center gap-2 shrink-0 text-[11.5px]">
-                            <span className="text-[#9CA3AF]">x{p.qty}</span>
-                            <span className="font-semibold text-[#111827]">
+                            <span className="text-[var(--text-muted)]">x{p.qty}</span>
+                            <span className="font-semibold text-[var(--text-primary)]">
                               {p.unitPrice}
                             </span>
                           </div>
                         </div>
                       ))}
                       {extra > 0 && (
-                        <p className="text-[11px] text-[#9CA3AF] pl-11">
+                        <p className="text-[11px] text-[var(--text-muted)] pl-11">
                           +{extra} producto{extra > 1 ? "s" : ""} más
                         </p>
                       )}
                     </div>
 
                     {/* Separador + Total */}
-                    <div className="border-t border-[#F3F4F6] mt-3 pt-3 flex items-center justify-between">
-                      <span className="text-[12px] text-[#6B7280] font-medium">
+                    <div className="border-t border-[var(--surface-muted)] mt-3 pt-3 flex items-center justify-between">
+                      <span className="text-[12px] text-[var(--text-secondary)] font-medium">
                         Total
                       </span>
-                      <span className="text-[13px] font-bold text-[#111827]">
+                      <span className="text-[13px] font-bold text-[var(--text-primary)]">
                         {order.total}
                       </span>
                     </div>
@@ -660,7 +660,7 @@ export default function Orders() {
                     <button
                       type="button"
                       onClick={() => setSelectedOrder(order)}
-                      className="w-full h-8 rounded-[5px] border border-[#2563EB] text-xs font-semibold text-[#2563EB] bg-white hover:bg-[#EFF6FF] transition-colors cursor-pointer shadow-2xs"
+                      className="w-full h-8 rounded-[5px] border border-[var(--primary)] text-xs font-semibold text-[var(--primary)] bg-white hover:bg-[var(--info-muted)] transition-colors cursor-pointer shadow-2xs"
                     >
                       Ver detalles
                     </button>
@@ -671,39 +671,39 @@ export default function Orders() {
           </div>
 
           {visibleOrders.length === 0 && (
-            <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-12 text-center text-[#64748B]">
+            <div className="bg-white rounded-[5px] border border-[var(--border)] p-12 text-center text-[var(--text-secondary)]">
               No se encontraron pedidos con los filtros seleccionados.
             </div>
           )}
 
           {/* ── Paginación ──────────────────────────────────────── */}
-          <div className="bg-white rounded-[5px] border border-[#E5E7EB] p-3 px-4 shadow-2xs flex flex-wrap items-center justify-between gap-3 mt-4">
-            <p className="shrink-0 text-xs text-[#475569]">
-              Mostrando <span className="font-semibold text-[#111827]">1</span>{" "}
+          <div className="bg-white rounded-[5px] border border-[var(--border)] p-3 px-4 shadow-2xs flex flex-wrap items-center justify-between gap-3 mt-4">
+            <p className="shrink-0 text-xs text-[var(--text-secondary)]">
+              Mostrando <span className="font-semibold text-[var(--text-primary)]">1</span>{" "}
               a{" "}
-              <span className="font-semibold text-[#111827]">
+              <span className="font-semibold text-[var(--text-primary)]">
                 {Math.min(Number(perPage), filtered.length || 12)}
               </span>{" "}
-              de <span className="font-semibold text-[#111827]">248</span>{" "}
+              de <span className="font-semibold text-[var(--text-primary)]">248</span>{" "}
               pedidos
             </p>
 
             <div className="flex max-w-full shrink-0 items-center gap-2 overflow-x-auto">
               <button
                 type="button"
-                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs"
+                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs"
               >
                 «
               </button>
               <button
                 type="button"
-                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs"
+                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs"
               >
                 ‹
               </button>
               <button
                 type="button"
-                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] bg-[#2563EB] text-white flex items-center justify-center text-xs font-bold shadow-2xs"
+                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold shadow-2xs"
               >
                 1
               </button>
@@ -711,29 +711,29 @@ export default function Orders() {
                 <button
                   key={p}
                   type="button"
-                  className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors"
+                  className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors"
                 >
                   {p}
                 </button>
               ))}
-              <span className="h-[34px] w-7 min-w-7 shrink-0 flex items-center justify-center text-xs text-[#94A3B8]">
+              <span className="h-[34px] w-7 min-w-7 shrink-0 flex items-center justify-center text-xs text-[var(--text-muted)]">
                 ...
               </span>
               <button
                 type="button"
-                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] hover:bg-[#F8FAFC] text-[#475569] flex items-center justify-center text-xs font-medium transition-colors"
+                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center text-xs font-medium transition-colors"
               >
                 21
               </button>
               <button
                 type="button"
-                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs"
+                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs"
               >
                 ›
               </button>
               <button
                 type="button"
-                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[#E2E8F0] bg-white flex items-center justify-center text-[#64748B] hover:bg-[#F8FAFC] transition-colors text-xs"
+                className="h-[34px] w-[34px] min-w-[34px] shrink-0 rounded-[5px] border border-[var(--border)] bg-white flex items-center justify-center text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors text-xs"
               >
                 »
               </button>
@@ -743,13 +743,13 @@ export default function Orders() {
               <select
                 value={perPage}
                 onChange={(e) => setPerPage(e.target.value)}
-                className="h-[34px] min-w-[132px] rounded-[5px] border border-[#E2E8F0] bg-white pl-3 pr-8 text-xs text-[#475569] outline-none appearance-none cursor-pointer hover:border-[#CBD5E1] focus:border-[#2563EB] shadow-2xs"
+                className="h-[34px] min-w-[132px] rounded-[5px] border border-[var(--border)] bg-white pl-3 pr-8 text-xs text-[var(--text-secondary)] outline-none appearance-none cursor-pointer hover:border-[var(--border-strong)] focus:border-[var(--primary)] shadow-2xs"
               >
                 <option value="12">12 por página</option>
                 <option value="24">24 por página</option>
                 <option value="48">48 por página</option>
               </select>
-              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#64748B]" />
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[var(--text-secondary)]" />
             </div>
           </div>
         </div>
@@ -762,18 +762,18 @@ export default function Orders() {
           `}
         >
           {selectedOrder && (
-            <div className="bg-white rounded-[5px] border border-[#E5E7EB] shadow-xs w-[340px] xl:w-[380px] flex flex-col h-full overflow-hidden">
+            <div className="bg-white rounded-[5px] border border-[var(--border)] shadow-xs w-[340px] xl:w-[380px] flex flex-col h-full overflow-hidden">
               {/* Encabezado del Panel */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-[#E5E7EB] shrink-0">
+              <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--border)] shrink-0">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold text-[#111827]">
+                  <h3 className="text-xs font-bold text-[var(--text-primary)]">
                     Detalle del pedido
                   </h3>
                 </div>
                 <button
                   type="button"
                   onClick={() => setSelectedOrder(null)}
-                  className="h-7 w-7 rounded-[4px] hover:bg-[#F3F4F6] text-[#6B7280] flex items-center justify-center transition-colors cursor-pointer"
+                  className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -782,7 +782,7 @@ export default function Orders() {
               {/* Contenido Scrollable */}
               <div className="flex-1 overflow-y-auto">
                 {/* Imagen del Banner de la Tienda */}
-                <div className="h-36 w-full bg-[#F3F4F6] shrink-0">
+                <div className="h-36 w-full bg-[var(--surface-muted)] shrink-0">
                   <img
                     src={selectedOrder.storeBanner}
                     alt={selectedOrder.store}
@@ -793,15 +793,15 @@ export default function Orders() {
                 <div className="p-4 space-y-4">
                   {/* ID del Pedido + Fecha + Tienda */}
                   <div>
-                    <h4 className="text-base font-bold text-[#111827] leading-tight">
+                    <h4 className="text-base font-bold text-[var(--text-primary)] leading-tight">
                       {selectedOrder.id}
                     </h4>
-                    <p className="text-xs text-[#64748B] mt-0.5">
+                    <p className="text-xs text-[var(--text-secondary)] mt-0.5">
                       Registrado el {selectedOrder.date} - {selectedOrder.time}
                     </p>
                     <div className="flex items-center gap-1.5 mt-1.5">
-                      <Store className="h-3.5 w-3.5 text-[#94A3B8] shrink-0" />
-                      <p className="text-xs font-semibold text-[#374151]">
+                      <Store className="h-3.5 w-3.5 text-[var(--text-muted)] shrink-0" />
+                      <p className="text-xs font-semibold text-[var(--text-secondary)]">
                         {selectedOrder.store}
                       </p>
                     </div>
@@ -809,10 +809,10 @@ export default function Orders() {
 
                   {/* Información del Pedido */}
                   <div>
-                    <h5 className="text-[11px] font-bold text-[#111827] uppercase tracking-wide mb-2.5">
+                    <h5 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wide mb-2.5">
                       Información del Pedido
                     </h5>
-                    <div className="bg-[#F8FAFC] rounded-[5px] border border-[#E2E8F0] divide-y divide-[#F1F5F9] text-xs">
+                    <div className="bg-[var(--surface-muted)] rounded-[5px] border border-[var(--border)] divide-y divide-[var(--border-muted)] text-xs">
                       {[
                         { label: "Cliente", value: selectedOrder.customer },
                         { label: "Correo", value: selectedOrder.customerEmail },
@@ -832,10 +832,10 @@ export default function Orders() {
                           key={label}
                           className="flex items-start justify-between px-3 py-2 gap-3"
                         >
-                          <span className="text-[#64748B] shrink-0">
+                          <span className="text-[var(--text-secondary)] shrink-0">
                             {label}
                           </span>
-                          <span className="font-normal text-[#111827] text-right">
+                          <span className="font-normal text-[var(--text-primary)] text-right">
                             {value}
                           </span>
                         </div>
@@ -845,43 +845,43 @@ export default function Orders() {
 
                   {/* Productos del Pedido */}
                   <div>
-                    <h5 className="text-[11px] font-bold text-[#111827] uppercase tracking-wide mb-2.5">
+                    <h5 className="text-[11px] font-bold text-[var(--text-primary)] uppercase tracking-wide mb-2.5">
                       Productos del Pedido
                     </h5>
 
                     {/* Cabecera de la tabla */}
-                    <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-2 pb-1.5 border-b border-[#E5E7EB]">
-                      <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider">
+                    <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-2 pb-1.5 border-b border-[var(--border)]">
+                      <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                         Producto
                       </span>
-                      <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider text-center">
+                      <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-center">
                         Cant.
                       </span>
-                      <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider text-right">
+                      <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                         P. Unit.
                       </span>
-                      <span className="text-[10px] font-semibold text-[#64748B] uppercase tracking-wider text-right">
+                      <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider text-right">
                         Subtotal
                       </span>
                     </div>
 
                     {/* Filas de productos */}
-                    <div className="divide-y divide-[#F8FAFC]">
+                    <div className="divide-y divide-[var(--surface-muted)]">
                       {selectedOrder.products.map((p, i) => (
                         <div
                           key={i}
                           className="grid grid-cols-[1fr_auto_auto_auto] gap-2 items-center py-2 px-2"
                         >
-                          <span className="text-xs text-[#374151] font-normal truncate">
+                          <span className="text-xs text-[var(--text-secondary)] font-normal truncate">
                             {p.name}
                           </span>
-                          <span className="text-xs text-[#64748B] font-normal text-center w-8">
+                          <span className="text-xs text-[var(--text-secondary)] font-normal text-center w-8">
                             {p.qty}
                           </span>
-                          <span className="text-xs text-[#64748B] font-normal text-right whitespace-nowrap">
+                          <span className="text-xs text-[var(--text-secondary)] font-normal text-right whitespace-nowrap">
                             {p.unitPrice}
                           </span>
-                          <span className="text-xs font-normal text-[#111827] text-right whitespace-nowrap">
+                          <span className="text-xs font-normal text-[var(--text-primary)] text-right whitespace-nowrap">
                             {p.subtotal}
                           </span>
                         </div>
@@ -889,11 +889,11 @@ export default function Orders() {
                     </div>
 
                     {/* Total del pedido */}
-                    <div className="flex items-center justify-between px-2 pt-2.5 mt-2 border-t border-[#E5E7EB]">
-                      <span className="text-xs font-bold text-[#111827]">
+                    <div className="flex items-center justify-between px-2 pt-2.5 mt-2 border-t border-[var(--border)]">
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
                         Total del Pedido
                       </span>
-                      <span className="text-xs font-bold text-[#111827]">
+                      <span className="text-xs font-bold text-[var(--text-primary)]">
                         {selectedOrder.total}
                       </span>
                     </div>
@@ -902,19 +902,19 @@ export default function Orders() {
               </div>
 
               {/* Botones del Panel */}
-              <div className="shrink-0 border-t border-[#E5E7EB] p-4 flex gap-2.5">
+              <div className="shrink-0 border-t border-[var(--border)] p-4 flex gap-2.5">
                 <button
                   type="button"
                   onClick={() => showNotice("Abriendo factura...")}
-                  className="flex-1 h-8 rounded-[5px] border border-[#E2E8F0] bg-white text-xs font-semibold text-[#374151] hover:bg-[#F8FAFC] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                  className="flex-1 h-8 rounded-[5px] border border-[var(--border)] bg-white text-xs font-semibold text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                 >
-                  <FileText className="h-3.5 w-3.5 text-[#64748B]" />
+                  <FileText className="h-3.5 w-3.5 text-[var(--text-secondary)]" />
                   <span>Ver factura</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedOrder(null)}
-                  className="flex-1 h-8 rounded-[5px] bg-[#2563EB] text-xs font-semibold text-white hover:bg-[#1D4ED8] transition-colors cursor-pointer shadow-2xs"
+                  className="flex-1 h-8 rounded-[5px] bg-[var(--primary)] text-xs font-semibold text-white hover:bg-[var(--primary-hover)] transition-colors cursor-pointer shadow-2xs"
                 >
                   Cerrar
                 </button>
@@ -926,8 +926,8 @@ export default function Orders() {
 
       {/* Notificación Flotante */}
       {notice && (
-        <div className="fixed bottom-5 right-5 z-50 bg-[#111827] text-white text-xs px-3.5 py-2 rounded-[5px] shadow-lg flex items-center gap-2">
-          <ShoppingBag className="h-4 w-4 text-[#2563EB]" />
+        <div className="fixed bottom-5 right-5 z-50 bg-[var(--text-primary)] text-white text-xs px-3.5 py-2 rounded-[5px] shadow-lg flex items-center gap-2">
+          <ShoppingBag className="h-4 w-4 text-[var(--primary)]" />
           <span>{notice}</span>
         </div>
       )}
