@@ -11,7 +11,7 @@ export const BenefitCard: React.FC<BenefitCardProps> = ({ benefit }) => {
   return (
     <div className="flex min-w-0 items-center gap-3 px-2 py-2">
       {/* Icono lineal en primary */}
-      <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-[#F0EEFF] text-primary">
+      <div className="flex shrink-0 items-center justify-center w-9 h-9 rounded-lg bg-accentMuted text-primary">
         <Icon className="h-4 w-4 stroke-[1.75]" />
       </div>
 
