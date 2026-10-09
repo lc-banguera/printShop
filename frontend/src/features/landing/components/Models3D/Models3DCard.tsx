@@ -87,7 +87,7 @@ export const Models3DCard: React.FC<Models3DCardProps> = ({ model }) => {
   const cardContent = (
     <>
       {/* Zona de imagen superior: padding reducido para dar presencia protagónica al producto */}
-      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[#F4F5FB] p-1.5 transition-colors duration-200 group-hover:bg-[#E8EBF4] sm:p-2.5">
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[var(--surface-muted)] p-1.5 transition-colors duration-200 group-hover:bg-[var(--surface-strong)] sm:p-2.5">
         <img
           src={imgSrc}
           alt={model.name}
@@ -99,20 +99,20 @@ export const Models3DCard: React.FC<Models3DCardProps> = ({ model }) => {
       {/* Zona inferior de información */}
       <div className="flex flex-col gap-0.5 px-3 py-2.5">
         <div className="flex items-center justify-between gap-1">
-          <span className="line-clamp-1 text-[11px] font-medium text-[#111827] sm:text-[13px]">
+          <span className="line-clamp-1 text-[11px] font-medium text-[var(--text-primary)] sm:text-[13px]">
             {model.name}
           </span>
           {model.supports3D ? (
-            <span className="shrink-0 rounded bg-[#4F46E5]/10 px-1.5 py-0.5 text-[9px] font-semibold text-[#4F46E5]">
+            <span className="shrink-0 rounded bg-[var(--accent-muted)] px-1.5 py-0.5 text-[9px] font-semibold text-[var(--primary)]">
               3D
             </span>
           ) : (
-            <span className="shrink-0 text-[9px] text-[#9CA3AF] sm:text-[10px]">
+            <span className="shrink-0 text-[9px] text-[var(--text-muted)] sm:text-[10px]">
               Próximamente
             </span>
           )}
         </div>
-        <span className="text-[10px] text-[#6B7280] sm:text-[11px]">
+        <span className="text-[10px] text-[var(--text-secondary)] sm:text-[11px]">
           {model.type}
         </span>
       </div>
@@ -124,7 +124,7 @@ export const Models3DCard: React.FC<Models3DCardProps> = ({ model }) => {
     return (
       <Link
         to={model.route}
-        className="group flex flex-col overflow-hidden rounded-[10px] border border-[#E5E7EB]/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-[#4F46E5]/40 hover:shadow-[0_4px_12px_rgba(79,70,229,0.08)]"
+        className="group flex flex-col overflow-hidden rounded-[10px] border border-[var(--border)] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-[var(--primary)] hover:shadow-[0_4px_12px_rgba(79,70,229,0.08)]"
       >
         {cardContent}
       </Link>
@@ -133,7 +133,7 @@ export const Models3DCard: React.FC<Models3DCardProps> = ({ model }) => {
 
   // Los demás productos permanecen visibles como "Próximamente", sin enlaces ni rutas falsas
   return (
-    <div className="group flex flex-col overflow-hidden rounded-[10px] border border-[#E5E7EB]/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-[#D1D5DB] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
+    <div className="group flex flex-col overflow-hidden rounded-[10px] border border-[var(--border)] bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:border-[var(--border-strong)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.05)]">
       {cardContent}
     </div>
   );

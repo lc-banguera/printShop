@@ -42,11 +42,11 @@ export const HeroStats: React.FC<HeroStatsProps> = ({ stats }) => {
 
       {/* Customer text + Divider + Stars + Rating score strictly aligned on the SAME horizontal baseline */}
       <div className="flex items-center gap-2 sm:gap-3 text-sm">
-        <span className="font-bold text-[#161823] whitespace-nowrap">
+        <span className="font-bold text-[var(--text-primary)] whitespace-nowrap">
           {customers} clientes felices
         </span>
 
-        <span className="text-[#D1D5DB] font-light" aria-hidden>|</span>
+        <span className="text-[var(--border-strong)] font-light" aria-hidden>|</span>
 
         <div className="flex items-center gap-1 shrink-0">
           {/* 5 gold stars */}
@@ -55,7 +55,7 @@ export const HeroStats: React.FC<HeroStatsProps> = ({ stats }) => {
               <path d="M7.5 1l1.8 3.65 4.03.58-2.92 2.84.69 4.02-3.6-1.89-3.6 1.89.69-4.02-2.92-2.84 4.03-.58L7.5 1z" />
             </svg>
           ))}
-          <span className="text-[#4B5563] font-semibold text-xs ml-1 whitespace-nowrap">
+          <span className="text-[var(--text-secondary)] font-semibold text-xs ml-1 whitespace-nowrap">
             {rating}/5
           </span>
         </div>
