@@ -10,7 +10,7 @@ export const ProductColors: React.FC<ProductColorsProps> = ({ colors }) => {
       {colors.map((colorHex, idx) => (
         <span
           key={idx}
-          className="w-3.5 h-3.5 rounded-full border border-gray-300 shadow-2xs shrink-0 cursor-pointer hover:scale-110 transition-transform"
+          className="w-3.5 h-3.5 rounded-full border border-border shadow-2xs shrink-0 cursor-pointer hover:scale-110 transition-transform"
           style={{ backgroundColor: colorHex }}
           title={colorHex}
         />
