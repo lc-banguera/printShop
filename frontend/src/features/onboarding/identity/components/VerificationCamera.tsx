@@ -144,7 +144,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
             }
             onBack();
           }}
-          className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors focus:outline-hidden cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors focus:outline-hidden cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Volver a métodos
@@ -154,7 +154,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
           <button
             type="button"
             onClick={toggleCamera}
-            className="inline-flex items-center gap-1 text-xs text-[#2563EB] hover:text-blue-800 font-semibold cursor-pointer"
+            className="inline-flex items-center gap-1 text-xs text-[var(--primary)] hover:text-[var(--primary-hover)] font-semibold cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Cambiar cámara
@@ -164,10 +164,10 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
 
       {/* Título & Instrucción */}
       <div className="mb-4">
-        <h2 className="text-xl sm:text-[22px] font-bold text-gray-900 tracking-tight">
+        <h2 className="text-xl sm:text-[22px] font-bold text-[var(--text-primary)] tracking-tight">
           {methodTitle}
         </h2>
-        <p className="text-xs sm:text-[13px] text-gray-500 mt-1 leading-relaxed">
+        <p className="text-xs sm:text-[13px] text-[var(--text-secondary)] mt-1 leading-relaxed">
           {instructions}
         </p>
       </div>
@@ -192,8 +192,8 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
               <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-6">
                 {isFacial ? (
                   /* Marco oval para rostro */
-                  <div className="w-48 h-60 sm:w-56 sm:h-68 border-2 border-dashed border-[#2563EB]/80 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.45)] relative">
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-white/90 bg-[#2563EB]/80 px-2 py-0.5 rounded-full">
+                  <div className="w-48 h-60 sm:w-56 sm:h-68 border-2 border-dashed border-[var(--primary)]/80 rounded-[50%] shadow-[0_0_0_9999px_rgba(0,0,0,0.45)] relative">
+                    <div className="absolute top-2 left-1/2 -translate-x-1/2 text-[11px] font-semibold text-white/90 bg-[var(--primary)]/80 px-2 py-0.5 rounded-full">
                       Rostro
                     </div>
                   </div>
@@ -201,10 +201,10 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
                   /* Marco rectangular para documento con esquinas */
                   <div className="w-full max-w-[340px] aspect-85/54 border border-white/40 rounded-xl relative shadow-[0_0_0_9999px_rgba(0,0,0,0.45)]">
                     {/* Esquinas destacadas en azul PrintShop */}
-                    <div className="absolute top-0 left-0 w-5 h-5 border-t-3 border-l-3 border-[#2563EB] rounded-tl-lg" />
-                    <div className="absolute top-0 right-0 w-5 h-5 border-t-3 border-r-3 border-[#2563EB] rounded-tr-lg" />
-                    <div className="absolute bottom-0 left-0 w-5 h-5 border-b-3 border-l-3 border-[#2563EB] rounded-bl-lg" />
-                    <div className="absolute bottom-0 right-0 w-5 h-5 border-b-3 border-r-3 border-[#2563EB] rounded-br-lg" />
+                    <div className="absolute top-0 left-0 w-5 h-5 border-t-3 border-l-3 border-[var(--primary)] rounded-tl-lg" />
+                    <div className="absolute top-0 right-0 w-5 h-5 border-t-3 border-r-3 border-[var(--primary)] rounded-tr-lg" />
+                    <div className="absolute bottom-0 left-0 w-5 h-5 border-b-3 border-l-3 border-[var(--primary)] rounded-bl-lg" />
+                    <div className="absolute bottom-0 right-0 w-5 h-5 border-b-3 border-r-3 border-[var(--primary)] rounded-br-lg" />
 
                     <div className="absolute top-2 left-3 text-[10px] font-semibold text-white/90 bg-black/40 px-2 py-0.5 rounded">
                       Documento de identidad
@@ -222,7 +222,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
               alt="Captura"
               className="w-full h-full object-cover"
             />
-            <div className="absolute top-3 right-3 bg-emerald-600 text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs">
+            <div className="absolute top-3 right-3 bg-[var(--success)] text-white text-xs font-semibold px-2.5 py-1 rounded-full flex items-center gap-1 shadow-xs">
               <CheckCircle2 className="w-3.5 h-3.5" />
               Foto capturada
             </div>
@@ -232,7 +232,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
         {/* Estado de error o sin permisos */}
         {hasPermission === false && (
           <div className="absolute inset-0 bg-slate-900 p-6 flex flex-col items-center justify-center text-center text-white">
-            <AlertCircle className="w-10 h-10 text-amber-400 mb-2" />
+            <AlertCircle className="w-10 h-10 text-[var(--warning)] mb-2" />
             <h3 className="text-sm font-bold">Acceso a cámara requerido</h3>
             <p className="text-xs text-gray-300 mt-1 max-w-xs leading-relaxed">
               {errorMessage || "Por favor otorga permisos de cámara a PrintShop."}
@@ -241,7 +241,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
             <button
               type="button"
               onClick={() => startCamera(facingMode)}
-              className="mt-4 px-4 py-2 bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
+              className="mt-4 px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-semibold rounded-lg transition-colors cursor-pointer"
             >
               Reintentar acceso
             </button>
@@ -258,8 +258,8 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
             disabled={!hasPermission || isCapturing}
             className={`w-full py-3.5 px-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all shadow-sm cursor-pointer ${
               hasPermission
-                ? "bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white"
-                : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                ? "bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-white"
+                : "bg-[var(--surface-strong)] text-[var(--text-muted)] cursor-not-allowed"
             }`}
           >
             <Camera className="w-4 h-4" />
@@ -270,7 +270,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
             <button
               type="button"
               onClick={handleRetake}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 hover:bg-gray-50 text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              className="flex-1 py-3 px-4 border border-[var(--border-strong)] text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] text-xs font-semibold rounded-xl transition-colors cursor-pointer"
             >
               Tomar de nuevo
             </button>
@@ -280,7 +280,7 @@ export const VerificationCamera: React.FC<VerificationCameraProps> = ({
                 alert("¡Fotografía validada con éxito en el dispositivo móvil!");
                 onBack();
               }}
-              className="flex-1 py-3 px-4 bg-[#2563EB] hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
+              className="flex-1 py-3 px-4 bg-[var(--primary)] hover:bg-[var(--primary-hover)] text-white text-xs font-semibold rounded-xl transition-colors cursor-pointer"
             >
               Confirmar captura
             </button>
