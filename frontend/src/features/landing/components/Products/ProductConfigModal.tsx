@@ -112,18 +112,18 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md sm:max-w-lg bg-white rounded-[8px] border border-[#E5E7EB] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
+        className="relative w-full max-w-md sm:max-w-lg bg-surface rounded-dialog border border-border shadow-modal overflow-hidden flex flex-col max-h-[90vh] my-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* ── 1. Encabezado del Modal ───────────────────────────────── */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[#F1F5F9] bg-white sticky top-0 z-10">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-borderMuted bg-surface sticky top-0 z-10">
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#64748B] tracking-wider">
+            <span className="text-[10px] uppercase font-bold text-foregroundMuted tracking-wider">
               {getCategoryDisplayName(product.category)}
             </span>
             <h2
               id="product-config-title"
-              className="text-sm sm:text-base font-bold text-[#111827] leading-snug"
+              className="text-sm sm:text-base font-bold text-foreground leading-snug"
             >
               Configura tu producto
             </h2>
@@ -132,7 +132,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="Cerrar modal"
-            className="h-8 w-8 rounded-full flex items-center justify-center text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+            className="h-8 w-8 rounded-full flex items-center justify-center text-foregroundMuted hover:text-foreground hover:bg-surfaceMuted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
           >
             <X className="h-4 w-4" />
           </button>
@@ -141,8 +141,8 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
         {/* ── 2. Cuerpo desplazable ─────────────────────────────────── */}
         <div className="p-5 overflow-y-auto space-y-5">
           {/* Tarjeta resumen del producto */}
-          <div className="flex items-center gap-3.5 p-3 rounded-[6px] bg-[#F8FAFC] border border-[#E2E8F0]">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-white rounded-[5px] border border-[#E2E8F0] p-1 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3.5 p-3 rounded-control bg-surfaceMuted border border-border">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 bg-surface rounded-control border border-border p-1 flex items-center justify-center shrink-0">
               <img
                 src={product.image}
                 alt={product.name}
@@ -150,15 +150,15 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h3 className="text-xs sm:text-sm font-bold text-[#111827] truncate">
+              <h3 className="text-xs sm:text-sm font-bold text-foreground truncate">
                 {product.name}
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
-                <span className="text-xs sm:text-sm font-extrabold text-[#2563EB]">
+                <span className="text-xs sm:text-sm font-extrabold text-primary">
                   {product.price}
                 </span>
                 {product.originalPrice && (
-                  <span className="text-[11px] text-[#9CA3AF] line-through">
+                  <span className="text-[11px] text-foregroundSubtle line-through">
                     {product.originalPrice}
                   </span>
                 )}
@@ -184,14 +184,14 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
               return (
                 <div key={attr.id} className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#374151]">
+                    <label className="text-xs font-bold text-foregroundMuted">
                       {attr.label}
                       {attr.required && (
-                        <span className="text-[#DC2626] ml-1">*</span>
+                        <span className="text-dangerStrong ml-1">*</span>
                       )}
                     </label>
                     {currentValue && (
-                      <span className="text-[11px] font-semibold text-[#64748B]">
+                      <span className="text-[11px] font-semibold text-foregroundMuted">
                         {attr.type === 'color'
                           ? attr.options.find((o) => o.id === currentValue)?.label || ''
                           : currentValue}
@@ -209,10 +209,10 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
                             key={opt.id}
                             type="button"
                             onClick={() => handleSelectValue(attr.id, opt.id)}
-                            className={`group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-[5px] border text-xs font-semibold transition-all cursor-pointer ${
+                            className={`group relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-control border text-xs font-semibold transition-all cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 ${
                               isSelected
-                                ? 'border-[#2563EB] bg-[#EFF6FF] text-[#2563EB] ring-1 ring-[#2563EB]'
-                                : 'border-[#E5E7EB] bg-white text-[#475569] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
+                                ? 'border-primary bg-infoMuted text-primary ring-1 ring-primary'
+                                : 'border-border bg-surface text-foregroundMuted hover:border-borderStrong hover:bg-surfaceMuted'
                             }`}
                           >
                             <span
@@ -238,10 +238,10 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
                             key={opt.id}
                             type="button"
                             onClick={() => handleSelectValue(attr.id, opt.id)}
-                            className={`h-8 min-w-[34px] px-3 rounded-[5px] text-xs font-bold transition-all cursor-pointer border ${
+                            className={`h-8 min-w-[34px] px-3 rounded-control text-xs font-bold transition-all cursor-pointer border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 ${
                               isSelected
-                                ? 'bg-[#2563EB] text-white border-[#2563EB] shadow-2xs'
-                                : 'bg-[#F8FAFC] text-[#374151] border-[#E5E7EB] hover:bg-[#EFF6FF] hover:text-[#2563EB] hover:border-[#BFDBFE]'
+                                ? 'bg-primary text-primaryForeground border-primary shadow-2xs'
+                                : 'bg-surfaceMuted text-foregroundMuted border-border hover:bg-infoMuted hover:text-primary hover:border-primary/30'
                             }`}
                           >
                             {opt.label}
@@ -256,24 +256,24 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
           </div>
 
           {/* ── Selector de Cantidad ─────────────────────────────────── */}
-          <div className="pt-2 border-t border-[#F1F5F9] flex items-center justify-between">
-            <span className="text-xs font-bold text-[#374151]">Cantidad</span>
-            <div className="flex items-center border border-[#CBD5E1] rounded-[4px] bg-white overflow-hidden shadow-2xs">
+          <div className="pt-2 border-t border-borderMuted flex items-center justify-between">
+            <span className="text-xs font-bold text-foregroundMuted">Cantidad</span>
+            <div className="flex items-center border border-borderStrong rounded-control bg-surface overflow-hidden shadow-2xs">
               <button
                 type="button"
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#475569] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center text-xs font-bold text-foregroundMuted hover:bg-surfaceMuted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30"
                 aria-label="Reducir cantidad"
               >
                 −
               </button>
-              <span className="w-9 h-7 flex items-center justify-center text-xs font-semibold text-[#111827] border-x border-[#CBD5E1]">
+              <span className="w-9 h-7 flex items-center justify-center text-xs font-semibold text-foreground border-x border-borderStrong">
                 {quantity}
               </span>
               <button
                 type="button"
                 onClick={() => setQuantity((q) => q + 1)}
-                className="w-7 h-7 flex items-center justify-center text-xs font-bold text-[#475569] hover:bg-[#F1F5F9] transition-colors cursor-pointer"
+                className="w-7 h-7 flex items-center justify-center text-xs font-bold text-foregroundMuted hover:bg-surfaceMuted transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary/30"
                 aria-label="Aumentar cantidad"
               >
                 +
@@ -283,7 +283,7 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
 
           {/* ── Mensaje de Error de Validación ───────────────────────── */}
           {errorMessage && (
-            <div className="p-3 rounded-[5px] bg-[#FEF2F2] border border-[#FCA5A5] text-[#DC2626] text-xs font-semibold flex items-center gap-2 animate-in fade-in">
+            <div className="p-3 rounded-control bg-dangerMuted border border-dangerStrong/30 text-dangerStrong text-xs font-semibold flex items-center gap-2 animate-in fade-in">
               <AlertCircle className="h-4 w-4 shrink-0" />
               <span>{errorMessage}</span>
             </div>
@@ -291,18 +291,18 @@ export const ProductConfigModal: React.FC<ProductConfigModalProps> = ({
         </div>
 
         {/* ── 3. Footer con Acciones ────────────────────────────────── */}
-        <div className="p-4 border-t border-[#F1F5F9] bg-[#FAFAFA] flex items-center justify-end gap-3 sticky bottom-0">
+        <div className="p-4 border-t border-borderMuted bg-surfaceMuted flex items-center justify-end gap-3 sticky bottom-0">
           <button
             type="button"
             onClick={onClose}
-            className="h-9 px-4 rounded-[5px] border border-[#E5E7EB] bg-white text-xs font-semibold text-[#475569] hover:bg-[#F8FAFC] hover:border-[#D1D5DB] transition-colors cursor-pointer"
+            className="h-9 px-4 rounded-control border border-border bg-surface text-xs font-semibold text-foregroundMuted hover:bg-surfaceMuted hover:border-borderStrong transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
           >
             Cancelar
           </button>
           <button
             type="button"
             onClick={handleAddToCart}
-            className="h-9 px-5 rounded-[5px] bg-[#2563EB] hover:bg-[#1D4ED8] active:bg-[#1E40AF] text-xs font-semibold text-white transition-colors cursor-pointer shadow-2xs flex items-center gap-2"
+            className="h-9 px-5 rounded-control bg-primary hover:bg-primaryHover active:bg-primaryActive text-xs font-semibold text-primaryForeground transition-colors cursor-pointer shadow-2xs flex items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
           >
             <ShoppingCart className="h-3.5 w-3.5" />
             <span>Agregar al carrito</span>
