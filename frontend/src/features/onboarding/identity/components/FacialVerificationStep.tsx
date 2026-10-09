@@ -19,7 +19,7 @@ export const FacialVerificationStep: React.FC<FacialVerificationStepProps> = ({
       <button
         type="button"
         onClick={onBack}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors mt-4 mb-2 focus:outline-hidden"
+        className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mt-4 mb-2 focus:outline-hidden"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
         Volver
@@ -27,27 +27,27 @@ export const FacialVerificationStep: React.FC<FacialVerificationStepProps> = ({
 
       {/* Heading & Description */}
       <div className="mb-5">
-        <h2 className="text-[22px] sm:text-2xl font-bold text-gray-900 tracking-tight">
+        <h2 className="text-[22px] sm:text-2xl font-bold text-[var(--text-primary)] tracking-tight">
           Verifica tu identidad
         </h2>
-        <p className="text-xs sm:text-[13px] text-gray-500 mt-1.5 leading-relaxed">
+        <p className="text-xs sm:text-[13px] text-[var(--text-secondary)] mt-1.5 leading-relaxed">
           Realiza un escaneo facial en tiempo real. Es rápido, seguro y no requiere documentos adicionales.
         </p>
       </div>
 
       {/* Large Face Scan Viewfinder Card */}
-      <div className="bg-[#F8FAFC] border border-gray-100 rounded-2xl p-6 sm:p-7 flex flex-col items-center justify-center">
+      <div className="bg-[var(--surface-muted)] border border-[var(--border-muted)] rounded-2xl p-6 sm:p-7 flex flex-col items-center justify-center">
         <div className="relative p-2">
           {/* Viewfinder Bracket Corners */}
           <div className="w-32 h-36 relative flex items-center justify-center">
             {/* Corner top-left */}
-            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[#3B82F6] rounded-tl-sm" />
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-[var(--primary)] rounded-tl-sm" />
             {/* Corner top-right */}
-            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[#3B82F6] rounded-tr-sm" />
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-[var(--primary)] rounded-tr-sm" />
             {/* Corner bottom-left */}
-            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[#3B82F6] rounded-bl-sm" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-[var(--primary)] rounded-bl-sm" />
             {/* Corner bottom-right */}
-            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[#3B82F6] rounded-br-sm" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-[var(--primary)] rounded-br-sm" />
 
             {/* Avatar Illustration */}
             <svg
@@ -94,7 +94,7 @@ export const FacialVerificationStep: React.FC<FacialVerificationStepProps> = ({
             </svg>
 
             {/* Circular Blue Verified Badge on bottom-right corner */}
-            <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-[#2563EB] border-2 border-white flex items-center justify-center text-white shadow-xs">
+            <div className="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-full bg-[var(--primary)] border-2 border-white flex items-center justify-center text-white shadow-xs">
               <Check className="w-3.5 h-3.5 stroke-[3]" />
             </div>
           </div>
@@ -103,39 +103,39 @@ export const FacialVerificationStep: React.FC<FacialVerificationStepProps> = ({
 
       {/* Recommendations Section */}
       <div className="mt-5">
-        <h4 className="text-xs font-semibold text-gray-700 mb-3">
+        <h4 className="text-xs font-semibold text-[var(--text-secondary)] mb-3">
           Recomendaciones
         </h4>
 
         <div className="space-y-2.5">
           {/* 1. Iluminación */}
           <div className="flex items-center gap-3">
-            <Sun className="w-4 h-4 text-blue-500 shrink-0" />
-            <span className="text-xs text-gray-600 font-medium">
+            <Sun className="w-4 h-4 text-[var(--primary)] shrink-0" />
+            <span className="text-xs text-[var(--text-secondary)] font-medium">
               Busca un lugar bien iluminado.
             </span>
           </div>
 
           {/* 2. Rostro visible */}
           <div className="flex items-center gap-3">
-            <User className="w-4 h-4 text-blue-500 shrink-0" />
-            <span className="text-xs text-gray-600 font-medium">
+            <User className="w-4 h-4 text-[var(--primary)] shrink-0" />
+            <span className="text-xs text-[var(--text-secondary)] font-medium">
               Mantén tu rostro visible y sin obstrucciones.
             </span>
           </div>
 
           {/* 3. Sostén dispositivo */}
           <div className="flex items-center gap-3">
-            <Smartphone className="w-4 h-4 text-blue-500 shrink-0" />
-            <span className="text-xs text-gray-600 font-medium">
+            <Smartphone className="w-4 h-4 text-[var(--primary)] shrink-0" />
+            <span className="text-xs text-[var(--text-secondary)] font-medium">
               Sostén el dispositivo a la altura de tu cara.
             </span>
           </div>
 
           {/* 4. Evita accesorios */}
           <div className="flex items-center gap-3">
-            <Ban className="w-4 h-4 text-red-500 shrink-0" />
-            <span className="text-xs text-gray-600 font-medium">
+            <Ban className="w-4 h-4 text-[var(--danger-strong)] shrink-0" />
+            <span className="text-xs text-[var(--text-secondary)] font-medium">
               Evita usar gorro, gafas o accesorios que cubran tu rostro.
             </span>
           </div>
@@ -147,7 +147,7 @@ export const FacialVerificationStep: React.FC<FacialVerificationStepProps> = ({
         <button
           type="button"
           onClick={onStartVerification}
-          className="w-full bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-4 rounded-lg text-sm transition-all shadow-sm focus:outline-hidden"
+          className="w-full bg-[var(--primary)] hover:bg-[var(--primary-hover)] active:bg-[var(--primary-active)] text-white font-semibold py-3 px-4 rounded-lg text-sm transition-all shadow-sm focus:outline-hidden"
         >
           Comenzar verificación
         </button>
@@ -155,7 +155,7 @@ export const FacialVerificationStep: React.FC<FacialVerificationStepProps> = ({
         <button
           type="button"
           onClick={onBack}
-          className="w-full text-center text-xs font-semibold text-[#2563EB] hover:underline mt-3 py-1 block focus:outline-hidden"
+          className="w-full text-center text-xs font-semibold text-[var(--primary)] hover:underline mt-3 py-1 block focus:outline-hidden"
         >
           Volver
         </button>
