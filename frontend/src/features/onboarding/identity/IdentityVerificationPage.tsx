@@ -79,9 +79,9 @@ export default function IdentityVerificationPage() {
   const currentStepNumber = currentStep === "method" ? 1 : 2;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-6 sm:py-10 px-4 flex items-center justify-center antialiased select-none">
+    <div className="min-h-screen bg-[var(--surface-muted)] py-6 sm:py-10 px-4 flex items-center justify-center antialiased select-none">
       {/* Contenedor Principal Centrado de Verificación */}
-      <div className="w-full max-w-[480px] bg-white rounded-3xl border border-gray-100/90 shadow-sm p-5 sm:p-7 relative overflow-hidden">
+      <div className="w-full max-w-[480px] bg-[var(--surface)] rounded-3xl border border-[var(--border-muted)] shadow-sm p-5 sm:p-7 relative overflow-hidden">
         {/* Encabezado con Logo oficial PrintShop, Cuenta activa 1/1 y Cierre */}
         <div className="relative z-10">
           <VerificationHeader onClose={handleClose} />
