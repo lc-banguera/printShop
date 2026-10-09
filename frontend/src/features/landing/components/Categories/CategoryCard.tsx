@@ -12,7 +12,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
       className="group flex flex-col items-center gap-2 text-center"
     >
       {/* 1. Imagen del producto sobre superficie tonal suave integrada */}
-      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[5px] bg-[#F4F5FB] p-3 transition-colors duration-200 group-hover:bg-[#E8EBF4]">
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden rounded-[5px] bg-[var(--surface-muted)] p-3 transition-colors duration-200 group-hover:bg-[var(--surface-strong)]">
         <img
           src={category.image}
           alt={category.name}
@@ -21,7 +21,7 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category }) => {
       </div>
 
       {/* 2. Nombre */}
-      <span className="text-xs font-semibold text-[#111827] transition-colors group-hover:text-primary sm:text-sm">
+      <span className="text-xs font-semibold text-[var(--text-primary)] transition-colors group-hover:text-primary sm:text-sm">
         {category.name}
       </span>
     </a>

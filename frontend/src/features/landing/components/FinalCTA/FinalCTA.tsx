@@ -17,13 +17,13 @@ export const FinalCTA: React.FC = () => {
 
           {/* Izquierda: texto + botón */}
           <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center gap-4 p-8 sm:p-10 md:p-12 lg:p-14">
-            <h2 className="text-xl font-extrabold leading-tight tracking-tight text-[#111827] sm:text-2xl lg:text-3xl">
+            <h2 className="text-xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)] sm:text-2xl lg:text-3xl">
               ¿Tienes una idea?{" "}
               <span className="text-primary">
                 Nosotros la hacemos realidad.
               </span>
             </h2>
-            <p className="max-w-[400px] text-sm leading-relaxed text-[#4B5563]">
+            <p className="max-w-[400px] text-sm leading-relaxed text-[var(--text-secondary)]">
               Crea productos personalizados únicos con nuestra herramienta fácil
               de usar y la más alta calidad de impresión.
             </p>
