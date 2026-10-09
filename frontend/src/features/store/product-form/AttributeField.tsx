@@ -7,7 +7,7 @@ export function AttributeField({ definition, value, onChange, error }: Props) {
   const current = value?.value;
   const [entry, setEntry] = React.useState('');
   const set = (next: ProductAttributeValue['value']) => onChange({ definitionId: definition.id, name: definition.name, type: definition.type, value: next, unit: definition.unit, required: definition.required, allowsVariants: definition.allowsVariants, custom: value?.custom });
-  const base = `w-full px-3 py-2 bg-white border ${error ? 'border-[#DC2626]' : 'border-[#CBD5E1]'} rounded-[6px] focus:outline-none focus:border-[#2563EB]`;
+  const base = `w-full px-3 py-2 bg-white border ${error ? 'border-[#DC2626]' : 'border-[#CBD5E1]'} rounded-[6px] focus:outline-none focus:border-[#2563EB] focus-visible:ring-2 focus-visible:ring-primary`;
   const values = Array.isArray(current) ? current : [];
   const addValue = () => { const next = entry.trim(); if (next && !values.includes(next)) set([...values, next]); setEntry(''); };
   const singleChoice = definition.type === 'SELECT';
