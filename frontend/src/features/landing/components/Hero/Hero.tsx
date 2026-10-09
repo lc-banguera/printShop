@@ -7,9 +7,9 @@ import { Container } from '@/shared/components/Container/Container';
 
 export const Hero: React.FC = () => {
   return (
-    <section className="w-full overflow-hidden bg-[#F4F5FB] pt-2 pb-10 sm:pt-4 sm:pb-12 lg:pt-6 lg:pb-14">
+    <section className="w-full overflow-hidden bg-[linear-gradient(118deg,var(--surface-muted)_0%,var(--background)_56%,var(--accent-muted)_100%)] pb-10 pt-8 sm:pb-14 sm:pt-12 lg:pb-16 lg:pt-14">
       <Container variant="wide">
-        <div className="grid min-w-0 grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-6 xl:gap-8">
+        <div className="grid min-w-0 grid-cols-1 items-center gap-8 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:gap-10 xl:gap-14">
           <div className="flex min-w-0 flex-col justify-center">
             <HeroContent data={heroData} />
           </div>
@@ -19,7 +19,7 @@ export const Hero: React.FC = () => {
           </div>
         </div>
 
-        <div className="mt-8 border-t border-[#E5E7EB]/50 pt-7 sm:mt-10 sm:pt-8 lg:mt-12 lg:pt-9">
+        <div className="mt-10 border-t border-border/70 pt-7 sm:mt-12 sm:pt-8 lg:mt-14 lg:pt-9">
           <HeroCapabilities capabilities={heroData.capabilities} />
         </div>
       </Container>

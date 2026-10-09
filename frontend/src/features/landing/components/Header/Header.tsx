@@ -7,7 +7,10 @@ interface HeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 export const Header: React.FC<HeaderProps> = ({ className, ...props }) => {
   return (
     <header
-      className={cn('sticky top-0 z-50 w-full bg-[#F4F5FB] transition-colors', className)}
+      className={cn(
+        'sticky top-0 z-50 w-full border-b border-white/70 bg-white/80 shadow-[0_1px_0_rgba(22,24,35,0.04)] backdrop-blur-xl transition-colors',
+        className,
+      )}
       {...props}
     >
       <Navbar />

@@ -22,38 +22,38 @@ const TikTokIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
 
 export const Footer: React.FC = () => {
   return (
-    <footer id="ayuda" className="w-full bg-surfaceMuted pt-14 pb-10 text-foreground">
+    <footer id="ayuda" className="w-full border-t border-border bg-surfaceMuted pb-10 pt-16 text-foreground sm:pt-20">
       <Container variant="wide">
-        <div className="grid min-w-0 grid-cols-1 gap-8 pb-8 sm:grid-cols-2 lg:grid-cols-12">
+        <div className="grid min-w-0 grid-cols-1 gap-x-8 gap-y-10 pb-10 sm:grid-cols-2 lg:grid-cols-12 lg:gap-x-10">
           {/* Columna 1 - Logo y redes sociales */}
           <div className="lg:col-span-3 flex flex-col items-start gap-4">
             <Logo />
             {/* Redes sociales */}
-            <div className="mt-1 flex items-center gap-3.5 text-foregroundMuted">
+            <div className="mt-1 flex items-center gap-2.5 text-foregroundMuted">
               <a
                 href="#"
-                className="hover:text-primary transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-foregroundMuted transition-[color,background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-borderStrong hover:text-primary active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="Instagram"
               >
                 <Instagram className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="hover:text-primary transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-foregroundMuted transition-[color,background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-borderStrong hover:text-primary active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="Facebook"
               >
                 <Facebook className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="hover:text-primary transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-foregroundMuted transition-[color,background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-borderStrong hover:text-primary active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="TikTok"
               >
                 <TikTokIcon className="w-4 h-4" />
               </a>
               <a
                 href="#"
-                className="hover:text-primary transition-colors"
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-foregroundMuted transition-[color,background-color,border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-borderStrong hover:text-primary active:translate-y-0 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 aria-label="YouTube"
               >
                 <Youtube className="w-4 h-4" />
@@ -61,15 +61,15 @@ export const Footer: React.FC = () => {
             </div>
 
             {/* Copyright */}
-            <p className="text-xs text-foregroundSubtle mt-6">
+            <p className="mt-6 text-xs leading-5 text-foregroundSubtle">
               © 2025 PrintShop. Todos los derechos reservados.
             </p>
           </div>
 
           {/* Columna 2 - Productos */}
           <div className="lg:col-span-2 flex flex-col items-start gap-3">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Productos</h4>
-            <ul className="flex flex-col gap-2 text-xs text-foregroundMuted">
+            <h4 className="text-xs font-bold uppercase text-foreground">Productos</h4>
+            <ul className="flex flex-col gap-2.5 text-[13px] text-foregroundMuted">
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
                   Camisetas
@@ -105,8 +105,8 @@ export const Footer: React.FC = () => {
 
           {/* Columna 3 - Ayuda */}
           <div className="lg:col-span-2 flex flex-col items-start gap-3">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Ayuda</h4>
-            <ul className="flex flex-col gap-2 text-xs text-foregroundMuted">
+            <h4 className="text-xs font-bold uppercase text-foreground">Ayuda</h4>
+            <ul className="flex flex-col gap-2.5 text-[13px] text-foregroundMuted">
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
                   Cómo funciona
@@ -137,8 +137,8 @@ export const Footer: React.FC = () => {
 
           {/* Columna 4 - Empresa */}
           <div className="lg:col-span-2 flex flex-col items-start gap-3">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">Empresa</h4>
-            <ul className="flex flex-col gap-2 text-xs text-foregroundMuted">
+            <h4 className="text-xs font-bold uppercase text-foreground">Empresa</h4>
+            <ul className="flex flex-col gap-2.5 text-[13px] text-foregroundMuted">
               <li>
                 <a href="#" className="hover:text-primary transition-colors">
                   Quiénes somos
@@ -159,24 +159,24 @@ export const Footer: React.FC = () => {
 
           {/* Columna 5 - Suscríbete a nuestro boletín */}
           <div className="lg:col-span-3 flex flex-col items-start gap-3">
-            <h4 className="font-bold text-xs uppercase tracking-wider text-foreground">
+            <h4 className="text-xs font-bold uppercase text-foreground">
               Suscríbete a nuestro boletín
             </h4>
-            <p className="text-xs text-foregroundMuted">
+            <p className="text-[13px] leading-5 text-foregroundMuted">
               Recibe novedades y ofertas exclusivas.
             </p>
-            <div className="w-full flex items-center mt-1">
+            <div className="mt-1 flex w-full items-center">
               <input
                 type="email"
                 placeholder="Tu correo electrónico"
-                className="w-full h-9 px-3 text-xs bg-surface border border-borderStrong border-r-0 rounded-l-lg focus:outline-none focus:border-primary text-foreground placeholder-foregroundSubtle"
+                className="h-11 w-full rounded-l-xl border border-borderStrong border-r-0 bg-surface px-3 text-sm text-foreground placeholder-foregroundSubtle focus:border-primary focus:outline-none"
               />
               <button
                 type="button"
-                className="h-9 px-3.5 bg-primary hover:bg-primaryHover text-white flex items-center justify-center rounded-r-lg transition-colors"
+                className="flex h-11 items-center justify-center rounded-r-xl bg-primary px-4 text-white transition-colors hover:bg-primaryHover active:scale-[0.98]"
                 aria-label="Suscribirse"
               >
-                <ArrowRight className="w-3.5 h-3.5" />
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
           </div>

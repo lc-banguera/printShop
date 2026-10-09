@@ -5,16 +5,16 @@ import { CategoryGrid } from './CategoryGrid';
 
 export const Categories: React.FC = () => {
   return (
-    <section className="w-full bg-[#F4F5FB] py-12 sm:py-16 lg:py-20">
+    <section className="w-full bg-surfaceMuted py-16 sm:py-20 lg:py-24">
       <Container variant="wide">
         {/* Encabezado de categorías */}
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
+          <h2 className="text-2xl font-bold tracking-normal text-foreground sm:text-3xl">
             Explora por categoría
           </h2>
           <a
             href="#"
-            className="rounded-control text-xs font-semibold text-primary transition-colors hover:text-primaryHover sm:text-sm"
+            className="rounded-control text-sm font-semibold text-primary transition-colors hover:text-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
           >
             Ver todas las categorías
           </a>

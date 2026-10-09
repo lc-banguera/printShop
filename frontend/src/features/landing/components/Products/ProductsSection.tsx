@@ -6,7 +6,7 @@ import { ProductGrid } from './ProductGrid';
 
 export const ProductsSection: React.FC = () => {
   return (
-    <section id="productos" className="w-full bg-[#F4F5FB] py-12 sm:py-16 lg:py-20">
+    <section id="productos" className="w-full bg-background py-16 sm:py-20 lg:py-24">
       <Container variant="wide">
         <ProductsHeader />
         <ProductGrid products={productsData} />

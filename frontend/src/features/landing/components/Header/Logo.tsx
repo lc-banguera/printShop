@@ -9,10 +9,10 @@ export const Logo: React.FC<LogoProps> = ({ className, ...props }) => {
   return (
     <Link to="/" className={cn('flex cursor-pointer select-none flex-col', className)} {...props}>
       <div className="flex items-baseline leading-none">
-        <span className="text-[1.55rem] font-black tracking-[-0.06em] text-[#111827] sm:text-[1.7rem] lg:text-[1.85rem]">
+        <span className="text-[1.35rem] font-black tracking-normal text-[#111827] sm:text-[1.7rem] lg:text-[1.85rem]">
           {headerData.logoText}
         </span>
-        <span className="text-[1.55rem] font-black tracking-[-0.06em] text-[#5D46E8] sm:text-[1.7rem] lg:text-[1.85rem]">
+        <span className="text-[1.35rem] font-black tracking-normal text-[#5D46E8] sm:text-[1.7rem] lg:text-[1.85rem]">
           {headerData.logoTextAccent}
         </span>
       </div>

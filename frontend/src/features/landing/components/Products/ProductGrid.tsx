@@ -43,9 +43,12 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
     if (!container) return;
 
     const scrollAmount = container.clientWidth;
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
     container.scrollBy({
       left: direction === 'right' ? scrollAmount : -scrollAmount,
-      behavior: 'smooth',
+      behavior,
     });
   };
 
@@ -57,7 +60,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
           type="button"
           onClick={() => handleScroll('left')}
           aria-label="Ver productos anteriores"
-          className="absolute -left-3 top-[34%] z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface text-primary shadow-subtle transition-all hover:bg-surfaceMuted hover:shadow-card active:scale-95 sm:-left-4 md:-left-5"
+          className="absolute -left-2 top-[34%] z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/90 text-primary shadow-card backdrop-blur transition-[transform,background-color,box-shadow] duration-150 hover:bg-white hover:shadow-elevated active:scale-95 sm:-left-4 md:-left-5"
         >
           <ChevronLeft className="h-5 w-5 text-primary" strokeWidth={2.5} />
         </button>
@@ -86,7 +89,7 @@ export const ProductGrid: React.FC<ProductGridProps> = ({ products }) => {
           type="button"
           onClick={() => handleScroll('right')}
           aria-label="Ver siguientes productos"
-          className="absolute -right-3 top-[34%] z-20 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface text-primary shadow-subtle transition-all hover:bg-surfaceMuted hover:shadow-card active:scale-95 sm:-right-4 md:-right-5"
+          className="absolute -right-2 top-[34%] z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/90 text-primary shadow-card backdrop-blur transition-[transform,background-color,box-shadow] duration-150 hover:bg-white hover:shadow-elevated active:scale-95 sm:-right-4 md:-right-5"
         >
           <ChevronRight className="h-5 w-5 text-primary" strokeWidth={2.5} />
         </button>

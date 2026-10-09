@@ -43,28 +43,32 @@ export const Inspiration: React.FC = () => {
     const cardWidth = firstCard?.offsetWidth ?? 140;
     const gap = 16;
 
+    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      ? 'auto'
+      : 'smooth';
+
     container.scrollBy({
       left:
         direction === "right" ? cardWidth * 2 + gap : -(cardWidth * 2 + gap),
-      behavior: "smooth",
+      behavior,
     });
   };
 
   return (
-    <section id="plantillas" className="w-full overflow-hidden bg-surfaceMuted py-12 sm:py-16 lg:py-20">
+    <section id="plantillas" className="w-full overflow-hidden bg-surfaceMuted py-16 sm:py-20 lg:py-24">
       <Container variant="wide">
         {/* Encabezado */}
-        <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <h2 className="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
+          <h2 className="text-2xl font-bold tracking-normal text-foreground sm:text-3xl">
             Inspírate con nuestras{" "}
-            <span                         className="text-primary transition-colors hover:text-primaryHover">
+            <span className="text-primary transition-colors hover:text-primaryHover">
               plantillas
             </span>
           </h2>
 
           <a
             href="#"
-            className="rounded-control text-xs font-semibold text-primary transition-colors hover:text-primaryHover sm:text-sm"
+            className="rounded-control text-sm font-semibold text-primary transition-colors hover:text-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
           >
             Ver todas las plantillas
           </a>
@@ -76,7 +80,7 @@ export const Inspiration: React.FC = () => {
             <button
               type="button"
               onClick={() => scroll("left")}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-surface border border-border shadow-md flex items-center justify-center text-foreground hover:bg-surfaceMuted transition-all"
+              className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/90 text-foreground shadow-card backdrop-blur transition-[transform,background-color,box-shadow] duration-150 hover:bg-white hover:shadow-elevated active:scale-95"
               aria-label="Anterior"
             >
               <ChevronLeft className="w-4 h-4" />
@@ -85,7 +89,7 @@ export const Inspiration: React.FC = () => {
 
           <div
             ref={scrollContainerRef}
-            className="flex w-full min-w-0 gap-3 overflow-x-auto scroll-smooth pb-2 scrollbar-none sm:gap-4"
+            className="flex w-full min-w-0 gap-3 overflow-x-auto scroll-smooth px-1 pb-3 sm:gap-4"
           >
             {inspirationData.map((template) => (
               <InspirationCard key={template.id} template={template} />
@@ -96,7 +100,7 @@ export const Inspiration: React.FC = () => {
             <button
               type="button"
               onClick={() => scroll("right")}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-surface border border-border shadow-md flex items-center justify-center text-foreground hover:bg-surfaceMuted transition-all"
+              className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/90 text-foreground shadow-card backdrop-blur transition-[transform,background-color,box-shadow] duration-150 hover:bg-white hover:shadow-elevated active:scale-95"
               aria-label="Siguiente"
             >
               <ChevronRight className="w-4 h-4" />

@@ -34,22 +34,21 @@ export const InspirationCard: React.FC<InspirationCardProps> = ({
   return (
     <div
       data-card
-      className="group w-[115px] shrink-0 cursor-pointer sm:w-[130px] lg:w-[140px]"
+      className="group w-[145px] shrink-0 cursor-pointer sm:w-[160px] lg:w-[176px]"
     >
-      {/* Contenedor cuadrado sin bordes redondeados */}
-      <div className="relative aspect-square w-full overflow-hidden rounded-control border border-border bg-surfaceMuted transition-colors group-hover:border-borderStrong">
+      <div className="relative aspect-square w-full overflow-hidden rounded-[16px] border border-border bg-surface shadow-subtle transition-[transform,border-color,box-shadow] duration-200 group-hover:-translate-y-1 group-hover:border-borderStrong group-hover:shadow-card">
         <img
           src={imageSrc}
           alt={name}
-          className="w-full h-full object-cover rounded-none group-hover:scale-105 transition-transform duration-200"
+          className="h-full w-full rounded-[15px] object-cover transition-transform duration-300 group-hover:scale-[1.04]"
         />
       </div>
 
       <div className="mt-2">
-        <h4 className="text-xs font-bold text-foreground transition-colors group-hover:text-primary sm:text-sm">
+        <h4 className="text-sm font-bold text-foreground transition-colors group-hover:text-primary sm:text-base">
           {name}
         </h4>
-        <p className="mt-0.5 text-[11px] text-foregroundMuted">{count} plantillas</p>
+        <p className="mt-1 text-xs text-foregroundMuted">{count} plantillas</p>
       </div>
     </div>
   );

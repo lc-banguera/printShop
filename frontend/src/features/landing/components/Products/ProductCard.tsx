@@ -23,34 +23,34 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <Link
       to={product.href || `/products/${product.id}`}
       data-card
-      className="group flex h-full select-none flex-col overflow-hidden rounded-card border border-borderMuted bg-surface transition-all duration-normal hover:-translate-y-0.5 hover:border-borderStrong hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="group flex h-full select-none flex-col overflow-hidden rounded-[18px] border border-borderMuted bg-surface shadow-subtle transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-borderStrong hover:shadow-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
     >
       {/* ── 1. ÁREA DE IMAGEN ───────────────────────────────────────── */}
-      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-surfaceMuted p-3.5 sm:p-4">
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[linear-gradient(145deg,var(--surface-muted),var(--background))] p-4 sm:p-5">
         <img
           src={product.image}
           alt={product.name}
-          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.04]"
           loading="lazy"
         />
       </div>
 
       {/* ── 2. INFORMACIÓN DEL PRODUCTO ───────────────────────────── */}
-      <div className="flex min-w-0 flex-1 flex-col p-3.5 pt-3">
+      <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
         {/* Categoría (en azul como en la referencia) */}
         {product.category && (
-          <span className="mb-1 block text-[10px] font-bold uppercase tracking-wider text-primary sm:text-[11px]">
+          <span className="mb-1 block text-[10px] font-bold uppercase text-primary sm:text-[11px]">
             {getCategoryDisplayName(product.category)}
           </span>
         )}
 
         {/* Nombre del Producto */}
-        <h3 className="line-clamp-1 text-xs font-bold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[13px] md:text-sm">
+        <h3 className="line-clamp-1 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
           {product.name}
         </h3>
 
         {/* Material / Descripción Secundaria */}
-        <p className="mt-0.5 line-clamp-1 text-[11px] text-foregroundMuted sm:text-xs">
+        <p className="mt-1 line-clamp-1 text-xs leading-5 text-foregroundMuted">
           {product.description}
         </p>
 
@@ -68,7 +68,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           )}
 
           {/* Precio Actual */}
-          <div className="text-base sm:text-lg md:text-xl font-extrabold text-foreground leading-tight mt-1">
+          <div className="mt-1 text-lg font-extrabold leading-tight text-foreground sm:text-xl">
             {product.price}
           </div>
 
@@ -84,8 +84,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
         {/* Colores disponibles (solo visuales, no interactivos) */}
         {product.colors && product.colors.length > 0 && (
-          <div className="flex items-center gap-1.5 mt-2.5 sm:mt-3">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-foreground-muted uppercase tracking-wide">
+          <div className="mt-3 flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold text-foreground-muted uppercase sm:text-[11px]">
               COLOR:
             </span>
             <div className="flex items-center gap-1">
@@ -102,7 +102,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         )}
 
         {/* Envío (beneficio en verde) */}
-        <div className="mt-2.5 flex items-center gap-1.5 text-[11px] font-semibold text-success sm:mt-3 sm:text-xs">
+        <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-success">
           <Truck className="w-3.5 h-3.5 shrink-0" />
           <span>Envío gratis</span>
         </div>

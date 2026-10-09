@@ -16,8 +16,8 @@ export const Models3DFilters: React.FC<Models3DFiltersProps> = ({
   onSearchChange,
 }) => {
   return (
-    <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-      <div className="flex flex-wrap items-center gap-1.5">
+    <div className="mb-7 flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-wrap items-center gap-2">
         {model3DFilters.map((filter) => {
           const isActive = filter.id === activeFilter;
           return (
@@ -26,7 +26,7 @@ export const Models3DFilters: React.FC<Models3DFiltersProps> = ({
               type="button"
               onClick={() => onFilterChange(filter.id as Model3DFilterId)}
               className={[
-                'inline-flex items-center gap-1 rounded-control border px-3 py-1.5 text-[11px] font-medium transition-all duration-150 sm:text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2',
+                'inline-flex min-h-10 items-center gap-1 rounded-full border px-4 py-2 text-xs font-semibold transition-[background-color,border-color,color,transform] duration-150 active:scale-[0.98] sm:text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2',
                 isActive
                   ? 'border-primary bg-primary text-primaryForeground shadow-subtle'
                   : 'border-border bg-surface text-foregroundMuted shadow-subtle hover:border-borderStrong hover:text-foreground',
@@ -38,14 +38,14 @@ export const Models3DFilters: React.FC<Models3DFiltersProps> = ({
         })}
       </div>
 
-      <div className="flex h-8 items-center gap-1.5 overflow-hidden rounded-control border border-border bg-surface px-2.5 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20">
-        <Search className="h-3.5 w-3.5 shrink-0 text-foregroundSubtle" />
+      <div className="flex h-11 w-full items-center gap-2 overflow-hidden rounded-xl border border-border bg-white px-3 transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 sm:w-56">
+        <Search className="h-4 w-4 shrink-0 text-foregroundSubtle" />
         <input
           type="text"
           placeholder="Buscar elementos"
           value={searchQuery}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-full min-w-0 flex-1 border-0 bg-transparent text-[11px] text-foreground outline-none placeholder:text-foregroundSubtle sm:w-36 sm:text-xs"
+          className="h-full min-w-0 flex-1 border-0 bg-transparent text-sm text-foreground outline-none placeholder:text-foregroundSubtle"
         />
       </div>
     </div>

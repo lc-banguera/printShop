@@ -18,7 +18,7 @@ export const UserActions: React.FC<UserActionsProps> = ({ className, compact = f
   const favoritesCount = useFavoritesStore((s) => s.getFavoritesCount(user?.id));
 
   const actionLinkClass =
-    'flex items-center gap-1.5 text-[13.5px] font-medium text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--primary)]';
+    'flex min-h-10 items-center gap-2 rounded-lg px-2 text-[13px] font-semibold text-[var(--text-secondary)] transition-colors duration-150 hover:bg-[var(--surface-muted)] hover:text-[var(--primary)] active:scale-[0.98]';
 
   const iconBadgeClass =
     'absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[var(--primary)] px-1 text-[9px] font-bold leading-none text-white';
@@ -67,7 +67,10 @@ export const UserActions: React.FC<UserActionsProps> = ({ className, compact = f
 
           <Link
             to="/register"
-            className="flex items-center justify-center rounded-[9px] bg-[var(--primary)] px-4 py-2 text-[13.5px] font-semibold text-white shadow-[0_2px_8px_rgba(93,70,232,0.25)] transition-all duration-200 hover:bg-[var(--primary-hover)] hover:scale-[1.02] sm:px-4.5 sm:py-2.5"
+            className={cn(
+              'flex min-h-10 items-center justify-center rounded-xl bg-[var(--primary)] px-4 py-2 text-[13px] font-semibold text-white shadow-[0_4px_12px_rgba(93,70,232,0.2)] transition-[background-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:bg-[var(--primary-hover)] hover:shadow-[0_7px_18px_rgba(93,70,232,0.26)] active:translate-y-0 active:scale-[0.98] sm:px-4.5 sm:py-2.5',
+              compact && 'rounded-lg px-2.5 py-1.5 text-xs sm:px-2.5',
+            )}
           >
             {headerData.registerLabel}
           </Link>

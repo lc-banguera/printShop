@@ -8,36 +8,35 @@ export const Features: React.FC = () => {
     <section
       id="que-puedes-hacer"
       aria-label="Todo lo que puedes hacer con PrintShop"
-      className="w-full bg-[var(--surface-muted)] py-12 sm:py-16 lg:py-20"
+      className="w-full bg-background py-16 sm:py-20 lg:py-24"
     >
       <Container variant="wide">
         {/* ── Intro centrado ── */}
-        <div className="mx-auto mb-12 max-w-3xl text-center lg:mb-14">
-          <h2 className="text-[1.9rem] font-black leading-[1.1] tracking-[-0.03em] text-[var(--text-primary)] sm:text-[2.25rem] lg:text-[1.9rem]">
+        <div className="mb-10 grid gap-4 sm:mb-14 sm:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] sm:items-end sm:gap-10 lg:mb-16">
+          <h2 className="max-w-[680px] text-[2rem] font-bold leading-[1.12] text-[var(--text-primary)] sm:text-[2.5rem] lg:text-[2.75rem]">
             Diseña, personaliza y prepara desde un solo lugar.
           </h2>
-          <p className="mx-auto mt-3 max-w-[560px] text-[15.5px] leading-relaxed text-[var(--text-secondary)]">
+          <p className="max-w-[520px] text-base leading-7 text-[var(--text-secondary)] sm:pb-1 sm:text-[17px]">
             PrintShop reúne el diseñador, los productos, los recursos y el flujo
             de producción en un único espacio de trabajo.
           </p>
         </div>
 
-        {/* ── Two-column editorial layout ── */}
-        <div className="grid items-center gap-12 lg:grid-cols-[1fr_480px] xl:grid-cols-[1fr_520px] xl:gap-16">
+        <div className="grid items-center gap-9 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)] lg:gap-14 xl:gap-20">
           {/* LEFT — image */}
           <div className="relative order-2 lg:order-1">
-            <div className="overflow-hidden rounded-2xl shadow-[0_16px_48px_rgba(17,24,39,0.10)] ring-1 ring-black/[0.06]">
+            <div className="overflow-hidden rounded-[22px] border border-borderMuted bg-surface p-2 shadow-elevated sm:p-3">
               <img
                 src={designerImg}
                 alt="Diseñador de camisetas en PrintShop: panel de diseños, vista 3D del producto y opciones de configuración"
-                className="h-auto w-full select-none object-cover object-top"
+                className="h-auto w-full select-none rounded-[16px] object-cover object-top"
                 loading="lazy"
                 decoding="async"
               />
             </div>
 
             {/* Floating tag */}
-            <div className="absolute -bottom-4 -right-4 hidden items-center gap-2.5 rounded-xl bg-white px-4 py-3 shadow-[0_4px_20px_rgba(17,24,39,0.10)] ring-1 ring-black/[0.05] sm:flex lg:-right-6">
+            <div className="absolute -bottom-4 right-3 hidden items-center gap-2.5 rounded-xl border border-borderMuted bg-white/95 px-4 py-3 shadow-card backdrop-blur sm:flex lg:-right-5">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
                 <svg
                   className="h-4 w-4 text-[var(--primary)]"
@@ -66,10 +65,10 @@ export const Features: React.FC = () => {
 
           {/* RIGHT — text + capabilities */}
           <div className="order-1 flex flex-col gap-8 lg:order-2">
-            <ul className="space-y-6">
+            <ul className="divide-y divide-borderMuted">
               {featuresData.map(({ id, icon: Icon, title, description }) => (
-                <li key={id} className="flex items-start gap-4">
-                  <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[var(--primary)] shadow-[0_2px_8px_rgba(93,70,232,0.10)] ring-1 ring-black/[0.04]">
+                <li key={id} className="flex items-start gap-4 py-5 first:pt-0 last:pb-0">
+                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[var(--surface-muted)] text-[var(--primary)]">
                     <Icon
                       className="h-5 w-5"
                       aria-hidden="true"
@@ -77,10 +76,10 @@ export const Features: React.FC = () => {
                     />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-[15px] font-bold leading-snug text-[var(--text-primary)]">
+                    <h3 className="text-base font-bold leading-snug text-[var(--text-primary)]">
                       {title}
                     </h3>
-                    <p className="mt-1 text-[13.5px] leading-relaxed text-[var(--text-secondary)]">
+                    <p className="mt-1.5 text-sm leading-6 text-[var(--text-secondary)]">
                       {description}
                     </p>
                   </div>
@@ -90,7 +89,7 @@ export const Features: React.FC = () => {
 
             {/* Benefits strip */}
             <div className="border-t border-[var(--border)] pt-6">
-              <p className="mb-4 text-[11.5px] font-semibold uppercase tracking-widest text-[var(--text-muted)]">
+              <p className="mb-4 text-xs font-semibold uppercase text-[var(--text-muted)]">
                 Incluido en cada pedido
               </p>
               <div className="grid grid-cols-2 gap-x-6 gap-y-3">
@@ -102,7 +101,7 @@ export const Features: React.FC = () => {
                 ].map((label) => (
                   <div
                     key={label}
-                    className="flex items-center gap-2 text-[13px] text-[var(--text-secondary)]"
+                    className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
                   >
                     <svg
                       className="h-3.5 w-3.5 shrink-0 text-[var(--primary)]"

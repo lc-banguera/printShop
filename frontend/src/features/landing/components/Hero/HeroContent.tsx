@@ -10,12 +10,14 @@ export const HeroContent: React.FC<HeroContentProps> = ({ data }) => {
   return (
     <div className="flex max-w-[36rem] flex-col">
       {/* Eyebrow */}
-      <span className="text-[13.5px] font-semibold text-[var(--primary)] tracking-wide sm:text-[14.5px]">
-        {data.eyebrow}
-      </span>
+      {data.eyebrow && (
+        <span className="text-sm font-semibold text-[var(--primary)]">
+          {data.eyebrow}
+        </span>
+      )}
 
       {/* Main Headline */}
-      <h1 className="mt-2.5 text-[2.75rem] font-black leading-[1.03] tracking-[-0.04em] text-[var(--text-primary)] sm:text-[3.25rem] lg:text-[3.75rem] xl:text-[4.2rem]">
+      <h1 className="mt-3 text-[2.8rem] font-extrabold leading-[1.04] tracking-normal text-[var(--text-primary)] sm:text-[3.65rem] lg:text-[4rem] xl:text-[4.5rem]">
         {data.titleLines[0]}
         <br />
         <span className="relative inline-flex items-center">
@@ -34,7 +36,7 @@ export const HeroContent: React.FC<HeroContentProps> = ({ data }) => {
       </h1>
 
       {/* Description */}
-      <p className="mt-5 max-w-[490px] text-base leading-relaxed text-[var(--text-secondary)] sm:text-[17px] sm:leading-7">
+      <p className="mt-6 max-w-[500px] text-base leading-7 text-[var(--text-secondary)] sm:text-[17px] sm:leading-8">
         {data.description}
       </p>
 

@@ -5,32 +5,32 @@ import ctaImage from "@/resources/landing_principal/images/img_cta.png";
 
 export const FinalCTA: React.FC = () => {
   return (
-    <section className="w-full overflow-hidden bg-[#F4F5FB] py-12 sm:py-16 lg:py-20">
+    <section className="w-full overflow-hidden bg-background py-16 sm:py-20 lg:py-24">
       <Container variant="wide">
         {/* Superficie blanca integrada con difuminado perimetral hacia #F4F5FB */}
-        <div className="relative flex w-full flex-col items-stretch overflow-hidden rounded-none border-0 bg-white shadow-none md:flex-row">
+        <div className="relative flex w-full flex-col items-stretch overflow-hidden rounded-[22px] border border-borderMuted bg-white shadow-elevated md:flex-row">
           {/* Difuminado perimetral suave de los extremos hacia #F4F5FB */}
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-20 shadow-[inset_0_0_24px_8px_#F4F5FB]"
+            className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgba(255,255,255,0.35),transparent_36%)]"
           />
 
           {/* Izquierda: texto + botón */}
-          <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center gap-4 p-8 sm:p-10 md:p-12 lg:p-14">
-            <h2 className="text-xl font-extrabold leading-tight tracking-tight text-[var(--text-primary)] sm:text-2xl lg:text-3xl">
+          <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center gap-5 p-7 sm:p-10 md:p-12 lg:p-14">
+            <h2 className="max-w-[560px] text-2xl font-bold leading-[1.12] text-[var(--text-primary)] sm:text-3xl lg:text-[2.5rem]">
               ¿Tienes una idea?{" "}
               <span className="text-primary">
                 Nosotros la hacemos realidad.
               </span>
             </h2>
-            <p className="max-w-[400px] text-sm leading-relaxed text-[var(--text-secondary)]">
+            <p className="max-w-[420px] text-base leading-7 text-[var(--text-secondary)]">
               Crea productos personalizados únicos con nuestra herramienta fácil
               de usar y la más alta calidad de impresión.
             </p>
             <div>
               <Link
                 to="/designer/new"
-                className="inline-flex min-h-11 items-center rounded-control bg-primary px-6 py-2.5 text-sm font-semibold text-primaryForeground transition-colors hover:bg-primaryHover"
+                className="inline-flex min-h-12 items-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primaryForeground shadow-subtle transition-[background-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:bg-primaryHover hover:shadow-card active:translate-y-0 active:scale-[0.98]"
               >
                 Comenzar a diseñar
               </Link>
@@ -38,7 +38,7 @@ export const FinalCTA: React.FC = () => {
           </div>
 
           {/* Derecha: imagen */}
-          <div className="relative flex h-52 w-full shrink-0 self-stretch overflow-hidden sm:h-64 md:h-auto md:w-[44%] md:max-w-[460px]">
+          <div className="relative flex h-56 w-full shrink-0 self-stretch overflow-hidden sm:h-72 md:h-auto md:w-[44%] md:max-w-[520px]">
             <img
               src={ctaImage}
               alt="PrintShop — personaliza tus productos"

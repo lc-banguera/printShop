@@ -11,7 +11,7 @@ export const NavLinks: React.FC<NavLinksProps> = ({ className, ...props }) => {
 
   const navLinkClass = (isActive: boolean, isDropdownTrigger = false) =>
     cn(
-      'relative flex items-center gap-1 whitespace-nowrap px-1 py-1.5 text-[14px] font-medium leading-none text-[var(--text-secondary)] transition-colors duration-200 hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focusRing',
+      'relative flex min-h-9 items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[13px] font-semibold leading-none text-[var(--text-secondary)] transition-colors duration-200 hover:bg-[var(--surface-muted)] hover:text-[var(--primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focusRing',
       isActive && 'text-[var(--primary)] font-semibold',
       isDropdownTrigger && 'rounded-md',
     );
@@ -19,7 +19,7 @@ export const NavLinks: React.FC<NavLinksProps> = ({ className, ...props }) => {
   return (
     <nav
       className={cn(
-        'flex min-w-0 w-full flex-wrap items-center justify-start gap-x-4 gap-y-2 text-[14px] font-medium text-[var(--text-secondary)] lg:flex-nowrap lg:justify-center lg:gap-x-5 xl:gap-x-6',
+        'flex min-w-0 w-full flex-wrap items-center justify-start gap-x-2 gap-y-1 text-[13px] font-semibold text-[var(--text-secondary)] lg:flex-nowrap lg:justify-center lg:gap-x-1 xl:gap-x-2',
         className,
       )}
       {...props}
@@ -54,7 +54,7 @@ export const NavLinks: React.FC<NavLinksProps> = ({ className, ...props }) => {
 
             {isOpen && item.dropdownItems && (
               <div
-                className="absolute left-0 top-full z-50 mt-2 min-w-[210px] rounded-xl border border-border bg-surface py-1.5 shadow-[0_8px_20px_rgba(15,23,42,0.05)]"
+                className="absolute left-0 top-full z-50 mt-2 min-w-[210px] rounded-xl border border-border bg-white/95 py-1.5 shadow-[0_14px_34px_rgba(22,24,35,0.12)] backdrop-blur-xl"
                 role="menu"
               >
                 {item.dropdownItems.map((subItem) => (
