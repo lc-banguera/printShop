@@ -86,7 +86,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
         {/* Imagen del producto */}
         <Link
           to={product.href || `/products/${product.id}`}
-          className="flex h-32 w-32 shrink-0 items-center justify-center rounded-card border border-border bg-surfaceMuted p-3 sm:h-40 sm:w-40"
+          className="flex h-32 w-32 shrink-0 items-center justify-center rounded-card border border-border bg-surfaceMuted p-3 sm:h-40 sm:w-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <img
             src={product.image}
@@ -102,7 +102,10 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
           </span>
 
           <h2 className="mt-0.5 line-clamp-1 text-base font-bold text-foreground transition-colors hover:text-primary sm:text-lg">
-            <Link to={product.href || `/products/${product.id}`}>
+            <Link
+              to={product.href || `/products/${product.id}`}
+              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
               {product.name}
             </Link>
           </h2>
@@ -156,7 +159,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
                       isSelected
                         ? "ring-2 ring-primary ring-offset-2 shadow-xs"
                         : "hover:scale-105 opacity-85 hover:opacity-100"
-                    }`}
+                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                     style={{ backgroundColor: colorHex }}
                     title={colorHex}
                     aria-label={`Color ${colorHex}`}
@@ -189,7 +192,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
                       isSelected
                         ? "bg-primary text-primaryForeground shadow-subtle"
                         : "border border-border bg-surface text-foregroundMuted hover:bg-infoMuted hover:text-primary"
-                    }`}
+                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                   >
                     {size}
                   </button>
@@ -210,7 +213,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
             isAdded
               ? "bg-success text-primaryForeground"
               : "bg-primary text-primaryForeground hover:bg-primaryHover active:scale-[0.99]"
-          }`}
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         >
           {isAdded ? (
             <>
@@ -229,7 +232,7 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
         <button
           type="button"
           onClick={handleRemove}
-          className="flex-1 sm:flex-none h-10 px-4 rounded-[5px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--border)] hover:border-[var(--danger-strong)] text-[var(--danger-strong)] hover:bg-[var(--danger-muted)] bg-white active:scale-[0.99]"
+          className="flex-1 sm:flex-none h-10 px-4 rounded-[5px] text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer border border-[var(--border)] hover:border-[var(--danger-strong)] text-[var(--danger-strong)] hover:bg-[var(--danger-muted)] bg-white active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <Heart className="h-4 w-4" />
           <span>Eliminar</span>
@@ -325,7 +328,7 @@ export const FavoritesPage: React.FC = () => {
           {/* ── Encabezado y Breadcrumb ─────────────────────────────── */}
           <div>
             <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
-              <Link to="/" className="hover:text-[var(--text-primary)] transition-colors">
+              <Link to="/" className="hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
                 Inicio
               </Link>
               <span>/</span>
@@ -349,7 +352,7 @@ export const FavoritesPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleClearAll}
-                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--danger-strong)] hover:text-[var(--danger-strong)] border border-[var(--border)] hover:border-[var(--danger-muted)] hover:bg-[var(--danger-muted)] px-3 py-2 rounded-[5px] transition-colors cursor-pointer self-start sm:self-auto bg-white shadow-2xs"
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--danger-strong)] hover:text-[var(--danger-strong)] border border-[var(--border)] hover:border-[var(--danger-muted)] hover:bg-[var(--danger-muted)] px-3 py-2 rounded-[5px] transition-colors cursor-pointer self-start sm:self-auto bg-white shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                   <span>Vaciar favoritos</span>
@@ -374,7 +377,7 @@ export const FavoritesPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openAuthModal()}
-                className="flex h-11 items-center justify-center gap-2 rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover"
+                className="flex h-11 items-center justify-center gap-2 rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span>Iniciar sesión</span>
 
@@ -394,7 +397,7 @@ export const FavoritesPage: React.FC = () => {
               </p>
               <Link
                 to="/"
-                className="flex h-11 items-center justify-center gap-2 rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover"
+                className="flex h-11 items-center justify-center gap-2 rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <span>Explorar productos</span>
               </Link>
@@ -413,7 +416,7 @@ export const FavoritesPage: React.FC = () => {
                       activeTab === "todos"
                         ? "text-primary"
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
+                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                   >
                     <span>Todos ({totalCount})</span>
                     {activeTab === "todos" && (
@@ -428,7 +431,7 @@ export const FavoritesPage: React.FC = () => {
                       activeTab === "disponibles"
                         ? "text-primary"
                         : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                    }`}
+                    } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
                   >
                     <span>Disponibles ({availableCount})</span>
                     {activeTab === "disponibles" && (
@@ -447,7 +450,7 @@ export const FavoritesPage: React.FC = () => {
                       placeholder="Buscar en mis favoritos"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="h-10 w-full rounded-control border border-border bg-surface pl-9 pr-3 text-xs text-foreground shadow-subtle outline-none transition-all placeholder:text-foregroundSubtle focus:border-primary focus:ring-2 focus:ring-primary"
+                      className="h-10 w-full rounded-control border border-border bg-surface pl-9 pr-3 text-xs text-foreground shadow-subtle outline-none transition-all placeholder:text-foregroundSubtle focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                     />
                   </div>
 
@@ -460,7 +463,7 @@ export const FavoritesPage: React.FC = () => {
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value as any)}
-                        className="h-10 w-full appearance-none rounded-control border border-border bg-surface pl-3 pr-8 text-xs font-medium text-foreground shadow-subtle outline-none transition-all focus:border-primary sm:w-auto"
+                        className="h-10 w-full appearance-none rounded-control border border-border bg-surface pl-3 pr-8 text-xs font-medium text-foreground shadow-subtle outline-none transition-all focus:border-primary focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
                       >
                         <option value="recientes">
                           Agregados más recientemente
