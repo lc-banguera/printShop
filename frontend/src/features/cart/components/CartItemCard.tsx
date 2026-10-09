@@ -36,7 +36,7 @@ export function CartItemCard({
           }
           className={`flex shrink-0 aspect-square items-center justify-center overflow-hidden rounded-control border border-border bg-surfaceMuted p-1.5 transition-colors hover:border-borderStrong ${
             compact ? "w-16 h-16 sm:w-18 sm:h-18" : "w-20 h-20 sm:w-24 sm:h-24"
-          }`}
+          } focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         >
           {item.image ? (
             <img
@@ -61,7 +61,7 @@ export function CartItemCard({
                     ? `/admin/designs/${item.itemId || item.designId || item.productId}`
                     : `/products/${item.productId}`
                 }
-                className="text-xs sm:text-sm font-bold text-[var(--text-primary)] hover:text-[var(--primary-hover)] transition-colors leading-snug line-clamp-2"
+                className="text-xs sm:text-sm font-bold text-[var(--text-primary)] hover:text-[var(--primary-hover)] transition-colors leading-snug line-clamp-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 {item.name}
               </Link>
@@ -71,7 +71,7 @@ export function CartItemCard({
                 <button
                   type="button"
                   onClick={() => onRemove(item)}
-                  className="shrink-0 text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors p-1 rounded-[4px] hover:bg-[var(--danger-muted)] cursor-pointer"
+                  className="shrink-0 text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors p-1 rounded-[4px] hover:bg-[var(--danger-muted)] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   title="Eliminar producto"
                   aria-label={`Eliminar ${item.name} del carrito`}
                 >
@@ -146,7 +146,7 @@ export function CartItemCard({
                 <button
                   type="button"
                   onClick={() => onRemove(item)}
-                  className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors px-2 py-1 rounded-[4px] hover:bg-[var(--danger-muted)] cursor-pointer ml-2"
+                  className="inline-flex items-center gap-1 text-[11px] text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors px-2 py-1 rounded-[4px] hover:bg-[var(--danger-muted)] cursor-pointer ml-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   <Trash2 className="h-3 w-3" />
                   <span>Eliminar</span>

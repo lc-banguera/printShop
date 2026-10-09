@@ -32,7 +32,7 @@ export function QuantityControl({
         disabled={disabled || quantity <= min}
         className={`${
           isSm ? 'h-8 w-8' : 'h-9 w-9'
-        } flex items-center justify-center rounded-l-control text-foregroundMuted transition-colors hover:bg-surfaceMuted hover:text-foreground active:bg-surfaceStrong disabled:cursor-not-allowed disabled:opacity-40`}
+        } flex items-center justify-center rounded-l-control text-foregroundMuted transition-colors hover:bg-surfaceMuted hover:text-foreground active:bg-surfaceStrong disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         aria-label="Disminuir cantidad"
       >
         <Minus className={isSm ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
@@ -52,7 +52,7 @@ export function QuantityControl({
         disabled={disabled}
         className={`${
           isSm ? 'h-8 w-8' : 'h-9 w-9'
-        } flex items-center justify-center rounded-r-control text-foregroundMuted transition-colors hover:bg-surfaceMuted hover:text-foreground active:bg-surfaceStrong disabled:cursor-not-allowed disabled:opacity-40`}
+        } flex items-center justify-center rounded-r-control text-foregroundMuted transition-colors hover:bg-surfaceMuted hover:text-foreground active:bg-surfaceStrong disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary`}
         aria-label="Aumentar cantidad"
       >
         <Plus className={isSm ? 'h-3 w-3' : 'h-3.5 w-3.5'} />

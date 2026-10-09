@@ -93,7 +93,7 @@ export function CartPage() {
           <div className="mb-6 flex items-center justify-between gap-3">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>Continuar comprando</span>
@@ -103,7 +103,7 @@ export function CartPage() {
               <button
                 type="button"
                 onClick={() => setIsClearingCart(true)}
-                className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors flex items-center gap-1 cursor-pointer"
+                className="text-xs font-medium text-[var(--text-muted)] hover:text-[var(--danger-strong)] transition-colors flex items-center gap-1 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <Trash2 className="h-3.5 w-3.5" />
                 <span>Vaciar carrito</span>
@@ -134,7 +134,7 @@ export function CartPage() {
               <div className="pt-6">
                 <Link
                   to="/"
-                  className="inline-flex h-11 items-center justify-center rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover"
+                  className="inline-flex h-11 items-center justify-center rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                 >
                   Ver productos
                 </Link>
@@ -250,7 +250,7 @@ export function CartPage() {
                         <button
                           type="button"
                           onClick={removeCoupon}
-                          className="text-[11px] text-[var(--danger-strong)] hover:underline cursor-pointer"
+                          className="text-[11px] text-[var(--danger-strong)] hover:underline cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                         >
                           Quitar
                         </button>
@@ -268,12 +268,12 @@ export function CartPage() {
                             onChange={(e) => setInputCoupon(e.target.value)}
                             placeholder="Ej. PRINTSHOP10"
                             disabled={isApplyingCoupon}
-                            className="h-10 min-w-0 flex-1 rounded-control border border-borderStrong px-3 text-xs uppercase text-foreground shadow-subtle outline-none placeholder:text-foregroundSubtle focus:border-primary focus:ring-1 focus:ring-primary"
+                            className="h-10 min-w-0 flex-1 rounded-control border border-borderStrong px-3 text-xs uppercase text-foreground shadow-subtle outline-none placeholder:text-foregroundSubtle focus:border-primary focus-visible:ring-2 focus-visible:ring-primary"
                           />
                           <button
                             type="submit"
                             disabled={isApplyingCoupon || !inputCoupon.trim()}
-                            className="h-9 px-3 rounded-[5px] border border-[var(--border)] bg-white hover:bg-[var(--surface-muted)] text-xs font-medium text-[var(--text-primary)] transition-colors shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
+                            className="h-9 px-3 rounded-[5px] border border-[var(--border)] bg-white hover:bg-[var(--surface-muted)] text-xs font-medium text-[var(--text-primary)] transition-colors shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                           >
                             {isApplyingCoupon ? (
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -298,7 +298,7 @@ export function CartPage() {
                     <button
                       type="button"
                       onClick={() => navigate("/checkout")}
-                      className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover active:bg-primaryActive"
+                      className="flex h-11 w-full items-center justify-center gap-2 rounded-control bg-primary px-4 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover active:bg-primaryActive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                     >
                       <span>Continuar al pago</span>
                     </button>
