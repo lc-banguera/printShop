@@ -86,7 +86,7 @@ export default function Templates() {
             tiendas.
           </p>
         </div>
-        <button className="flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-[5px] bg-primary px-3 text-[11.5px] font-semibold text-primaryForeground shadow-2xs transition-colors hover:bg-primaryHover">
+        <button className="flex h-8 shrink-0 items-center justify-center gap-1.5 rounded-[5px] bg-primary px-3 text-[11.5px] font-semibold text-primaryForeground shadow-2xs transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
           <Plus className="h-3.5 w-3.5" /> Nueva plantilla
         </button>
       </div>
@@ -126,7 +126,7 @@ export default function Templates() {
           <h2 className="text-[13px] font-bold text-foreground">
             Plantillas destacadas
           </h2>
-          <button className="text-[11.5px] font-semibold text-primary transition-colors hover:text-primaryHover">
+          <button className="text-[11.5px] font-semibold text-primary transition-colors hover:text-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
             Ver todas las plantillas destacadas →
           </button>
         </div>
@@ -156,7 +156,7 @@ export default function Templates() {
                 </div>
                 <button
                   type="button"
-                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[5px] text-foregroundSubtle transition-colors hover:bg-surfaceMuted hover:text-foreground"
+                  className="flex h-6 w-6 shrink-0 items-center justify-center rounded-[5px] text-foregroundSubtle transition-colors hover:bg-surfaceMuted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                   aria-label="Abrir acciones"
                 >
                   <MoreVertical className="h-3.5 w-3.5" />

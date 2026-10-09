@@ -47,10 +47,10 @@ export default function Marketing() {
         icon={Megaphone}
         action={
           <>
-            <button className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors shadow-2xs">
+            <button className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)] border border-[var(--border)] rounded-[5px] px-3 py-1.5 bg-white hover:bg-[var(--surface-muted)] transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <Download className="h-3.5 w-3.5 text-[var(--text-secondary)]" /> Exportar
             </button>
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] rounded-[5px] px-3.5 py-1.5 transition-colors shadow-2xs">
+            <button className="flex items-center gap-1.5 text-xs font-semibold text-white bg-[var(--primary)] hover:bg-[var(--primary-hover)] rounded-[5px] px-3.5 py-1.5 transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <Plus className="h-3.5 w-3.5" /> Nueva Campaña
             </button>
           </>

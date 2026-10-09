@@ -53,10 +53,10 @@ export default function SystemLogs() {
         icon={Database}
         action={
           <>
-            <button className="flex items-center gap-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] px-3 py-1.5 bg-surface hover:bg-surfaceMuted transition-colors shadow-2xs">
+            <button className="flex items-center gap-1.5 text-xs font-medium text-foregroundMuted border border-border rounded-[5px] px-3 py-1.5 bg-surface hover:bg-surfaceMuted transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <Download className="h-3.5 w-3.5 text-foregroundSubtle" /> Exportar
             </button>
-            <button className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary rounded-[5px] px-3 py-1.5 hover:bg-infoMuted transition-colors shadow-2xs">
+            <button className="flex items-center gap-1.5 text-xs font-semibold text-primary border border-primary rounded-[5px] px-3 py-1.5 hover:bg-infoMuted transition-colors shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
               <RefreshCw className="h-3.5 w-3.5" /> Actualizar Logs
             </button>
           </>
