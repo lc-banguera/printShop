@@ -30,7 +30,7 @@ export const Models3DSection: React.FC = () => {
   }, [activeFilter, searchQuery]);
 
   return (
-    <section className="w-full bg-[#F4F5FB] py-12 sm:py-16 lg:py-20">
+    <section className="w-full bg-surfaceMuted py-12 sm:py-16 lg:py-20">
       <Container variant="wide">
         {/* Encabezado */}
         <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
