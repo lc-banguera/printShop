@@ -466,13 +466,13 @@ export default function Products() {
                     <button
                       type="button"
                       onClick={(e) => toggleFavorite(product.id, e)}
-                      className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[var(--text-muted)] hover:text-rose-500 transition-all shadow-2xs focus:outline-none cursor-pointer"
+                      className="p-1 rounded-[4px] bg-white/80 hover:bg-white text-[var(--text-muted)] hover:text-accentPink transition-all shadow-2xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 cursor-pointer"
                       title={isFav ? "Quitar de favoritos" : "Guardar favorito"}
                     >
                       <Heart
                         className={`h-3.5 w-3.5 transition-colors ${
                           isFav
-                            ? "fill-rose-500 text-rose-500"
+                            ? "fill-accentPink text-accentPink"
                             : "text-[var(--text-muted)]"
                         }`}
                       />
