@@ -64,7 +64,7 @@ export function ForgotPasswordPage() {
 
           {isSubmitted ? (
             <div className="text-center space-y-4 py-2 animate-in fade-in zoom-in-95 duration-200">
-              <div className="h-11 w-11 rounded-full bg-[var(--success-muted)] border border-[#A7F3D0] flex items-center justify-center text-[var(--success)] mx-auto">
+              <div className="h-11 w-11 rounded-full bg-[var(--success-muted)] border border-[var(--success)]/30 flex items-center justify-center text-[var(--success)] mx-auto">
                 <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
