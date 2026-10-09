@@ -101,6 +101,32 @@ test('similar-color selection includes disconnected matches without selecting di
   ]);
 });
 
+test('background removal exposes a configured precision processor and a not-configured fallback', async () => {
+  const source = buffer(2, 1, [
+    255, 255, 255, 255,
+    10, 20, 30, 255,
+  ]);
+
+  const fallback = await engine.runBackgroundRemoval(source, { tolerance: 10, feather: 0 });
+  assert.equal(fallback.status, 'not-configured');
+  assert.equal(fallback.code, 'NOT_CONFIGURED');
+
+  const configured = await engine.runBackgroundRemoval(source, { tolerance: 10, feather: 0 }, {
+    providerId: 'fixture-local-provider',
+    async removeBackground(input, _options) {
+      return {
+        width: input.width,
+        height: input.height,
+        data: new Uint8ClampedArray(input.data),
+      };
+    },
+  });
+
+  assert.equal(configured.status, 'succeeded');
+  assert.equal(configured.providerId, 'fixture-local-provider');
+  assert.deepEqual([...configured.image.data], [...source.data]);
+});
+
 test('background removal learns multiple edge colors while preserving enclosed foreground', () => {
   const width = 9;
   const height = 5;

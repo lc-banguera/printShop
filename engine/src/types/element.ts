@@ -1,4 +1,3 @@
-
 import type { VectorPath } from '../paths';
 
 export type PrintableZoneId = 'front' | 'back' | 'sleeve_left' | 'sleeve_right' | 'label';

@@ -65,8 +65,13 @@ export type {
 } from './image-scaling';
 export { applyImageEffectStack, composeEffectStacks } from './image-effects';
 export type { RasterEffectKind } from './image-effects';
-export { removeBackgroundLocal } from './background-removal';
+export {
+  removeBackgroundLocal,
+  runBackgroundRemoval,
+} from './background-removal';
 export type {
+  BackgroundRemovalExecutionResult,
+  BackgroundRemovalProcessor,
   RemoveBackgroundOptions,
   RemoveBackgroundResult,
 } from './background-removal';

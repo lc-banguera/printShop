@@ -1,5 +1,5 @@
 import { clampByte, createAlphaData } from './image-processing';
-import { cloneImageBuffer, type ImageBuffer } from './image-buffer';
+import { assertImageBuffer, cloneImageBuffer, type ImageBuffer } from './image-buffer';
 import {
   refineForegroundMask,
   type MaskConnectivity,
@@ -200,6 +200,41 @@ function featherMask(mask: Uint8Array, width: number, height: number, radius: nu
     output[pixel] = clampByte(smoothstep(coverage) * 255);
   }
   return output;
+}
+
+export interface BackgroundRemovalProcessor {
+  readonly providerId: string;
+  removeBackground(source: ImageBuffer, options: RemoveBackgroundOptions): Promise<ImageBuffer>;
+}
+
+export type BackgroundRemovalExecutionResult =
+  | { status: 'succeeded'; image: ImageBuffer; providerId: string }
+  | { status: 'not-configured'; code: 'NOT_CONFIGURED'; message: string };
+
+export async function runBackgroundRemoval(
+  source: ImageBuffer,
+  options: RemoveBackgroundOptions,
+  processor?: BackgroundRemovalProcessor,
+): Promise<BackgroundRemovalExecutionResult> {
+  if (!processor) {
+    return {
+      status: 'not-configured',
+      code: 'NOT_CONFIGURED',
+      message: 'No real background removal processor is configured.',
+    };
+  }
+
+  if (!processor.providerId.trim()) {
+    throw new TypeError('Background removal processor must have a provider id.');
+  }
+
+  const image = await processor.removeBackground(source, options);
+  assertImageBuffer(image);
+  return {
+    status: 'succeeded',
+    image,
+    providerId: processor.providerId,
+  };
 }
 
 export function removeBackgroundLocal(
