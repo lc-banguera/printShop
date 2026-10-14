@@ -32,22 +32,41 @@ build/
 ### VS Code ###
 .vscode/
 
+# Global dependency directories & caches
+node_modules/
+**/node_modules/
+.next/
+dist/
+**/dist/
+build/
+**/build/
+.cache/
+**/.cache/
+.vite/
+**/.vite/
+.turbo/
+.parcel-cache/
+.eslintcache
+
 # Backend build artifacts
 backend/target/
-
-# Frontend artifacts
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-engine/node_modules/
-engine/dist/
 
 # Local env files
 .env
 .env.local
+.env.*.local
 server/.env
 server/.env.local
-server/node_modules/
+
+# Heavy binaries and local tool caches
+.agents/skills/impeccable/scripts/bin/
+tools/image-processing/node_modules/
+tools/image-processing/audit-out/
+docs/processing-validation/latest/
+docs/ui/
+docs/design/reference/*.png
+docs/design/reference/*.jpg
+
 
 # Processing service models and tools binaries
 processing-service/models/*.onnx
@@ -69,5 +88,6 @@ docs/design/reference/*.docx
 # OS / Tooling
 .DS_Store
 Thumbs.db
+
 
 
