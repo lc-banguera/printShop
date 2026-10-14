@@ -13,10 +13,15 @@ const writeQueues = new Map<string, Promise<void>>();
 
 export type Designer3Mode = "easy" | "advanced";
 
+export type Designer3PrintUnit = "cm" | "mm" | "in" | "px";
+
 export interface Designer3CanvasConfig {
   widthPx: number;
   heightPx: number;
   dpi: number;
+  physicalWidth?: number;
+  physicalHeight?: number;
+  unit?: Designer3PrintUnit;
   background: "transparent" | "white" | "color";
   backgroundColor: string;
 }
@@ -131,6 +136,16 @@ export function updateDesigner3DocumentModel(
     },
     layers,
   };
+  const unit = config.unit ?? "cm";
+  const physicalWidth =
+    typeof config.physicalWidth === "number" && config.physicalWidth > 0
+      ? config.physicalWidth
+      : Number(((config.widthPx / config.dpi) * 2.54).toFixed(2));
+  const physicalHeight =
+    typeof config.physicalHeight === "number" && config.physicalHeight > 0
+      ? config.physicalHeight
+      : Number(((config.heightPx / config.dpi) * 2.54).toFixed(2));
+
   return createPrintShopDocument({
     ...document,
     updatedAt: now,
@@ -143,8 +158,10 @@ export function updateDesigner3DocumentModel(
       ...metadata,
       widthPx: config.widthPx,
       heightPx: config.heightPx,
+      physicalWidth,
+      physicalHeight,
+      unit,
       dpi: config.dpi,
-      unit: "px",
       background: config.background,
       backgroundColor: config.backgroundColor,
     },
@@ -161,6 +178,16 @@ export async function createDesigner3Document(
   config: Designer3CanvasConfig,
 ): Promise<Designer3DocumentSession> {
   const now = new Date().toISOString();
+  const unit = config.unit ?? "cm";
+  const physicalWidth =
+    typeof config.physicalWidth === "number" && config.physicalWidth > 0
+      ? config.physicalWidth
+      : Number(((config.widthPx / config.dpi) * 2.54).toFixed(2));
+  const physicalHeight =
+    typeof config.physicalHeight === "number" && config.physicalHeight > 0
+      ? config.physicalHeight
+      : Number(((config.heightPx / config.dpi) * 2.54).toFixed(2));
+
   const document = createPrintShopDocument({
     id,
     createdAt: now,
@@ -171,8 +198,10 @@ export async function createDesigner3Document(
       title,
       widthPx: config.widthPx,
       heightPx: config.heightPx,
+      physicalWidth,
+      physicalHeight,
+      unit,
       dpi: config.dpi,
-      unit: "px",
       background: config.background,
       backgroundColor: config.backgroundColor,
     },
@@ -217,6 +246,33 @@ export async function loadDesigner3Document(
         .put(migrated),
     );
     return migrated;
+  } finally {
+    database.close();
+  }
+}
+
+export async function listDesigner3Documents(): Promise<Designer3DocumentSession[]> {
+  const database = await openDatabase();
+  try {
+    const results = await requestResult<Designer3DocumentSession[]>(
+      database.transaction(DOCUMENT_STORE, "readonly")
+        .objectStore(DOCUMENT_STORE)
+        .getAll(),
+    );
+
+    return results
+      .map((result) => {
+        try {
+          const document = deserializeDocument(JSON.stringify(result.document));
+          return { ...result, document };
+        } catch {
+          return null;
+        }
+      })
+      .filter((result): result is Designer3DocumentSession => result !== null)
+      .sort((first, second) =>
+        second.updatedAt.localeCompare(first.updatedAt),
+      );
   } finally {
     database.close();
   }

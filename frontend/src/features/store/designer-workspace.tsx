@@ -1,6 +1,6 @@
 import * as React from 'react';
 import {
-  AlignCenter, AlignHorizontalDistributeCenter, AlignLeft, AlignRight, AlignVerticalDistributeCenter, ArrowLeft, ArrowDown, ArrowUp, BringToFront, ChevronDown, ChevronUp, Circle, Contrast, Crop, Download, Eraser, Eye, EyeOff, FlipHorizontal, FlipVertical, Frame, Grid2X2, Group, Hand, History, Image as ImageIcon, ImageMinus, Lock, Minus, Move, MousePointer2, Palette, PenTool, Pipette, Plus, Redo2, RotateCw, Save, ScanLine, Shapes, SlidersHorizontal, Sparkles, Square, Star, Triangle as TriangleIcon, Type, Undo2, Ungroup, Unlock, Wand2, X, ZoomIn, ZoomOut,
+  AlignCenter, AlignHorizontalDistributeCenter, AlignLeft, AlignRight, AlignVerticalDistributeCenter, ArrowLeft, ArrowDown, ArrowUp, BringToFront, ChevronDown, ChevronUp, Circle, Contrast, Crop, Download, Eraser, Eye, EyeOff, FlipHorizontal, FlipVertical, Frame, Grid2X2, Group, Hand, History, Image as ImageIcon, ImageMinus, LayoutDashboard, Lock, Minus, MoreVertical, Move, MousePointer2, Palette, PenTool, Pipette, Plus, Redo2, RotateCw, Save, ScanLine, Shapes, SlidersHorizontal, Sparkles, Square, Star, Triangle as TriangleIcon, Type, Undo2, Ungroup, Unlock, Wand2, X, ZoomIn, ZoomOut,
 } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { InteractiveCanvas } from './designer/InteractiveCanvas';
@@ -137,6 +137,7 @@ export function DesignerWorkspace({
   onUpdateLayer,
   onUpdateMultipleLayers,
   onSavePath,
+  onSwitchToEasy,
 }: {
   title: string;
   previewUrl?: string;
@@ -213,6 +214,7 @@ export function DesignerWorkspace({
     style: { fill: string; stroke: string; strokeWidth: number },
     layerId?: string,
   ) => void;
+  onSwitchToEasy?: () => void;
 }) {
   const [activeTool, setActiveTool] = React.useState('select');
   const [cropModalOpen, setCropModalOpen] = React.useState(false);
@@ -227,6 +229,18 @@ export function DesignerWorkspace({
   const [tab, setTab] = React.useState<'properties' | 'layers' | 'history'>('properties');
   const [openMenu, setOpenMenu] = React.useState<string | null>(null);
   const [openToolGroup, setOpenToolGroup] = React.useState<string | null>(null);
+  const [modeMenuOpen, setModeMenuOpen] = React.useState(false);
+  const modeMenuRef = React.useRef<HTMLDivElement>(null);
+  React.useEffect(() => {
+    if (!modeMenuOpen) return;
+    const handle = (e: MouseEvent) => {
+      if (modeMenuRef.current && !modeMenuRef.current.contains(e.target as Node)) {
+        setModeMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handle);
+    return () => document.removeEventListener('mousedown', handle);
+  }, [modeMenuOpen]);
   const [filterDialog, setFilterDialog] = React.useState(false);
   const canvasViewportRef = React.useRef<HTMLDivElement>(null);
 
@@ -455,6 +469,30 @@ export function DesignerWorkspace({
           <button type="button" onClick={onExport} className="inline-flex items-center gap-1.5 rounded-[5px] bg-[#2563EB] px-2.5 py-1.5 text-xs font-bold text-white hover:bg-[#1D4ED8]">
             <Download className="h-3.5 w-3.5"/>Exportar
           </button>
+          {/* ── Botón tres puntos: cambiar de modo ── */}
+          <div ref={modeMenuRef} className="relative">
+            <button
+              type="button"
+              aria-label="Cambiar de modo"
+              title="Cambiar de modo"
+              onClick={() => setModeMenuOpen((v) => !v)}
+              className="inline-flex h-[30px] w-[30px] items-center justify-center rounded-[5px] border border-[#E2E8F0] bg-white text-[#475569] hover:bg-[#F8FAFC] hover:text-[#111827]"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+            {modeMenuOpen && (
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[180px] rounded-[6px] border border-[#E5E7EB] bg-white py-1 shadow-lg">
+                <button
+                  type="button"
+                  onClick={() => { setModeMenuOpen(false); onSwitchToEasy?.(); }}
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs text-[#111827] hover:bg-[#F1F5F9]"
+                >
+                  <LayoutDashboard className="h-3.5 w-3.5 text-[#2563EB]" />
+                  <span>Cambiar a modo fácil</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

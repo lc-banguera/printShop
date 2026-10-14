@@ -9,6 +9,9 @@ export const DEFAULT_ARTWORK_FILTERS: Readonly<ArtworkFilters> = Object.freeze({
   sepia: 0,
   invert: 0,
   blur: 0,
+  temperature: 0,
+  hue: 0,
+  sharpen: 0,
 });
 
 const FILTER_RANGES: Record<keyof ArtworkFilters, readonly [number, number]> = {
@@ -19,6 +22,9 @@ const FILTER_RANGES: Record<keyof ArtworkFilters, readonly [number, number]> = {
   sepia: [0, 100],
   invert: [0, 100],
   blur: [0, 12],
+  temperature: [-100, 100],
+  hue: [-180, 180],
+  sharpen: [0, 100],
 };
 
 const FILTER_KEYS: readonly (keyof ArtworkFilters)[] = [
@@ -29,6 +35,9 @@ const FILTER_KEYS: readonly (keyof ArtworkFilters)[] = [
   'sepia',
   'invert',
   'blur',
+  'temperature',
+  'hue',
+  'sharpen',
 ];
 
 export function normalizeArtworkFilters(
@@ -37,7 +46,7 @@ export function normalizeArtworkFilters(
   const normalized = { ...DEFAULT_ARTWORK_FILTERS, ...filters };
 
   for (const key of FILTER_KEYS) {
-    const value = normalized[key];
+    const value = normalized[key] ?? 0;
     const [minimum, maximum] = FILTER_RANGES[key];
     if (!Number.isFinite(value) || value < minimum || value > maximum) {
       throw new RangeError(
@@ -53,7 +62,7 @@ export function buildCanvasFilterString(
   filters?: Partial<ArtworkFilters>,
 ): string {
   const next = { ...DEFAULT_ARTWORK_FILTERS, ...filters };
-  return [
+  const parts = [
     `brightness(${next.brightness}%)`,
     `contrast(${next.contrast}%)`,
     `saturate(${next.saturation}%)`,
@@ -61,5 +70,9 @@ export function buildCanvasFilterString(
     `sepia(${next.sepia}%)`,
     `invert(${next.invert}%)`,
     `blur(${next.blur}px)`,
-  ].join(' ');
+  ];
+  if (next.hue && next.hue !== 0) {
+    parts.push(`hue-rotate(${next.hue}deg)`);
+  }
+  return parts.join(' ');
 }

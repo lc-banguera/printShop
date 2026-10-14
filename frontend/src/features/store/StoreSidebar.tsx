@@ -21,6 +21,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
+import { setDesignerActiveModule } from "@/features/designer/utils/designer-module-context";
 
 interface NavItem {
   to: string;
@@ -47,7 +48,7 @@ const navItems: NavItem[] = [
     badgeVariant: "count",
   },
   {
-    to: "/store/designerv",
+    to: "/designerv",
     icon: Palette,
     label: "Diseñador",
     badge: "Nuevo",
@@ -148,7 +149,13 @@ export function StoreSidebar({
               <NavLink
                 key={item.to}
                 to={item.to}
-                onClick={() => onMobileClose && onMobileClose()}
+                state={item.to.startsWith("/designer") ? { fromModule: "store" } : undefined}
+                onClick={() => {
+                  if (item.to.startsWith("/designer")) {
+                    setDesignerActiveModule("store");
+                  }
+                  onMobileClose && onMobileClose();
+                }}
                 className={({ isActive }) =>
                   cn(
                     "group relative flex h-10 w-full shrink-0 items-center rounded-control text-sm font-medium transition-all duration-normal active:scale-[0.99] motion-reduce:active:scale-100",

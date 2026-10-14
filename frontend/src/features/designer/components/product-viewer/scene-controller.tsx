@@ -61,6 +61,8 @@ function SceneGuides({ showGrid, showGuides }: { showGrid: boolean; showGuides: 
 export function SceneController({
   showGuides: showGuidesOverride,
   showGrid: showGridOverride,
+  cameraDistanceScale = 1,
+  cameraMinDistance,
   className,
   ...artworkProps
 }: Designer2ArtworkProps) {
@@ -78,7 +80,7 @@ export function SceneController({
         camera={{ position: [0, 1.8, 3.2], fov: 42 }}
         gl={{ antialias: true, alpha: true }}
       >
-        <CameraController />
+        <CameraController cameraDistanceScale={cameraDistanceScale} cameraMinDistance={cameraMinDistance} />
         <Lights />
         <SceneGuides showGuides={showGuides} showGrid={showGrid} />
         <ProductPivot {...artworkProps} />

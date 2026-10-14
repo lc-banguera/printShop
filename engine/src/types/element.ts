@@ -16,6 +16,9 @@ export interface ArtworkFilters {
   sepia: number;
   invert: number;
   blur: number;
+  temperature?: number;
+  hue?: number;
+  sharpen?: number;
 }
 
 export interface DesignElement {

@@ -1,0 +1,28 @@
+import resourceOne from '@/resources/designs/img1.jpg';
+import resourceTwo from '@/resources/designs/img2.png';
+import mockupShirt from '@/resources/mockup/t-shirt-mockup.png';
+import mockupCup from '@/resources/mockup/tazas.png';
+
+export const resourceCategories = ['Plantillas editables', 'Mockups', 'Elementos gráficos', 'Recursos técnicos de impresión', 'Recursos comerciales'] as const;
+export const resourceFileTypes = ['PNG', 'JPG', 'PDF', 'SVG', 'ZIP'] as const;
+export const resourceProducts = ['Camisetas', 'Sudaderas', 'Tazas', 'Bolsas', 'Gorras', 'Pósteres'] as const;
+export const resourceTechniques = ['DTF', 'Sublimación', 'Serigrafía', 'Presentación comercial'] as const;
+
+export type ResourceCategory = typeof resourceCategories[number];
+export type ResourceStatus = 'draft' | 'published' | 'withdrawn';
+export interface ResourceFileRef { id: string; name: string; mimeType: string; sizeBytes: number; storageKey?: string; assetUrl?: string; kind: 'cover' | 'preview' | 'original'; }
+export interface PrintResource {
+  id: string; title: string; description: string; category: ResourceCategory; tags: string[]; creatorId: string; creatorName: string;
+  status: ResourceStatus; formats: string[]; products: string[]; techniques: string[]; dimensions?: string; resolution?: string; transparent?: boolean;
+  fileCount: number; totalSizeBytes: number; license: string; rightsConfirmed: boolean; createdAt: string; updatedAt: string;
+  cover?: ResourceFileRef; previews: ResourceFileRef[]; originals: ResourceFileRef[]; isFixture?: boolean;
+}
+
+const asset = (id: string, name: string, url: string, kind: ResourceFileRef['kind']): ResourceFileRef => ({ id, name, mimeType: name.endsWith('.png') ? 'image/png' : 'image/jpeg', sizeBytes: 0, assetUrl: url, kind });
+const published = (input: Omit<PrintResource, 'isFixture'>): PrintResource => ({ ...input, isFixture: true });
+export const resourceFixtures: PrintResource[] = [
+  published({ id: 'resource-editorial-template', title: 'Composición editorial para camiseta', description: 'Plantilla limpia para presentar una colección de prendas y preparar una composición rápida.', category: 'Plantillas editables', tags: ['editorial', 'camiseta', 'colección'], creatorId: 'printshop-resources', creatorName: 'PrintShop Studio', status: 'published', formats: ['JPG'], products: ['Camisetas', 'Sudaderas'], techniques: ['DTF', 'Sublimación'], dimensions: '4500 × 5400 px', resolution: '300 dpi', transparent: false, fileCount: 1, totalSizeBytes: 0, license: 'Uso comercial en productos propios.', rightsConfirmed: true, createdAt: '2026-09-10T10:00:00.000Z', updatedAt: '2026-09-10T10:00:00.000Z', cover: asset('resource-editorial-cover', 'editorial-template.jpg', resourceOne, 'cover'), previews: [asset('resource-editorial-preview', 'editorial-preview.jpg', resourceOne, 'preview')], originals: [asset('resource-editorial-original', 'editorial-template.jpg', resourceOne, 'original')] }),
+  published({ id: 'resource-mockup-shirt', title: 'Mockup de camiseta clásica', description: 'Vista de producto para mostrar diseños sobre una camiseta en presentaciones comerciales.', category: 'Mockups', tags: ['mockup', 'camiseta', 'presentación'], creatorId: 'printshop-resources', creatorName: 'PrintShop Studio', status: 'published', formats: ['PNG'], products: ['Camisetas'], techniques: [], dimensions: '2400 × 2400 px', resolution: '150 dpi', transparent: true, fileCount: 1, totalSizeBytes: 0, license: 'Uso comercial en presentaciones de productos propios.', rightsConfirmed: true, createdAt: '2026-09-18T10:00:00.000Z', updatedAt: '2026-09-18T10:00:00.000Z', cover: asset('resource-shirt-cover', 'shirt-mockup.png', mockupShirt, 'cover'), previews: [asset('resource-shirt-preview', 'shirt-preview.png', mockupShirt, 'preview')], originals: [asset('resource-shirt-original', 'shirt-mockup.png', mockupShirt, 'original')] }),
+  published({ id: 'resource-cup-mockup', title: 'Mockup de taza cerámica', description: 'Recurso para visualizar composiciones en tazas y preparar imágenes de catálogo.', category: 'Mockups', tags: ['mockup', 'taza', 'catálogo'], creatorId: 'printshop-resources', creatorName: 'PrintShop Studio', status: 'published', formats: ['PNG'], products: ['Tazas'], techniques: [], dimensions: '2000 × 2000 px', resolution: '150 dpi', transparent: true, fileCount: 1, totalSizeBytes: 0, license: 'Uso comercial en presentaciones de productos propios.', rightsConfirmed: true, createdAt: '2026-09-24T10:00:00.000Z', updatedAt: '2026-09-24T10:00:00.000Z', cover: asset('resource-cup-cover', 'cup-mockup.png', mockupCup, 'cover'), previews: [asset('resource-cup-preview', 'cup-preview.png', mockupCup, 'preview')], originals: [asset('resource-cup-original', 'cup-mockup.png', mockupCup, 'original')] }),
+  published({ id: 'resource-transparent-art', title: 'Elementos gráficos para prendas', description: 'Selección de recursos visuales para incorporar a composiciones de productos personalizados.', category: 'Elementos gráficos', tags: ['gráficos', 'transparente', 'prendas'], creatorId: 'printshop-resources', creatorName: 'PrintShop Studio', status: 'published', formats: ['PNG'], products: ['Camisetas', 'Bolsas'], techniques: ['DTF'], dimensions: '4500 × 4500 px', resolution: '300 dpi', transparent: true, fileCount: 1, totalSizeBytes: 0, license: 'Uso comercial en productos propios.', rightsConfirmed: true, createdAt: '2026-10-01T10:00:00.000Z', updatedAt: '2026-10-01T10:00:00.000Z', cover: asset('resource-graphic-cover', 'graphic-elements.png', resourceTwo, 'cover'), previews: [asset('resource-graphic-preview', 'graphic-preview.png', resourceTwo, 'preview')], originals: [asset('resource-graphic-original', 'graphic-elements.png', resourceTwo, 'original')] }),
+];

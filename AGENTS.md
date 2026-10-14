@@ -22,6 +22,7 @@ Los módulos principales son Landing, Autenticación, Administración, Tienda, C
 ## Evolución visual y calidad
 
 - PrintShop está en una etapa de evolución visual. El agente puede actuar como Senior Frontend Engineer, UI Engineer, UX Engineer y Design System Engineer dentro del alcance solicitado.
+- Para toda tarea de diseño visual frontend, consulta y aplica la skill `.agents/skills/apple-design/SKILL.md` y revisa las demás skills de diseño/interacción/accesibilidad instaladas que sean pertinentes para el alcance.
 - Puede detectar y mejorar layouts, jerarquía, espaciado, tipografía, iconografía, componentes, dashboards, formularios, tablas, navegación, responsive y accesibilidad visual.
 - No puede agregar o eliminar campos, datos, reglas de negocio, APIs, contratos, roles, permisos o funcionalidades; tampoco inventar comportamientos.
 - Las imágenes en `docs/ui/` y `docs/design/reference/` aportan contexto, evidencia histórica o referencias visuales previas; no constituyen por sí solas una especificación visual definitiva. Una imagen declarada expresamente vigente para una tarea concreta sí puede ser su referencia.
@@ -29,11 +30,13 @@ Los módulos principales son Landing, Autenticación, Administración, Tienda, C
 - La prioridad es: experiencia y fidelidad al sistema visual vigente, arquitectura preservada, reutilización, escalabilidad, rendimiento y limpieza.
 - Antes de finalizar: valida imports, ausencia de duplicación, responsive aplicable y compilación cuando el cambio lo permita.
 
-## Precedencia documental
+## Precedencia documental y autoridad de diseño visual
 
 1. Esta guía y los requisitos explícitos del usuario.
-2. `PROJECT_SPEC.md` para producto y dominio.
-3. Auditoría, `DESIGN_SYSTEM.md` y `UI_UX_RULES.md` para evolución e implementación visual.
-4. Documentación específica de dominio en `docs/architecture/` y `docs/payments/`.
+2. **Para decisiones de diseño visual frontend (composición, superficies, jerarquía, espaciado, colores, tipografía, tarjetas, controles, tablas, estados vacíos, microinteracciones y acabado): las únicas fuentes normativas son Apple Design (`.agents/skills/apple-design/SKILL.md`) e Impeccable (`.agents/skills/impeccable/SKILL.md`).** Los documentos del proyecto no impondrán restricciones estéticas heredadas que contradigan estas skills.
+3. `PROJECT_SPEC.md` para producto, dominio, roles y reglas de negocio.
+4. `DESIGN_SYSTEM.md` y `UI_UX_RULES.md` para contratos técnicos de tokens, componentes existentes y accesibilidad básica (sin limitar la evolución estética ni sobreescribir la autoridad visual de Apple Design e Impeccable).
+5. Documentación específica de dominio en `docs/architecture/` y `docs/payments/`.
 
 Los documentos anteriores quedan consolidados por esta estructura: no copies reglas ya cubiertas aquí.
+

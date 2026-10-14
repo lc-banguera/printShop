@@ -48,3 +48,26 @@ engine/dist/
 server/.env
 server/.env.local
 server/node_modules/
+
+# Processing service models and tools binaries
+processing-service/models/*.onnx
+processing-service/models/*.pth
+processing-service/models/*.bin
+processing-service/models/*.param
+processing-service/tools/
+processing-service/.venv/
+processing-service/.runtime-site/
+processing-service/__pycache__/
+processing-service/**/__pycache__/
+processing-service/temp/
+processing-service/test_outputs/
+
+# External / Non-project reference files
+docs/design/reference/CiberGVC.py
+docs/design/reference/*.docx
+
+# OS / Tooling
+.DS_Store
+Thumbs.db
+
+

@@ -22,7 +22,8 @@ export function BottomPanel() {
           onClick={() => { setColorPickerContext('garment'); setGarmentColorPickerOpen(true); }}
           aria-haspopup="dialog"
           aria-label={`Cambiar color de prenda: ${currentGarmentColor}`}
-          className="h-9 w-28 rounded-[5px] border border-border shadow-2xs transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+          title="Cambiar color de la prenda"
+          className="h-11 w-11 cursor-pointer rounded-[5px] border border-black bg-surface shadow-2xs transition-all duration-150 ease-out hover:brightness-95 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           style={{ backgroundColor: currentGarmentColor }}
         />
       </div>

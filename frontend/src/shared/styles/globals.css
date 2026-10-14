@@ -136,8 +136,13 @@ select {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--text-inverse);
+  background: #0F172A;
+  color: #FFFFFF;
+}
+
+::-moz-selection {
+  background: #0F172A;
+  color: #FFFFFF;
 }
 
 [disabled] {

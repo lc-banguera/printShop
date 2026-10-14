@@ -8,7 +8,12 @@ import type { MaskSelectionOperation } from '../../../../../engine/src/processin
 import type { VectorPath } from '../../../../../engine/src/paths';
 
 export type RasterImageOperation =
-  | { kind: 'remove-background'; options: RemoveBackgroundOptions }
+  | {
+      kind: 'remove-background';
+      options: RemoveBackgroundOptions;
+      model?: 'u2netp' | 'u2net';
+      feather?: number;
+    }
   | {
       kind: 'select-color-region';
       x: number;
@@ -33,11 +38,45 @@ export type RasterImageOperation =
     }
   | { kind: 'create-path-selection'; path: VectorPath }
   | { kind: 'erase-mask'; mask: Blob }
+  | {
+      kind: 'inpaint';
+      mask: Blob;
+      radius?: number;
+      method?: 'telea' | 'ns';
+    }
+  | {
+      kind: 'adjust';
+      previewMaxDimension?: number;
+      adjustments: {
+        brightness?: number;
+        contrast?: number;
+        saturation?: number;
+        temperature?: number;
+        hue?: number;
+        sharpen?: number;
+      };
+    }
   | { kind: 'halftone'; options: HalftoneOptions; previewMaxDimension?: number }
   | {
       kind: 'cleanup-semitransparency';
       options: SemitransparencyCleanupOptions;
       previewMaxDimension?: number;
+    }
+  | {
+      kind: 'upscale';
+      previewMaxDimension?: number;
+      targetMaxDimension?: number;
+      factor: number;
+      method?: 'bilinear' | 'bicubic' | 'sharpen' | 'lanczos';
+      mode?: 'precision' | 'ai';
+    }
+  | {
+      kind: 'vectorize';
+      previewMaxDimension?: number;
+      options?: import('../../../../../engine/src/paths').VectorizeOptions & {
+        colormode?: 'color' | 'binary';
+        mode?: 'spline' | 'polygon' | 'none';
+      };
     }
   | { kind: 'export-png'; dpi?: number };
 
@@ -58,6 +97,8 @@ export interface ProcessedArtworkImage {
   blob: Blob;
   width: number;
   height: number;
+  svgString?: string;
+  vectorPaths?: import('../../../../../engine/src/paths').VectorPath[];
 }
 
 export type ImageProcessingResponse =

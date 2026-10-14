@@ -83,6 +83,7 @@ import {
   resolveDesignerKeyboardCommand,
   type DesignerKeyboardCommand,
 } from "./designer/keyboard-command-registry";
+import { getDesignerRouteContext } from "@/features/designer/utils/designer-routes";
 
 /* ── Interfaces ─────────────────────────────────────────────────────────── */
 interface DesignItem {
@@ -450,12 +451,30 @@ async function persistAdvancedDocumentSnapshot(
     typeof persisted.document.metadata.backgroundColor === "string"
       ? persisted.document.metadata.backgroundColor
       : "#ffffff";
+  const unit =
+    persisted.document.metadata.unit === "mm" || persisted.document.metadata.unit === "in"
+      ? persisted.document.metadata.unit
+      : "cm";
+  const physicalWidth =
+    typeof persisted.document.metadata.physicalWidth === "number" &&
+    persisted.document.metadata.physicalWidth > 0
+      ? persisted.document.metadata.physicalWidth
+      : Number(((editorState.documentWidth / editorState.dpi) * 2.54).toFixed(2));
+  const physicalHeight =
+    typeof persisted.document.metadata.physicalHeight === "number" &&
+    persisted.document.metadata.physicalHeight > 0
+      ? persisted.document.metadata.physicalHeight
+      : Number(((editorState.documentHeight / editorState.dpi) * 2.54).toFixed(2));
+
   const document = updateDesigner3DocumentModel(
     persisted.document,
     {
       widthPx: editorState.documentWidth,
       heightPx: editorState.documentHeight,
       dpi: editorState.dpi,
+      physicalWidth,
+      physicalHeight,
+      unit,
       background,
       backgroundColor,
     },
@@ -647,8 +666,24 @@ export default function StoreDesigner() {
   const navigate = useNavigate();
   const location = useLocation();
   const selectionManager = React.useMemo(() => new SelectionManager(), []);
+  const designerRoutes = getDesignerRouteContext(location.pathname);
+  const isCustomerRoute = designerRoutes.isCustomerRoute;
   const isAdvancedRoute = location.pathname.endsWith("/advanced");
   const documentId = new URLSearchParams(location.search).get("document");
+  const getAdvancedRoute = React.useCallback(
+    (docId?: string) => {
+      const base = designerRoutes.advanced;
+      return docId ? `${base}?document=${encodeURIComponent(docId)}` : base;
+    },
+    [designerRoutes.advanced],
+  );
+  const getEasyRoute = React.useCallback(
+    (docId?: string) => {
+      const base = designerRoutes.easy;
+      return docId ? `${base}?document=${encodeURIComponent(docId)}` : base;
+    },
+    [designerRoutes.easy],
+  );
   const [advancedDocumentLoaded, setAdvancedDocumentLoaded] = React.useState(
     !isAdvancedRoute,
   );
@@ -882,7 +917,7 @@ export default function StoreDesigner() {
     if (!isAdvancedRoute) return;
 
     let cancelled = false;
-    const routePath = "/store/designer/advanced";
+    const routePath = getAdvancedRoute();
     const loadOrCreateDocument = async () => {
       try {
         const requestedConfig = readNewCanvasConfig(location.state);
@@ -1228,7 +1263,7 @@ export default function StoreDesigner() {
             : "No se pudo guardar el documento Designer 3.",
         );
       });
-      navigate(`/store/designer/easy?document=${encodeURIComponent(documentId)}`);
+      navigate(getEasyRoute(documentId));
     };
 
     window.addEventListener("designer3:switch-to-easy", handleSwitchToEasy);
@@ -1367,6 +1402,9 @@ export default function StoreDesigner() {
         widthPx: editorState.documentWidth,
         heightPx: editorState.documentHeight,
         dpi: editorState.dpi,
+        physicalWidth: Number(((editorState.documentWidth / editorState.dpi) * 2.54).toFixed(2)),
+        physicalHeight: Number(((editorState.documentHeight / editorState.dpi) * 2.54).toFixed(2)),
+        unit: "cm",
         background: "white",
         backgroundColor: "#ffffff",
       };
@@ -1377,9 +1415,7 @@ export default function StoreDesigner() {
             title: design.title,
             editorState,
           });
-          navigate(
-            `/store/designer/advanced?document=${encodeURIComponent(design.id)}`,
-          );
+          navigate(getAdvancedRoute(design.id));
         } catch (error) {
           showToast(
             error instanceof Error
@@ -1461,13 +1497,16 @@ export default function StoreDesigner() {
         widthPx: config.widthPx,
         heightPx: config.heightPx,
         dpi: config.dpi,
+        physicalWidth: config.physicalWidth,
+        physicalHeight: config.physicalHeight,
+        unit: config.unit === "mm" || config.unit === "in" ? config.unit : "cm",
         background: config.background,
         backgroundColor: config.backgroundColor,
       });
       const route = isAdvancedMode
-        ? "/store/designer/advanced"
-        : "/store/designer/easy";
-      navigate(`${route}?document=${encodeURIComponent(id)}`, {
+        ? getAdvancedRoute(id)
+        : getEasyRoute(id);
+      navigate(route, {
         state: { newCanvasConfig: config },
       });
     } catch (error) {
@@ -1569,7 +1608,7 @@ export default function StoreDesigner() {
       };
       try {
         await createDesigner3Document(id, canvasConfig.name, canvasConfig);
-        navigate(`/store/designer/easy?document=${encodeURIComponent(id)}`, {
+        navigate(getEasyRoute(id), {
           state: { newCanvasConfig: canvasConfig, initialFile: file },
         });
       } catch (error) {
@@ -2406,7 +2445,11 @@ export default function StoreDesigner() {
   };
   const closeEditor = () =>
     requestAction(() => {
-      setViewState("hub");
+      if (isAdvancedRoute) {
+        navigate(designerRoutes.hub);
+      } else {
+        setViewState("hub");
+      }
       setPendingAction(null);
     });
   const discardChanges = () => {
@@ -2514,10 +2557,20 @@ export default function StoreDesigner() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
+              {isCustomerRoute && !designerRoutes.isCustomerLayoutRoute && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/account")}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-[#475569] hover:text-[#0f172a] bg-white hover:bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] px-3.5 py-2.5 transition-colors active:scale-[0.98]"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  <span>Volver a Mi Cuenta</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={openEditorNewBlank}
-                className="flex items-center gap-2 text-xs font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-[6px] px-4 py-2.5 shadow-sm transition-all"
+                className="flex items-center gap-2 text-xs font-semibold text-white bg-[#2563EB] hover:bg-[#1D4ED8] rounded-[6px] px-4 py-2.5 shadow-sm transition-all active:scale-[0.98]"
               >
                 <Plus className="w-4 h-4" />
                 <span>Crear Nuevo</span>
@@ -2900,6 +2953,7 @@ export default function StoreDesigner() {
             onUpdateSelectedImageFilters={updateSelectedImageFilters}
             onUpdateLayer={updateLayer}
             onUpdateMultipleLayers={updateMultipleLayers}
+            onSwitchToEasy={() => navigate(getEasyRoute(documentId ?? undefined))}
           />
           {false && (
             <div className="flex-1 flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-[#18181B] text-white select-none">

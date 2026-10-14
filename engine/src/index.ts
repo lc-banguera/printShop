@@ -15,7 +15,15 @@ export { CommandHistory } from './history';
 export * from './processing';
 export { SelectionManager } from './selection';
 export type { SelectionState } from './selection';
-export { assertValidVectorPath, flattenPath, getPathBounds, rasterizePathSelection } from './paths';
+export {
+  assertValidVectorPath,
+  flattenPath,
+  getPathBounds,
+  rasterizePathSelection,
+  simplifyPathRDP,
+  traceContours,
+  vectorizeImage,
+} from './paths';
 export type {
   PathAnchor,
   PathAnchorType,
@@ -25,6 +33,8 @@ export type {
   PathSegment,
   PathSegmentType,
   VectorPath,
+  VectorizeOptions,
+  VectorizeResult,
 } from './paths';
 export { TransformSystem } from './transform';
 export { createArtworkTransformMatrix } from './transform';

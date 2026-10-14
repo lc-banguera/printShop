@@ -1,0 +1,2 @@
+export const customerIconButtonClass =
+  "inline-flex shrink-0 items-center justify-center rounded-full border-0 bg-transparent p-0 text-slate-500 shadow-none transition-[background-color,color,transform] duration-150 hover:bg-slate-100 hover:text-slate-800 focus-visible:bg-slate-100 focus-visible:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400/30 focus-visible:ring-offset-1 active:scale-[0.96] active:bg-slate-100 motion-reduce:active:scale-100 disabled:pointer-events-none disabled:opacity-50";

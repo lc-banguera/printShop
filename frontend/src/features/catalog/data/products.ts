@@ -20,7 +20,7 @@ export const DEFAULT_PRODUCT: ProductDefinition = {
     front: {
       id: 'front',
       name: 'Frente',
-      cameraPosition: { x: 0.0, y: 1.6, z: 2.2 },
+      cameraPosition: { x: 0.0, y: 1.45, z: 1.7 },
       cameraTarget: { x: 0.0, y: 1.2, z: 0.0 },
       defaultZoom: 1.0,
       modelScale: 1.0,

@@ -1,3 +1,5 @@
+import { getCategoryDisplayName, productsData } from './products.data';
+
 export interface MenuItem {
   label: string;
   href: string;
@@ -23,10 +25,17 @@ export interface HeaderData {
   menuItems: MenuItem[];
 }
 
+const catalogCategories = Array.from(new Set(productsData.map((product) => product.category)))
+  .sort((first, second) => getCategoryDisplayName(first).localeCompare(getCategoryDisplayName(second), 'es'))
+  .map((category) => ({
+    label: getCategoryDisplayName(category),
+    href: `/products?category=${encodeURIComponent(category)}`,
+  }));
+
 export const headerData: HeaderData = {
   shippingMessage: 'Envío gratis en pedidos superiores a $100.000',
-  helpText: 'Ayuda',
-  helpHref: '#',
+  helpText: 'Vender',
+  helpHref: '/plans',
   currentLanguage: 'ES',
   languages: ['ES', 'EN'],
   logoText: 'Print',
@@ -40,36 +49,30 @@ export const headerData: HeaderData = {
   registerLabel: 'Crear cuenta',
   menuItems: [
     {
+      label: 'Categorías',
+      href: '#',
+      hasDropdown: true,
+      dropdownItems: catalogCategories,
+    },
+    {
       label: 'Productos',
       href: '/products',
-      hasDropdown: true,
-      dropdownItems: [
-        { label: 'Camisetas', href: '#' },
-        { label: 'Hoodies', href: '#' },
-        { label: 'Tazas', href: '#' },
-        { label: 'Gorras', href: '#' },
-        { label: 'Bolsos', href: '#' },
-        { label: 'Sudaderas', href: '#' },
-        { label: 'Stickers', href: '#' },
-        { label: 'Botellas', href: '#' },
-        { label: 'Accesorios', href: '#' },
-      ],
     },
     {
       label: 'Diseños',
       href: '/designs',
     },
     {
-      label: 'Plantillas',
-      href: '/#plantillas',
+      label: 'Recursos',
+      href: '/resources',
     },
     {
       label: 'Cómo funciona',
-      href: '/#como-funciona',
+      href: '/como-funciona',
     },
     {
-      label: 'Ayuda',
-      href: '/#ayuda',
+      label: 'Vender',
+      href: '/plans',
     },
   ],
 };

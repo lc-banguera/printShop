@@ -160,7 +160,7 @@ export function getCategoryDisplayName(category: string): string {
     hoodies:   'Hoodies',
     tazas:     'Tazas',
     gorras:    'Gorras',
-    bolsos:    'Bolsos y bolsas',
+    bolsos:    'Bolsas',
     sudaderas: 'Sudaderas',
     pósters:   'Pósters',
     posters:   'Pósters',

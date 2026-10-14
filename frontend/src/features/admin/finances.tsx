@@ -415,6 +415,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setDetailMovement(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
@@ -530,6 +531,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setVoucherMovement(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />
@@ -614,6 +616,7 @@ export default function Finances() {
               <button
                 type="button"
                 onClick={() => setCardModalInfo(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
               >
                 <X className="h-4 w-4" />

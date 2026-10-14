@@ -280,6 +280,22 @@ test('halftone preserves source alpha input and output dimensions', () => {
   assert.deepEqual([...source.data], pixels);
 });
 
+test('image adjustments change RGB channels while preserving alpha and source data', () => {
+  const source = buffer(2, 1, [40, 80, 120, 64, 200, 160, 100, 255]);
+  const output = engine.applyImageAdjustments(source, {
+    brightness: 20,
+    contrast: 15,
+    saturation: 25,
+    temperature: 20,
+    hue: 12,
+    sharpen: 0,
+  });
+  assert.notDeepEqual([...output.data], [...source.data]);
+  assert.equal(output.data[3], 64);
+  assert.equal(output.data[7], 255);
+  assert.deepEqual([...source.data], [40, 80, 120, 64, 200, 160, 100, 255]);
+});
+
 test('halftone color samples ignore hidden RGB under transparent pixels and remain deterministic', () => {
   const pixels = Array.from({ length: 64 }, (_, pixel) =>
     (pixel % 2 === 0 ? [240, 20, 30, 255] : [10, 30, 240, 0]),

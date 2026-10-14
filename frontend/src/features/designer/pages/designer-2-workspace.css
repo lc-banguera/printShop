@@ -1,0 +1,51 @@
+.designer-2-workspace {
+  --background: #f7f7f7;
+  --surface: #ffffff;
+  --surface-muted: #f3f3f3;
+  --surface-strong: #e7e7e7;
+  --surface-elevated: #ffffff;
+  --border: #e3e3e3;
+  --border-strong: #a3a3a3;
+  --border-muted: #eeeeee;
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+  --text-inverse: #ffffff;
+  --foreground: var(--text-primary);
+  --foreground-muted: var(--text-secondary);
+  --foreground-subtle: var(--text-muted);
+  --accent: #171717;
+  --accent-dark: #000000;
+  --accent-muted: #ededed;
+  --primary: #171717;
+  --primary-hover: #2f2f2f;
+  --primary-active: #000000;
+  --primary-foreground: #ffffff;
+  --danger: #404040;
+  --danger-muted: #ededed;
+  --danger-strong: #171717;
+  --radius-control: 5px;
+  --radius-card: 5px;
+  --radius-dialog: 5px;
+  --radius-sm: 5px;
+  --radius-md: 5px;
+  --radius-lg: 5px;
+  --radius-xl: 5px;
+}
+
+.designer-2-workspace ::selection {
+  background: #d4d4d4;
+  color: #171717;
+}
+
+.designer-2-workspace input[type='range'] {
+  accent-color: var(--primary);
+}
+
+.designer-2-workspace button:focus-visible,
+.designer-2-workspace input:focus-visible,
+.designer-2-workspace select:focus-visible,
+.designer-2-workspace textarea:focus-visible {
+  outline: 2px solid #171717;
+  outline-offset: 2px;
+}

@@ -23,6 +23,7 @@ export function ProductModel({
   onMoveArtwork,
   showPrintArea,
   showSelection = true,
+  constrainToPrintArea = true,
 }: ProductModelProps) {
   const { scene } = useGLTF(modelUrl) as { scene: THREE.Group };
   const shouldShowPrintArea = showPrintArea ?? Boolean(onSelectArtwork && onMoveArtwork);
@@ -72,6 +73,7 @@ export function ProductModel({
             showSelection={showSelection}
             onSelect={onSelectArtwork}
             onMove={onMoveArtwork}
+            constrainToPrintArea={constrainToPrintArea}
           />
         </group>
       )}

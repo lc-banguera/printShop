@@ -5,10 +5,11 @@ import { Product, getCategoryDisplayName } from "../../data/products.data";
 
 interface ProductCardProps {
   product: Product;
+  showPromotions?: boolean;
+  showShipping?: boolean;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  // ── Cálculo del porcentaje de descuento ───────────────────────────
+export const ProductCard: React.FC<ProductCardProps> = ({ product, showPromotions = true, showShipping = true }) => {
   const currentNum = parseInt(product.price.replace(/[^0-9]/g, ""), 10) || 0;
   const originalNum = product.originalPrice
     ? parseInt(product.originalPrice.replace(/[^0-9]/g, ""), 10)
@@ -23,77 +24,63 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     <Link
       to={product.href || `/products/${product.id}`}
       data-card
-      className="group flex h-full select-none flex-col overflow-hidden rounded-[18px] border border-borderMuted bg-surface shadow-subtle transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-1 hover:border-borderStrong hover:shadow-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="group flex h-full select-none flex-col overflow-hidden rounded-[5px] border border-slate-200 bg-white transition-all duration-200 ease-out hover:-translate-y-1 hover:border-slate-400 hover:shadow-[0_18px_30px_-24px_rgba(15,23,42,0.5)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 active:scale-[0.98]"
     >
-      {/* ── 1. ÁREA DE IMAGEN ───────────────────────────────────────── */}
-      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-[linear-gradient(145deg,var(--surface-muted),var(--background))] p-4 sm:p-5">
+      {/* 1. Pedestal Studio de Escala Amplia */}
+      <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden bg-white p-6 sm:p-7">
         <img
           src={product.image}
           alt={product.name}
-          className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.04]"
+          className="h-full w-full object-contain transition-transform duration-300 ease-out group-hover:scale-106 drop-shadow-[0_6px_18px_rgba(0,0,0,0.08)]"
           loading="lazy"
         />
+        {showPromotions && discountPercent ? (
+          <span className="absolute right-4 top-4 text-[11px] font-bold tracking-[0.04em] text-slate-600">
+            {discountPercent}% OFF
+          </span>
+        ) : null}
       </div>
 
-      {/* ── 2. INFORMACIÓN DEL PRODUCTO ───────────────────────────── */}
-      <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
-        {/* Categoría (en azul como en la referencia) */}
+      {/* 2. Información del Producto de Alta Legibilidad */}
+      <div className="flex min-w-0 flex-1 flex-col p-5 pt-4">
         {product.category && (
-          <span className="mb-1 block text-[10px] font-bold uppercase text-primary sm:text-[11px]">
+          <span className="mb-1 block text-[11px] font-bold uppercase tracking-[0.06em] text-slate-500">
             {getCategoryDisplayName(product.category)}
           </span>
         )}
 
-        {/* Nombre del Producto */}
-        <h3 className="line-clamp-1 text-sm font-bold leading-snug text-foreground transition-colors group-hover:text-primary sm:text-[15px]">
+        <h3 className="line-clamp-1 text-base font-bold leading-snug tracking-tight text-[#0D1014] transition-colors group-hover:text-slate-600 sm:text-[17px]">
           {product.name}
         </h3>
 
-        {/* Material / Descripción Secundaria */}
         <p className="mt-1 line-clamp-1 text-xs leading-5 text-foregroundMuted">
           {product.description}
         </p>
 
-        {/* Precios y Descuento */}
-        <div className="mt-2.5">
-          {/* Precio Anterior (tachado) */}
-          {product.originalPrice ? (
-            <span className="block text-[11px] sm:text-xs text-foregroundSubtle line-through leading-none">
-              {product.originalPrice}
-            </span>
-          ) : (
-            <span className="block text-[11px] sm:text-xs text-transparent select-none leading-none">
-              -
-            </span>
-          )}
-
-          {/* Precio Actual */}
-          <div className="mt-1 text-lg font-extrabold leading-tight text-foreground sm:text-xl">
+        {/* Precios */}
+        <div className="mt-3.5 flex items-baseline gap-2">
+          <div className="text-xl font-bold tracking-tight text-[#0D1014]">
             {product.price}
           </div>
-
-          {/* Porcentaje de Descuento (badge verde con texto blanco) */}
-          {discountPercent ? (
-            <div className="mt-1">
-              <span className="inline-block rounded-badge bg-success px-1.5 py-0.5 text-[10px] font-bold leading-none text-primaryForeground sm:text-[11px]">
-                {discountPercent}% OFF
-              </span>
-            </div>
-          ) : null}
+          {showPromotions && product.originalPrice && (
+            <span className="text-xs text-foregroundSubtle line-through">
+              {product.originalPrice}
+            </span>
+          )}
         </div>
 
-        {/* Colores disponibles (solo visuales, no interactivos) */}
+        {/* Variantes de Color */}
         {product.colors && product.colors.length > 0 && (
           <div className="mt-3 flex items-center gap-1.5">
-            <span className="text-[10px] font-semibold text-foreground-muted uppercase sm:text-[11px]">
-              COLOR:
+            <span className="text-[11px] font-semibold text-foregroundMuted uppercase">
+              Colores:
             </span>
             <div className="flex items-center gap-1">
               {product.colors.map((colorHex, idx) => (
                 <span
                   key={idx}
                   aria-hidden="true"
-                  className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full border border-black/15 shrink-0"
+                  className="w-3 h-3 rounded-full border border-black/15 shrink-0 shadow-2xs"
                   style={{ backgroundColor: colorHex }}
                 />
               ))}
@@ -101,11 +88,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           </div>
         )}
 
-        {/* Envío (beneficio en verde) */}
-        <div className="mt-3 flex items-center gap-1.5 text-xs font-semibold text-success">
-          <Truck className="w-3.5 h-3.5 shrink-0" />
-          <span>Envío gratis</span>
-        </div>
+        {/* Envío */}
+        {showShipping ? (
+          <div className="mt-4 flex items-center gap-1.5 border-t border-slate-200 pt-3 text-xs font-semibold text-slate-600">
+            <Truck className="w-3.5 h-3.5 shrink-0" strokeWidth={2.2} />
+            <span>Envío gratis en compras seleccionadas</span>
+          </div>
+        ) : null}
       </div>
     </Link>
   );

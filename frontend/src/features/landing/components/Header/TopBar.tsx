@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronDown, Truck } from 'lucide-react';
 import { cn } from '@/shared/utils/cn';
 import { Container } from '@/shared/components/Container';
@@ -24,9 +25,9 @@ export const TopBar: React.FC<TopBarProps> = ({ className, ...props }) => {
         </div>
 
         <div className="flex flex-1 items-center justify-end gap-4 text-[11px] font-medium text-foreground/75 sm:text-[12px]">
-          <a href={headerData.helpHref} className="transition-colors duration-200 hover:text-foreground">
+          <Link to={headerData.helpHref} className="transition-colors duration-200 hover:text-foreground">
             {headerData.helpText}
-          </a>
+          </Link>
           <button
             className="flex items-center gap-1 transition-colors duration-200 hover:text-foreground focus:outline-none"
             aria-label="Select Language"

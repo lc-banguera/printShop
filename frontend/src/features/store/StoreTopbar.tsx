@@ -1,6 +1,14 @@
 import * as React from "react";
-import { Bell, MessageSquare, HelpCircle, Menu, ChevronDown } from "lucide-react";
+import {
+  Bell,
+  MessageSquare,
+  HelpCircle,
+  Menu,
+  ChevronDown,
+  MoreVertical,
+} from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { setDesignerActiveModule } from "@/features/designer/utils/designer-module-context";
 import UserAvatar from "./UserAvatar";
 
 interface StoreTopbarProps {
@@ -17,6 +25,8 @@ export const StoreTopbar: React.FC<StoreTopbarProps> = ({
   const [isUserMenuOpen, setIsUserMenuOpen] = React.useState(false);
   const userMenuRef = React.useRef<HTMLDivElement | null>(null);
   const documentId = new URLSearchParams(location.search).get("document");
+  const isAdvancedDesigner = location.pathname === "/store/designer/advanced" || location.pathname === "/designerv/advanced";
+  const isDesignerEntry = location.pathname === "/store/designerv" || location.pathname.startsWith("/designerv");
 
   React.useEffect(() => {
     if (!isUserMenuOpen) return;
@@ -49,18 +59,23 @@ export const StoreTopbar: React.FC<StoreTopbarProps> = ({
 
   const handleEasyMode = () => {
     setIsUserMenuOpen(false);
+    if (isAdvancedDesigner) {
+      window.dispatchEvent(new CustomEvent("designer3:switch-to-easy"));
+      return;
+    }
     navigate({
-      pathname: "/store/designer/easy",
+      pathname: "/designerv/easy",
       search: documentId ? `?document=${encodeURIComponent(documentId)}` : "",
     });
   };
 
   const handleAdvancedMode = () => {
     setIsUserMenuOpen(false);
+    setDesignerActiveModule("store");
     navigate({
-      pathname: "/store/designer/advanced",
+      pathname: "/designerv/advanced",
       search: documentId ? `?document=${encodeURIComponent(documentId)}` : "",
-    });
+    }, { state: { fromModule: "store" } });
   };
 
   return (
@@ -111,45 +126,93 @@ export const StoreTopbar: React.FC<StoreTopbarProps> = ({
         </button>
 
         <div ref={userMenuRef} className="relative ml-1 flex items-center gap-2 border-l border-[var(--border)] pl-2">
-          <button
-            type="button"
-            onClick={() => setIsUserMenuOpen((open) => !open)}
-            aria-expanded={isUserMenuOpen}
-            aria-haspopup="menu"
-            aria-label="Abrir menú del usuario"
-            className="flex items-center gap-2 rounded-control text-left transition-colors hover:bg-[var(--surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
-          >
-            <UserAvatar name="Juan Pérez" className="h-8 w-8" iconClassName="h-4 w-4" />
-            <div className="hidden flex-col sm:flex">
-              <span className="text-[11.5px] font-semibold leading-tight text-[var(--text-primary)]">Juan Pérez</span>
-              <span className="text-[10px] leading-tight text-[var(--text-secondary)]">Vendedor</span>
-            </div>
-            <ChevronDown className="hidden h-3.5 w-3.5 text-[var(--text-secondary)] sm:block" />
-          </button>
+          {isAdvancedDesigner ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setIsUserMenuOpen((open) => !open)}
+                aria-expanded={isUserMenuOpen}
+                aria-haspopup="menu"
+                aria-label="Más opciones"
+                className="flex h-9 w-9 items-center justify-center rounded-control text-[var(--text-secondary)] transition-colors hover:bg-[var(--surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
+              >
+                <MoreVertical className="h-5 w-5" />
+              </button>
+              {isUserMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Opciones del diseñador avanzado"
+                  className="absolute right-0 top-full z-[70] mt-2 w-44 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.12)]"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      navigate("/workspace");
+                    }}
+                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                  >
+                    <span>Cambiar espacio</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleEasyMode}
+                    className="flex w-full items-center rounded-[8px] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                  >
+                    Modo fácil
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!isDesignerEntry) setIsUserMenuOpen((open) => !open);
+                }}
+                aria-expanded={!isDesignerEntry && isUserMenuOpen}
+                aria-haspopup={isDesignerEntry ? undefined : "menu"}
+                aria-label={isDesignerEntry ? "Juan Pérez, Vendedor" : "Abrir menú del usuario"}
+                className="flex items-center gap-2 rounded-control text-left transition-colors hover:bg-[var(--surface-muted)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
+              >
+                <UserAvatar name="Juan Pérez" className="h-8 w-8" iconClassName="h-4 w-4" />
+                <div className="hidden flex-col sm:flex">
+                  <span className="text-[11.5px] font-semibold leading-tight text-[var(--text-primary)]">Juan Pérez</span>
+                  <span className="text-[10px] leading-tight text-[var(--text-secondary)]">Vendedor</span>
+                </div>
+                {!isDesignerEntry && (
+                  <ChevronDown className="hidden h-3.5 w-3.5 text-[var(--text-secondary)] sm:block" />
+                )}
+              </button>
 
-          {isUserMenuOpen && (
-            <div
-              role="menu"
-              aria-label="Menú de usuario"
-              className="absolute right-0 top-full z-[70] mt-2 w-48 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.12)]"
-            >
-              <button
-                type="button"
-                role="menuitem"
-                onClick={handleEasyMode}
-                className="flex w-full items-center justify-between rounded-[8px] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
-              >
-                <span>Modo fácil</span>
-              </button>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={handleAdvancedMode}
-                className="flex w-full items-center justify-between rounded-[8px] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
-              >
-                <span>Modo avanzado</span>
-              </button>
-            </div>
+              {!isDesignerEntry && isUserMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Menú de usuario"
+                  className="absolute right-0 top-full z-[70] mt-2 w-48 rounded-[12px] border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-[0_12px_32px_rgba(15,23,42,0.12)]"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleEasyMode}
+                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                  >
+                    <span>Modo fácil</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleAdvancedMode}
+                    className="flex w-full items-center justify-between rounded-[8px] px-3 py-2 text-left text-sm font-medium text-[var(--text-primary)] transition-colors hover:bg-[var(--surface-muted)]"
+                  >
+                    <span>Modo avanzado</span>
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

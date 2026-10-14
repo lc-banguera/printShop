@@ -461,8 +461,8 @@ export default function Stores() {
                 <div
                   className="absolute -bottom-5 left-3.5 h-11 w-11 rounded-full border-2 border-white shadow-xs flex items-center justify-center font-bold text-[13px] z-10 select-none overflow-hidden"
                   style={{
-                    backgroundColor: store.logoBg || "var(--surface)",
-                    color: store.logoColor || "var(--text-primary)",
+                    backgroundColor: "var(--surface-muted)",
+                    color: "var(--text-secondary)",
                   }}
                 >
                   {store.logo}
@@ -670,6 +670,7 @@ export default function Stores() {
               <button
                 type="button"
                 onClick={() => setSelectedStore(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
@@ -691,8 +692,8 @@ export default function Stores() {
                 <div
                   className="h-12 w-12 rounded-full flex items-center justify-center font-bold text-sm shadow-xs border border-[var(--border)] shrink-0"
                   style={{
-                    backgroundColor: selectedStore.logoBg || "var(--surface)",
-                    color: selectedStore.logoColor || "var(--text-primary)",
+                    backgroundColor: "var(--surface-muted)",
+                    color: "var(--text-secondary)",
                   }}
                 >
                   {selectedStore.logo}
@@ -775,6 +776,7 @@ export default function Stores() {
               <button
                 type="button"
                 onClick={() => setEditingStore(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
@@ -907,6 +909,7 @@ export default function Stores() {
               <button
                 type="button"
                 onClick={() => setIsNewStoreModalOpen(false)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />

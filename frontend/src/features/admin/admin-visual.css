@@ -1,0 +1,84 @@
+.admin-shell {
+  --background: #f7f7f5;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f2;
+  --surface-strong: #e9e9e6;
+  --surface-elevated: #ffffff;
+  --border: #e2e2de;
+  --border-strong: #c9c9c3;
+  --border-muted: #eeeeeb;
+  --text-primary: #171717;
+  --text-secondary: #525252;
+  --text-muted: #737373;
+  --text-inverse: #ffffff;
+  --foreground: var(--text-primary);
+  --foreground-muted: var(--text-secondary);
+  --foreground-subtle: var(--text-muted);
+  --accent: #171717;
+  --accent-dark: #404040;
+  --accent-muted: #f1f1ef;
+  --accent-pink: #525252;
+  --accent-blue: #737373;
+  --primary: #171717;
+  --primary-hover: #404040;
+  --primary-active: #000000;
+  --primary-foreground: #ffffff;
+  --danger: #737373;
+  --danger-muted: #f1f1ef;
+  --danger-strong: #262626;
+  --warning: #737373;
+  --warning-muted: #f4f4f2;
+  --warning-foreground: #404040;
+  --success: #525252;
+  --success-muted: #f1f1ef;
+  --info: #737373;
+  --info-muted: #f1f1ef;
+  --radius-control: 5px;
+  --radius-card: 5px;
+  --radius-dialog: 5px;
+  --radius-badge: 5px;
+  --radius-sm: 5px;
+  --radius-md: 5px;
+  --radius-lg: 5px;
+  --radius-xl: 5px;
+}
+
+.admin-shell .shadow-subtle,
+.admin-shell .shadow-card {
+  box-shadow: 0 1px 2px rgba(23, 23, 23, 0.06);
+}
+
+.admin-shell .shadow-elevated,
+.admin-shell .shadow-modal {
+  box-shadow: 0 12px 32px rgba(23, 23, 23, 0.12);
+}
+
+.admin-shell input:focus,
+.admin-shell select:focus,
+.admin-shell textarea:focus {
+  box-shadow: 0 0 0 2px rgba(23, 23, 23, 0.08) !important;
+}
+
+.admin-shell button:focus-visible,
+.admin-shell a:focus-visible,
+.admin-shell [role="button"]:focus-visible,
+.admin-shell [role="menuitem"]:focus-visible {
+  outline: 2px solid #525252;
+  outline-offset: 2px;
+}
+
+.admin-shell ::selection {
+  background: #d4d4d0;
+  color: #171717;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-shell *,
+  .admin-shell *::before,
+  .admin-shell *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

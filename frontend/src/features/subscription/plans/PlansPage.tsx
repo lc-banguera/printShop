@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@/features/auth/auth-store';
 import { useToast } from '@/shared/components/Toast/Toast';
 import { billingPeriods, onboardingPlans, type BillingPeriod } from './data/plans.data';
@@ -52,6 +52,7 @@ const normalizeCheckoutError = (message?: string) => {
 };
 
 export function PlansPage() {
+  const location = useLocation();
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const user = useAuthStore((state) => state.user);
   const { showToast } = useToast();
@@ -65,7 +66,7 @@ export function PlansPage() {
   );
 
   if (!isAuthenticated) {
-    return <Navigate to="/register" replace />;
+    return <Navigate to="/register" replace state={{ from: location }} />;
   }
 
   const handleSelectPlan = (planId: string) => {

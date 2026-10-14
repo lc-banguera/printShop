@@ -167,19 +167,19 @@ export function Sidebar({
                           "group relative flex h-10 w-full shrink-0 items-center rounded-control text-sm font-medium transition-all duration-normal active:scale-[0.99] motion-reduce:active:scale-100",
                           collapsed ? "justify-center px-0" : "gap-2.5 px-2.5",
                           isActive
-                            ? "bg-[var(--surface-strong)] text-[var(--primary)] shadow-[inset_0_0_0_1px_rgba(93,70,232,0.08)]"
+                            ? "bg-[var(--surface-strong)] text-[var(--text-primary)]"
                             : "text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] hover:text-[var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)]/30 focus-visible:ring-offset-2"
                         )
                       }
                     >
                       {({ isActive }) => (
                         <>
-                          {isActive && <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-r bg-[var(--primary)]" />}
+                          {isActive && <span className="absolute left-0 top-2 bottom-2 w-0.5 rounded-r bg-[var(--text-primary)]" />}
 
                           <item.icon
                             className={cn(
                               "h-4 w-4 shrink-0 transition-colors",
-                              isActive ? "text-[var(--primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
+                              isActive ? "text-[var(--text-primary)]" : "text-[var(--text-muted)] group-hover:text-[var(--text-primary)]"
                             )}
                             strokeWidth={1.75}
                           />

@@ -23,6 +23,9 @@ export interface NewCanvasConfig {
   widthPx: number;
   heightPx: number;
   dpi: number;
+  physicalWidth?: number;
+  physicalHeight?: number;
+  unit?: CanvasUnit;
   background: CanvasBackground;
   backgroundColor: string;
 }
@@ -169,12 +172,17 @@ export function NewCanvasModal({ isOpen, onClose, onApply }: NewCanvasModalProps
 
   const handleApply = () => {
     if (widthPx < 1 || heightPx < 1) return;
+    const physicalWidth = pxToUnit(widthPx, dpi, unit);
+    const physicalHeight = pxToUnit(heightPx, dpi, unit);
     onApply(
       {
         name: name.trim() || "Nuevo diseño",
         widthPx,
         heightPx,
         dpi,
+        physicalWidth: Number(physicalWidth.toFixed(2)),
+        physicalHeight: Number(physicalHeight.toFixed(2)),
+        unit,
         background,
         backgroundColor:
           background === "color" ? backgroundColor : background === "white" ? "#ffffff" : "transparent",

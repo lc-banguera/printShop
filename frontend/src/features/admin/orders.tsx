@@ -773,6 +773,7 @@ export default function Orders() {
                 <button
                   type="button"
                   onClick={() => setSelectedOrder(null)}
+                  aria-label="Cerrar modal"
                   className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <X className="h-4 w-4" />

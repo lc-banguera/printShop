@@ -235,12 +235,7 @@ export default function StoreProducts() {
       {/* ── Encabezado Principal ───────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <span>Tienda</span>
-            <span>/</span>
-            <span className="text-[#2563EB] font-medium">Productos</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#111827]">
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#111827]">
             Catálogo de Productos
           </h1>
           <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">

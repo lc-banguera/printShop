@@ -100,16 +100,16 @@
 
 ---
 
-## 6. Bolsos / Bolsas
+## 6. Bolsas
 
 | Campo | Valor |
 |---|---|
-| **ID** | `bolsos` |
-| **Nombre** | Bolsos y bolsas |
+| **ID** | `bolsas` |
+| **Nombre** | Bolsas |
 | **Imágenes disponibles** | `src/resources/mockup/bolso.png`, `bolso.jpg`, `shopping-bag-standard-fitted.png`, `shopping-bag-standard.png`, `shopping-bag-wide.png` |
 | **Modelo 3D GLB** | NO EXISTE |
 | **Designer 1** | UNKNOWN |
-| **Designer 2** | `designer2ProductModels.bolsos = null` — Botón DESHABILITADO |
+| **Designer 2** | `designer2ProductModels.bolsas = null` — Botón DESHABILITADO |
 | **Superficies** | No definidas |
 | **Estado 3D** | ❌ NO DISPONIBLE |
 | **Estado Designer 2** | 🚫 DESHABILITADO |

@@ -127,7 +127,7 @@ export default function Templates() {
             Plantillas destacadas
           </h2>
           <button className="text-[11.5px] font-semibold text-primary transition-colors hover:text-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
-            Ver todas las plantillas destacadas →
+            Ver todas las plantillas destacadas
           </button>
         </div>
         <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">

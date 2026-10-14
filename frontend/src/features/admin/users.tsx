@@ -586,6 +586,7 @@ export default function UsersPage() {
               <button
                 type="button"
                 onClick={() => setSelectedUser(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
@@ -676,6 +677,7 @@ export default function UsersPage() {
               <button
                 type="button"
                 onClick={() => setEditingUser(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />
@@ -808,6 +810,7 @@ export default function UsersPage() {
               <button
                 type="button"
                 onClick={() => setIsNewUserModalOpen(false)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-[var(--surface-muted)] text-[var(--text-secondary)] flex items-center justify-center transition-colors"
               >
                 <X className="h-4 w-4" />

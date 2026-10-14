@@ -7,16 +7,20 @@ interface LogoProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {}
 
 export const Logo: React.FC<LogoProps> = ({ className, ...props }) => {
   return (
-    <Link to="/" className={cn('flex cursor-pointer select-none flex-col', className)} {...props}>
+    <Link
+      to="/"
+      className={cn('flex cursor-pointer select-none flex-col transition-transform active:scale-[0.98]', className)}
+      {...props}
+    >
       <div className="flex items-baseline leading-none">
-        <span className="text-[1.35rem] font-black tracking-normal text-[#111827] sm:text-[1.7rem] lg:text-[1.85rem]">
+        <span className="text-[1.2rem] font-black tracking-[-0.03em] text-[#111827] sm:text-[1.65rem] lg:text-[1.8rem]">
           {headerData.logoText}
         </span>
-        <span className="text-[1.35rem] font-black tracking-normal text-[#5D46E8] sm:text-[1.7rem] lg:text-[1.85rem]">
+        <span className="text-[1.2rem] font-black tracking-[-0.03em] text-[#5D46E8] sm:text-[1.65rem] lg:text-[1.8rem]">
           {headerData.logoTextAccent}
         </span>
       </div>
-      <span className="mt-0.5 text-[7.5px] font-semibold uppercase tracking-[0.2em] text-[#6B7280] sm:text-[8px]">
+      <span className="mt-0.5 text-[7px] font-bold uppercase tracking-[0.22em] text-[#6B7280] sm:text-[8px]">
         {headerData.logoSubtitle}
       </span>
     </Link>

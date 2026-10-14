@@ -7,6 +7,7 @@ import type {
 } from './image-processor-contract';
 import {
   applyHalftone,
+  applyImageAdjustments,
   combineSelectionMasks,
   createAlphaData,
   createConnectedColorMask,
@@ -18,9 +19,11 @@ import {
   exportRaster,
   invertSelectionMask,
   removeBackgroundLocal,
+  upscaleImageLocalToTarget,
+  upscaleImageLocal,
 } from '../../../../../engine/src/processing';
 import type { AlphaData, ImageBuffer, MaskSelectionOperation } from '../../../../../engine/src/processing';
-import { rasterizePathSelection } from '../../../../../engine/src/paths';
+import { rasterizePathSelection, vectorizeImage } from '../../../../../engine/src/paths';
 
 self.addEventListener('message', async (event: MessageEvent<ImageProcessingRequest>) => {
   try {
@@ -35,7 +38,10 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
         request.kind === 'filters'
           ? request.previewMaxDimension
           : request.operation.kind === 'halftone' ||
-              request.operation.kind === 'cleanup-semitransparency'
+              request.operation.kind === 'cleanup-semitransparency' ||
+              request.operation.kind === 'adjust' ||
+              request.operation.kind === 'vectorize' ||
+              request.operation.kind === 'upscale'
             ? request.operation.previewMaxDimension
             : undefined;
       if (previewMaxDimension !== undefined) {
@@ -165,6 +171,45 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
           case 'cleanup-semitransparency':
             processed = cleanupSemitransparency(sourceBuffer, request.operation.options).image;
             break;
+          case 'upscale': {
+            const method = request.operation.method ?? 'bicubic';
+            processed = request.operation.targetMaxDimension !== undefined
+              ? upscaleImageLocalToTarget(
+                  sourceBuffer,
+                  { maxDimension: request.operation.targetMaxDimension },
+                  method,
+                )
+              : upscaleImageLocal(sourceBuffer, request.operation.factor, method);
+            break;
+          }
+          case 'inpaint': {
+            processed = eraseWithAlphaMask(
+              sourceBuffer,
+              await readMask(request.operation.mask),
+            );
+            break;
+          }
+          case 'adjust': {
+            processed = applyImageAdjustments(sourceBuffer, request.operation.adjustments);
+            break;
+          }
+          case 'vectorize': {
+            const vecResult = vectorizeImage(sourceBuffer, request.operation.options);
+            const svgBytes = new TextEncoder().encode(vecResult.svgString);
+            blob = new Blob([svgBytes], { type: 'image/svg+xml' });
+            const response: ImageProcessingResponse = {
+              ok: true,
+              image: {
+                blob,
+                width,
+                height,
+                svgString: vecResult.svgString,
+                vectorPaths: vecResult.paths,
+              },
+            };
+            self.postMessage(response);
+            return;
+          }
           case 'export-png': {
             const result = exportRaster(sourceBuffer, {
               format: 'png',
@@ -194,6 +239,8 @@ self.addEventListener('message', async (event: MessageEvent<ImageProcessingReque
           outputPixels.data.set(processed.data);
           outputContext.putImageData(outputPixels, 0, 0);
           blob = await outputCanvas.convertToBlob({ type: 'image/png' });
+          width = processed.width;
+          height = processed.height;
         }
       }
       if (!blob) throw new Error('The image worker produced no output.');

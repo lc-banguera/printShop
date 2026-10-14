@@ -8,78 +8,72 @@ export const Features: React.FC = () => {
     <section
       id="que-puedes-hacer"
       aria-label="Todo lo que puedes hacer con PrintShop"
-      className="w-full bg-background py-16 sm:py-20 lg:py-24"
+      className="relative w-full overflow-hidden bg-white py-18 sm:py-24 lg:py-28"
     >
-      <Container variant="wide">
-        {/* ── Intro centrado ── */}
-        <div className="mb-10 grid gap-4 sm:mb-14 sm:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] sm:items-end sm:gap-10 lg:mb-16">
-          <h2 className="max-w-[680px] text-[2rem] font-bold leading-[1.12] text-[var(--text-primary)] sm:text-[2.5rem] lg:text-[2.75rem]">
+      <Container variant="wide" className="px-4 sm:px-6 lg:px-8">
+        {/* ── Intro centrado con Optical Typography ── */}
+        <div className="mb-12 grid gap-4 sm:mb-16 sm:grid-cols-[minmax(0,1.2fr)_minmax(280px,0.8fr)] sm:items-end sm:gap-10 lg:mb-20">
+          <h2 className="max-w-[680px] text-[2rem] font-bold leading-[1.08] tracking-[-0.03em] text-[#0F172A] sm:text-[2.6rem] lg:text-[2.85rem]">
             Diseña, personaliza y prepara desde un solo lugar.
           </h2>
-          <p className="max-w-[520px] text-base leading-7 text-[var(--text-secondary)] sm:pb-1 sm:text-[17px]">
+          <p className="max-w-[500px] text-base leading-relaxed tracking-[-0.01em] text-foregroundMuted sm:pb-1 sm:text-[17px]">
             PrintShop reúne el diseñador, los productos, los recursos y el flujo
             de producción en un único espacio de trabajo.
           </p>
         </div>
 
-        <div className="grid items-center gap-9 lg:grid-cols-[minmax(0,1.1fr)_minmax(340px,0.9fr)] lg:gap-14 xl:gap-20">
-          {/* LEFT — image */}
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)] lg:gap-14 xl:gap-20">
+          {/* LEFT — Retina display showcase frame */}
           <div className="relative order-2 lg:order-1">
-            <div className="overflow-hidden rounded-[22px] border border-borderMuted bg-surface p-2 shadow-elevated sm:p-3">
+            <div className="overflow-hidden rounded-[28px] border border-black/[0.08] bg-[#F1F5F9] p-2 sm:p-2.5 shadow-[0_24px_64px_-12px_rgba(15,23,42,0.12)] ring-1 ring-black/[0.04]">
               <img
                 src={designerImg}
                 alt="Diseñador de camisetas en PrintShop: panel de diseños, vista 3D del producto y opciones de configuración"
-                className="h-auto w-full select-none rounded-[16px] object-cover object-top"
+                className="h-auto w-full select-none rounded-[20px] object-cover object-top border border-black/[0.04]"
                 loading="lazy"
                 decoding="async"
               />
             </div>
 
-            {/* Floating tag */}
-            <div className="absolute -bottom-4 right-3 hidden items-center gap-2.5 rounded-xl border border-borderMuted bg-white/95 px-4 py-3 shadow-card backdrop-blur sm:flex lg:-right-5">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--accent-muted)]">
-                <svg
-                  className="h-4 w-4 text-[var(--primary)]"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden="true"
-                >
-                  <path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z" />
-                  <path d="m9 12 2 2 4-4" />
-                </svg>
+            {/* Floating Apple-style glass chip */}
+            <div className="absolute -bottom-5 right-4 hidden items-center gap-3 rounded-2xl border border-white/90 bg-white/90 p-3.5 shadow-[0_16px_36px_rgba(15,23,42,0.12)] backdrop-blur-2xl sm:flex lg:-right-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
               </div>
               <div>
-                <p className="text-[12px] font-bold leading-tight text-[var(--text-primary)]">
+                <p className="text-[12px] font-bold leading-tight tracking-[-0.01em] text-foreground">
                   Listo para producir
                 </p>
-                <p className="text-[11px] leading-tight text-[var(--text-secondary)]">
+                <p className="text-[11px] leading-tight text-foregroundMuted">
                   Diseña y envía a imprimir
                 </p>
               </div>
             </div>
           </div>
 
-          {/* RIGHT — text + capabilities */}
-          <div className="order-1 flex flex-col gap-8 lg:order-2">
-            <ul className="divide-y divide-borderMuted">
+          {/* RIGHT — Apple feature cards */}
+          <div className="order-1 flex flex-col gap-6 lg:order-2">
+            <ul className="flex flex-col gap-2.5">
               {featuresData.map(({ id, icon: Icon, title, description }) => (
-                <li key={id} className="flex items-start gap-4 py-5 first:pt-0 last:pb-0">
-                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-[var(--surface-muted)] text-[var(--primary)]">
+                <li
+                  key={id}
+                  className="group flex items-start gap-4 rounded-2xl p-3.5 transition-all duration-200 hover:bg-[#F8FAFC] border border-transparent hover:border-black/[0.04] active:scale-[0.99]"
+                >
+                  <div className="mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/[0.08] text-primary transition-colors duration-200 group-hover:bg-primary group-hover:text-white">
                     <Icon
-                      className="h-5 w-5"
+                      className="h-5 w-5 transition-transform duration-200 group-hover:scale-105"
                       aria-hidden="true"
                       strokeWidth={1.8}
                     />
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-base font-bold leading-snug text-[var(--text-primary)]">
+                    <h3 className="text-base font-semibold leading-snug tracking-[-0.01em] text-foreground">
                       {title}
                     </h3>
-                    <p className="mt-1.5 text-sm leading-6 text-[var(--text-secondary)]">
+                    <p className="mt-1 text-sm leading-relaxed text-foregroundMuted">
                       {description}
                     </p>
                   </div>
@@ -87,12 +81,12 @@ export const Features: React.FC = () => {
               ))}
             </ul>
 
-            {/* Benefits strip */}
-            <div className="border-t border-[var(--border)] pt-6">
-              <p className="mb-4 text-xs font-semibold uppercase text-[var(--text-muted)]">
+            {/* Benefits strip — Apple translucent pills */}
+            <div className="border-t border-black/[0.06] pt-6">
+              <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.08em] text-foregroundMuted">
                 Incluido en cada pedido
               </p>
-              <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+              <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
                 {[
                   "Materiales premium",
                   "Personalización fácil",
@@ -101,10 +95,10 @@ export const Features: React.FC = () => {
                 ].map((label) => (
                   <div
                     key={label}
-                    className="flex items-center gap-2 text-sm text-[var(--text-secondary)]"
+                    className="flex items-center gap-2 rounded-xl bg-[#F8FAFC] border border-black/[0.04] px-3 py-2 text-xs font-medium text-foreground/85 transition-colors hover:bg-white hover:border-black/[0.08]"
                   >
                     <svg
-                      className="h-3.5 w-3.5 shrink-0 text-[var(--primary)]"
+                      className="h-3.5 w-3.5 shrink-0 text-primary"
                       viewBox="0 0 24 24"
                       fill="none"
                       stroke="currentColor"

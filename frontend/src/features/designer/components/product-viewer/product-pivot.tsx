@@ -62,7 +62,7 @@ function ProductColorApplier({ color, modelUrl, materialBrightness, children }: 
  * active ProductViewConfig for the selected printable zone. If no explicit view
  * config is available, fall back to a simple Y rotation map to preserve previous behavior.
  */
-export function ProductPivot({ showPrintArea, showSelection, ...artworkProps }: Designer2ArtworkProps) {
+export function ProductPivot({ showPrintArea, showSelection, constrainToPrintArea, ...artworkProps }: Designer2ArtworkProps) {
   const activeZoneId = useViewerStore((s) => s.activeZoneId);
   const frontPrintableArea = useViewerStore((s) => s.activeProduct.printableAreas.front);
   const productColor = useViewerStore((s) => s.currentGarmentColor);
@@ -93,6 +93,7 @@ export function ProductPivot({ showPrintArea, showSelection, ...artworkProps }: 
               printableArea={frontPrintableArea}
               showPrintArea={showPrintArea}
               showSelection={showSelection}
+              constrainToPrintArea={constrainToPrintArea}
               {...artworkProps}
             />
           ) : null}

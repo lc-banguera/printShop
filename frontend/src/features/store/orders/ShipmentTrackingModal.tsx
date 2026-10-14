@@ -95,7 +95,11 @@ export const ShipmentTrackingModal: React.FC<ShipmentTrackingModalProps> = ({
               <StatusDot status={getStatusLabel(shipment.shippingStatus)} />
             </div>
             <p className="text-xs text-[#64748B] mt-0.5">
-              Pedido <span className="font-medium text-[#111827]">{orderId.startsWith("#") ? orderId : `#${orderId}`}</span> · {shipment.carrier}
+              Pedido{" "}
+              <span className="font-medium text-[#111827]">
+                {orderId.startsWith("#") ? orderId : `#${orderId}`}
+              </span>{" "}
+              · {shipment.carrier}
             </p>
           </div>
           <button
@@ -212,7 +216,10 @@ export const ShipmentTrackingModal: React.FC<ShipmentTrackingModalProps> = ({
                     });
 
                 return (
-                  <div key={evt.id || idx} className="relative pl-8 mb-4 text-xs">
+                  <div
+                    key={evt.id || idx}
+                    className="relative pl-8 mb-4 text-xs"
+                  >
                     {/* Marker */}
                     <span
                       className={cn(
@@ -220,18 +227,27 @@ export const ShipmentTrackingModal: React.FC<ShipmentTrackingModalProps> = ({
                         isLatest
                           ? "bg-[#2563EB] ring-2 ring-[#BFDBFE]"
                           : evt.status === "DELIVERED"
-                          ? "bg-[#10B981]"
-                          : "bg-[#94A3B8]",
+                            ? "bg-[#10B981]"
+                            : "bg-[#94A3B8]",
                       )}
                     />
 
                     <div className="flex flex-col">
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <span className={cn("font-bold", isLatest ? "text-[#111827]" : "text-[#475569]")}>{evt.description}</span>
+                          <span
+                            className={cn(
+                              "font-bold",
+                              isLatest ? "text-[#111827]" : "text-[#475569]",
+                            )}
+                          >
+                            {evt.description}
+                          </span>
                           {getSourceBadge(evt.source)}
                         </div>
-                        <span className="text-[10.5px] text-[#64748B] shrink-0 font-mono">{formattedDate}</span>
+                        <span className="text-[10.5px] text-[#64748B] shrink-0 font-mono">
+                          {formattedDate}
+                        </span>
                       </div>
 
                       {evt.location && (
@@ -242,7 +258,9 @@ export const ShipmentTrackingModal: React.FC<ShipmentTrackingModalProps> = ({
                       )}
 
                       {(evt as any).note && (
-                        <p className="text-[11px] text-[#64748B] italic mt-1">{(evt as any).note}</p>
+                        <p className="text-[11px] text-[#64748B] italic mt-1">
+                          {(evt as any).note}
+                        </p>
                       )}
                     </div>
                   </div>

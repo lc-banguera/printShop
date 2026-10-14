@@ -41,13 +41,8 @@ export default function StoreOnline() {
       {/* ── Encabezado ─────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <span>Tienda</span>
-            <span>/</span>
-            <span className="text-[#2563EB] font-medium">Tienda Online</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#111827]">
-            Mi Tienda Pública
+          <h1 className="text-xl sm:text-2xl font-extrabold text-[#111827]">
+            Mi Tienda Pública en la Web
           </h1>
           <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
             Configura el aspecto, dominio y vitrina comercial que verán tus
@@ -63,7 +58,7 @@ export default function StoreOnline() {
             className="flex items-center gap-1.5 text-xs font-bold text-white bg-[#2563EB] hover:bg-[#1D4ED8] px-4 py-2 rounded-[6px] shadow-sm transition-all"
           >
             <Eye className="w-4 h-4" />
-            <span>Ver Tienda Pública</span>
+            <span>Ver Tienda</span>
           </a>
         </div>
       </div>
@@ -128,7 +123,6 @@ export default function StoreOnline() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-white p-5 rounded-[8px] border border-[#E5E7EB] shadow-2xs space-y-4">
           <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
-            <Store className="w-4 h-4 text-[#2563EB]" />
             <span>Datos Principales de la Tienda</span>
           </h3>
 
@@ -147,7 +141,7 @@ export default function StoreOnline() {
 
             <div>
               <label className="block font-bold text-[#111827] mb-1">
-                Eslogan / Descripción Breve
+                Eslogan
               </label>
               <input
                 type="text"
@@ -185,10 +179,6 @@ export default function StoreOnline() {
         </div>
 
         <div className="bg-white p-5 rounded-[8px] border border-[#E5E7EB] shadow-2xs space-y-4">
-          <h3 className="text-sm font-bold text-[#111827] flex items-center gap-2">
-            <Palette className="w-4 h-4 text-[#2563EB]" />
-            <span>Colores e Identidad de Marca</span>
-          </h3>
 
           <div className="space-y-3 text-xs">
             <div>
@@ -210,18 +200,12 @@ export default function StoreOnline() {
 
             <div className="pt-3 border-t border-[#F1F5F9]">
               <span className="block font-bold text-[#111827] mb-1">
-                Productos Visibles en la Portada
+                Productos Disponibles en tu Tienda
               </span>
               <p className="text-[#64748B] text-[11px] mb-2">
                 Tienes 48 productos activos publicados actualmente en tu catálogo
                 online.
               </p>
-              <Link
-                to="/store/products"
-                className="text-xs font-bold text-[#2563EB] hover:underline"
-              >
-                Gestionar productos visibles →
-              </Link>
             </div>
           </div>
         </div>

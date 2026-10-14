@@ -77,11 +77,6 @@ export function RightSidebar() {
             {selectedElement ? (selectedElement.name || 'Diseño seleccionado') : 'Sin diseño seleccionado'}
           </p>
         </div>
-        {selectedElement && (
-          <span className="rounded-[5px] bg-[#eeebff] px-2 py-0.5 text-[9px] font-semibold text-[#5046e5]">
-            Activo
-          </span>
-        )}
       </div>
 
       <ScrollArea className="flex-1">
@@ -160,7 +155,7 @@ export function RightSidebar() {
                   {designPalette.map((color) => <span key={color} title={color} aria-label={color} className="h-5 w-5 rounded-full border border-black/15" style={{ backgroundColor: color }} />)}
                 </div>
               ) : (
-                <p className="text-[10px] text-[#908fa3]">La paleta se mostrará con diseños compatibles.</p>
+                <p className="text-[10px] text-[#908fa3] opacity-70">Selección de color disponible para diseños compatibles.</p>
               )}
             </div>
           )}

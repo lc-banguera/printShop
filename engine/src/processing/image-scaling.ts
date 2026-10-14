@@ -120,6 +120,23 @@ export function pixelsToPrintDimensions(
   };
 }
 
+export function printDimensionsToPixels(
+  printSize: PrintDimensions,
+  dpi: ImageDpi,
+): ImageDimensionsPx {
+  assertPrintUnit(printSize.unit);
+  assertDpi(dpi);
+  if (![printSize.width, printSize.height].every((value) => Number.isFinite(value) && value > 0)) {
+    throw new RangeError('Print dimensions must be positive finite values.');
+  }
+  const widthInches = toCentimeters(printSize.width, printSize.unit) / 2.54;
+  const heightInches = toCentimeters(printSize.height, printSize.unit) / 2.54;
+  return {
+    widthPx: Math.max(1, Math.round(widthInches * dpi.dpiX)),
+    heightPx: Math.max(1, Math.round(heightInches * dpi.dpiY)),
+  };
+}
+
 export function calculateEffectiveResolution(
   raster: ImageDimensionsPx,
   printSize: PrintDimensions,

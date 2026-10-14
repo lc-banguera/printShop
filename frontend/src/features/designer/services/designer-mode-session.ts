@@ -3,6 +3,7 @@ import { useCanvasStore } from "@/store/canvas-store";
 import { useViewerStore } from "@/store/viewer-store";
 import type { ArtworkTransform } from "../../../../../engine/src/transform/artwork-transform";
 import type { CanvasElement } from "@/types/canvas";
+import type { DocumentPath } from "../../../../../engine/src/types/element";
 
 export type EasyModeBackground = "transparent" | "white" | "color";
 
@@ -20,6 +21,7 @@ export interface EasyModeImageSnapshot {
   removeSemitransparencies: boolean;
   semitransparencyResult: EasyModeSemitransparencyResult | null;
   artworkTransform: ArtworkTransform;
+  vectorPaths?: DocumentPath[] | null;
 }
 
 export interface EasyModeSession {
@@ -51,6 +53,7 @@ export interface EasyModeSession {
   uploadSearch: string;
   processedImageUrl: string | null;
   processedDimensions: { width: number; height: number } | null;
+  vectorPaths?: DocumentPath[] | null;
   showProcessedImage: boolean;
   removeSemitransparencies: boolean;
   semitransparencyResult: EasyModeSemitransparencyResult | null;
@@ -98,6 +101,7 @@ export function syncEasyModeSessionFromAdvanced() {
     session.activeUploadedAssetId = null;
     session.processedImageUrl = null;
     session.processedDimensions = null;
+    session.vectorPaths = null;
     session.imageUrl = null;
     session.removeSemitransparencies = false;
     session.semitransparencyResult = null;

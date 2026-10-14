@@ -8,7 +8,7 @@ export const Header: React.FC<HeaderProps> = ({ className, ...props }) => {
   return (
     <header
       className={cn(
-        'sticky top-0 z-50 w-full border-b border-white/70 bg-white/80 shadow-[0_1px_0_rgba(22,24,35,0.04)] backdrop-blur-xl transition-colors',
+        'sticky top-0 z-50 w-full border-b border-black/[0.06] bg-white/75 shadow-[0_1px_3px_rgba(0,0,0,0.02)] backdrop-blur-2xl backdrop-saturate-[180%] transition-colors',
         className,
       )}
       {...props}

@@ -51,7 +51,7 @@ export const CategoryIcon: React.FC<CategoryIconProps> = ({ iconName, className 
         </svg>
       );
 
-    // 5. Bolsos: Shopping bag with handles
+    // 5. Bolsas: Shopping bag with handles
     case 'ShoppingBag':
       return (
         <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round">

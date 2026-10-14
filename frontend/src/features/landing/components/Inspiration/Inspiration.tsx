@@ -5,107 +5,99 @@ import { InspirationCard } from "./InspirationCard";
 import { inspirationData } from "../../data/inspiration.data";
 
 export const Inspiration: React.FC = () => {
-  const scrollContainerRef = React.useRef<HTMLDivElement>(null);
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = React.useState(false);
+  const [canScrollRight, setCanScrollRight] = React.useState(true);
 
-  const [showLeft, setShowLeft] = React.useState(false);
-  const [showRight, setShowRight] = React.useState(true);
-
-  const updateButtons = React.useCallback(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const { scrollLeft, scrollWidth, clientWidth } = container;
-
-    setShowLeft(scrollLeft > 5);
-    setShowRight(scrollLeft + clientWidth < scrollWidth - 5);
+  const checkScroll = React.useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
+      setCanScrollLeft(scrollLeft > 10);
+      setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
+    }
   }, []);
 
   React.useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    updateButtons();
-
-    container.addEventListener("scroll", updateButtons);
-    window.addEventListener("resize", updateButtons);
-
+    checkScroll();
+    const el = scrollRef.current;
+    if (el) el.addEventListener("scroll", checkScroll, { passive: true });
+    window.addEventListener("resize", checkScroll);
     return () => {
-      container.removeEventListener("scroll", updateButtons);
-      window.removeEventListener("resize", updateButtons);
+      if (el) el.removeEventListener("scroll", checkScroll);
+      window.removeEventListener("resize", checkScroll);
     };
-  }, [updateButtons]);
+  }, [checkScroll]);
 
   const scroll = (direction: "left" | "right") => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const firstCard = container.querySelector("[data-card]") as HTMLElement;
-    const cardWidth = firstCard?.offsetWidth ?? 140;
-    const gap = 16;
-
-    const behavior = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      ? 'auto'
-      : 'smooth';
-
-    container.scrollBy({
-      left:
-        direction === "right" ? cardWidth * 2 + gap : -(cardWidth * 2 + gap),
-      behavior,
+    if (!scrollRef.current) return;
+    const amount = scrollRef.current.clientWidth * 0.75;
+    scrollRef.current.scrollBy({
+      left: direction === "right" ? amount : -amount,
+      behavior: "smooth",
     });
   };
 
   return (
-    <section id="plantillas" className="w-full overflow-hidden bg-surfaceMuted py-16 sm:py-20 lg:py-24">
-      <Container variant="wide">
-        {/* Encabezado */}
-        <div className="mb-8 flex flex-wrap items-end justify-between gap-4 sm:mb-10">
-          <h2 className="text-2xl font-bold tracking-normal text-foreground sm:text-3xl">
-            Inspírate con nuestras{" "}
-            <span className="text-primary transition-colors hover:text-primaryHover">
-              plantillas
-            </span>
-          </h2>
+    <section
+      id="plantillas"
+      className="relative w-full overflow-hidden border-b border-slate-200 bg-white py-20 sm:py-24 lg:py-28"
+    >
+      <Container variant="wide" className="px-4 sm:px-6 lg:px-8">
+        {/* Encabezado editorial limpio con navegación Apple */}
+        <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-3xl font-extrabold leading-tight tracking-[-0.03em] text-[#0D1014] sm:text-4xl lg:text-2xl">
+              Inspírate con nuestras plantillas
+            </h2>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-slate-600 sm:text-lg">
+              Cientos de composiciones gráficas y estilos listos para
+              personalizar tu próximo artículo.
+            </p>
+          </div>
 
-          <a
-            href="#"
-            className="rounded-control text-sm font-semibold text-primary transition-colors hover:text-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-4"
-          >
-            Ver todas las plantillas
-          </a>
+          <div className="flex items-center gap-3">
+            {/* Controles de desplazamiento fluidos */}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scroll("left")}
+                disabled={!canScrollLeft}
+                aria-label="Ver plantillas anteriores"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-[#0D1014] transition-colors duration-150 hover:bg-slate-950 hover:text-white active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scroll("right")}
+                disabled={!canScrollRight}
+                aria-label="Ver siguientes plantillas"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-300 bg-white text-[#0D1014] transition-colors duration-150 hover:bg-slate-950 hover:text-white active:scale-95 disabled:opacity-30 disabled:pointer-events-none"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            </div>
+
+            <a
+              href="#plantillas"
+              className="inline-flex min-h-10 items-center rounded-[5px] bg-[#0D1014] px-5 py-2.5 text-sm font-semibold text-white transition-colors duration-150 hover:bg-black active:scale-[0.98]"
+            >
+              <span>Ver todas las plantillas</span>
+            </a>
+          </div>
         </div>
 
-        {/* Carrusel de plantillas */}
-        <div className="relative flex items-center">
-          {showLeft && (
-            <button
-              type="button"
-              onClick={() => scroll("left")}
-              className="absolute left-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/90 text-foreground shadow-card backdrop-blur transition-[transform,background-color,box-shadow] duration-150 hover:bg-white hover:shadow-elevated active:scale-95"
-              aria-label="Anterior"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
-          )}
-
+        {/* Carrusel de plantillas con tarjetas intactas */}
+        <div className="relative mt-5">
           <div
-            ref={scrollContainerRef}
-            className="flex w-full min-w-0 gap-3 overflow-x-auto scroll-smooth px-1 pb-3 sm:gap-4"
+            ref={scrollRef}
+            className="flex w-full select-none gap-5 overflow-x-auto scroll-smooth pb-4 pt-1"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
             {inspirationData.map((template) => (
               <InspirationCard key={template.id} template={template} />
             ))}
           </div>
-
-          {showRight && (
-            <button
-              type="button"
-              onClick={() => scroll("right")}
-              className="absolute right-2 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-white/90 text-foreground shadow-card backdrop-blur transition-[transform,background-color,box-shadow] duration-150 hover:bg-white hover:shadow-elevated active:scale-95"
-              aria-label="Siguiente"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          )}
         </div>
       </Container>
     </section>

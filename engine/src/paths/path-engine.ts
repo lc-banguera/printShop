@@ -29,6 +29,8 @@ export interface VectorPath {
   closed: boolean;
   anchors: readonly PathAnchor[];
   segments: readonly PathSegment[];
+  /** Optional paint metadata used when a raster trace contains multiple colors. */
+  fill?: string;
 }
 
 export interface PathRasterizationOptions {

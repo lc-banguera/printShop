@@ -40,7 +40,13 @@ function getFitSetup(bounds: THREE.Box3) {
  * Additionally synchronizes viewerStore.zoom with the three.js camera distance so
  * the zoom buttons and mouse wheel share a single source of truth.
  */
-export function CameraController() {
+export function CameraController({
+  cameraDistanceScale = 1,
+  cameraMinDistance = MIN_DISTANCE,
+}: {
+  cameraDistanceScale?: number;
+  cameraMinDistance?: number;
+}) {
   const { camera, scene } = useThree();
   const activeProduct = useViewerStore((s) => s.activeProduct);
   const activeZoneId = useViewerStore((s) => s.activeZoneId);
@@ -107,7 +113,7 @@ export function CameraController() {
 
     const baseDistance = baseDistanceRef.current!;
     const newDistance = Math.min(
-      Math.max(baseDistance / Math.max(1e-6, desiredZoom * ZOOM_CALIBRATION), MIN_DISTANCE),
+      Math.max(baseDistance / Math.max(1e-6, desiredZoom * ZOOM_CALIBRATION), cameraMinDistance),
       MAX_DISTANCE
     );
     const newPos = target.clone().add(dir.normalize().multiplyScalar(newDistance));
@@ -128,7 +134,8 @@ export function CameraController() {
     isUpdatingFromStoreRef.current = true;
     if (viewConfig) {
       const targetVec = new THREE.Vector3(viewConfig.cameraTarget.x, viewConfig.cameraTarget.y, viewConfig.cameraTarget.z);
-      const posVec = new THREE.Vector3(viewConfig.cameraPosition.x, viewConfig.cameraPosition.y, viewConfig.cameraPosition.z);
+      const configuredPosition = new THREE.Vector3(viewConfig.cameraPosition.x, viewConfig.cameraPosition.y, viewConfig.cameraPosition.z);
+      const posVec = targetVec.clone().add(configuredPosition.sub(targetVec).multiplyScalar(cameraDistanceScale));
 
       camera.position.copy(posVec);
       camera.lookAt(targetVec);
@@ -176,7 +183,7 @@ export function CameraController() {
 
     // Do NOT modify baseDistanceRef here – keep previous mapping.
     setTimeout(() => (isUpdatingFromStoreRef.current = false), 0);
-  }, [activeProduct, activeZoneId, bounds, camera, controls]);
+  }, [activeProduct, activeZoneId, bounds, camera, controls, cameraDistanceScale, cameraMinDistance]);
 
   // React to store.zoom changes and update camera distance only (keep target/orientation)
   useEffect(() => {
@@ -235,13 +242,13 @@ export function CameraController() {
   // Configure limits and speeds after controls are available
   useEffect(() => {
     if (!controls) return;
-    controls.minDistance = MIN_DISTANCE;
+    controls.minDistance = cameraMinDistance;
     controls.maxDistance = MAX_DISTANCE;
     controls.enableDamping = false;
     controls.rotateSpeed = 0.7;
     controls.panSpeed = 0.7;
     controls.zoomSpeed = 0.8;
-  }, [controls]);
+  }, [controls, cameraMinDistance]);
 
   return (
     <OrbitControls
@@ -250,7 +257,7 @@ export function CameraController() {
       enableRotate
       enableZoom
       enablePan
-      minDistance={MIN_DISTANCE}
+      minDistance={cameraMinDistance}
       maxDistance={MAX_DISTANCE}
       rotateSpeed={0.7}
       panSpeed={0.7}

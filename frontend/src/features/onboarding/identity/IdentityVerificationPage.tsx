@@ -3,19 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { VerificationHeader } from "./components/VerificationHeader";
 import { VerificationProgress } from "./components/VerificationProgress";
 import { MethodSelectionStep } from "./components/MethodSelectionStep";
+import { PersonalDataStep } from "./components/PersonalDataStep";
+import { ConfirmationStep } from "./components/ConfirmationStep";
 import { VerificationQRCode } from "./components/VerificationQRCode";
 import { useDeviceDetection } from "./utils/deviceDetection";
 import { MethodType } from "./types";
-import { createDiditSession, getDiditStatus } from "./didit-api";
+import { getDiditStatus } from "./didit-api";
+import { startIdentityVerification } from "./verification-provider";
 import { useAuthStore } from "@/features/auth";
 
 export default function IdentityVerificationPage() {
   const navigate = useNavigate();
   const { isDesktop } = useDeviceDetection();
-  const accessToken = useAuthStore((state) => state.user?.accessToken);
+  const user = useAuthStore((state) => state.user);
+  const accessToken = user?.accessToken;
 
   // Estados del flujo
-  const [currentStep, setCurrentStep] = useState<"method" | "qr">("method");
+  const [currentStep, setCurrentStep] = useState<"method" | "personal" | "confirmation" | "qr">("method");
   const [selectedMethod, setSelectedMethod] = useState<MethodType | null>(null);
   const [verificationUrl, setVerificationUrl] = useState<string | null>(null);
 
@@ -25,20 +29,23 @@ export default function IdentityVerificationPage() {
   };
 
   /**
-   * Al seleccionar CUALQUIER método:
-   * Identifica si es Desktop (PC) o Mobile (Celular):
-   * - PC: Muestra pantalla centrada con QR para continuar desde celular.
-   * - Mobile: Abre directamente la cámara del dispositivo.
+   * La respuesta la resuelve el adaptador central: en desarrollo avanza
+   * provisionalmente y fuera de desarrollo conserva el proveedor real.
    */
   const handleSelectMethod = async (method: MethodType) => {
     setSelectedMethod(method);
     try {
-      const session = await createDiditSession(accessToken);
+      const result = await startIdentityVerification(method, accessToken);
+      if (result.status === "APPROVED") {
+        setCurrentStep("personal");
+        return;
+      }
+
       if (isDesktop) {
-        setVerificationUrl(session.verificationUrl);
+        setVerificationUrl(result.verificationUrl || "");
         setCurrentStep("qr");
       } else {
-        window.location.assign(session.verificationUrl);
+        window.location.assign(result.verificationUrl || "");
       }
     } catch (error) {
       setSelectedMethod(null);
@@ -52,6 +59,8 @@ export default function IdentityVerificationPage() {
     setVerificationUrl(null);
     setCurrentStep("method");
   };
+
+  const handleFinish = () => navigate("/onboarding");
 
   useEffect(() => {
     if (currentStep !== "qr") return;
@@ -76,7 +85,7 @@ export default function IdentityVerificationPage() {
   }, [accessToken, currentStep, navigate]);
 
   // Paso actual para el stepper superior (1: Selección de método, 2: Datos/Captura)
-  const currentStepNumber = currentStep === "method" ? 1 : 2;
+  const currentStepNumber = currentStep === "method" ? 1 : currentStep === "confirmation" ? 3 : 2;
 
   return (
     <div className="min-h-screen bg-[var(--surface-muted)] py-6 sm:py-10 px-4 flex items-center justify-center antialiased select-none">
@@ -105,6 +114,18 @@ export default function IdentityVerificationPage() {
               onCancel={handleBackToMethods}
               onContactClick={() => alert("Contactando soporte de PrintShop...")}
             />
+          )}
+
+          {currentStep === "personal" && (
+            <PersonalDataStep
+              name={user?.name}
+              email={user?.email}
+              onContinue={() => setCurrentStep("confirmation")}
+            />
+          )}
+
+          {currentStep === "confirmation" && (
+            <ConfirmationStep onFinish={handleFinish} onContactClick={() => alert("Contactando soporte de PrintShop...")} />
           )}
 
         </div>

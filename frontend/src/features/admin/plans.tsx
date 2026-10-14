@@ -607,6 +607,7 @@ export default function Plans() {
               <button
                 type="button"
                 onClick={() => setSelectedPlan(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
@@ -834,6 +835,7 @@ export default function Plans() {
               <button
                 type="button"
                 onClick={() => setSubscriptionsPlan(null)}
+                aria-label="Cerrar modal"
                 className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer"
               >
                 <X className="h-4 w-4" />
@@ -1100,6 +1102,7 @@ function PlanFormModal({ plan, onClose, onSave }: PlanFormModalProps) {
           <button
             type="button"
             onClick={onClose}
+            aria-label="Cerrar modal"
             className="h-7 w-7 rounded-[4px] hover:bg-surfaceMuted text-foregroundSubtle flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="h-4 w-4" />

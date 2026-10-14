@@ -1,22 +1,5 @@
 import * as React from "react";
-import {
-  Users,
-  Search,
-  Download,
-  Filter,
-  Eye,
-  Mail,
-  Phone,
-  Calendar,
-  ShoppingBag,
-  DollarSign,
-  TrendingUp,
-  UserCheck,
-  UserPlus,
-  X,
-  MapPin,
-  Check,
-} from "lucide-react";
+import { Download, Eye, Search, X } from "lucide-react";
 import { cn } from "@/shared/utils/cn";
 import { StatusDot } from "./StatusDot";
 import UserAvatar from "./UserAvatar";
@@ -221,86 +204,83 @@ export default function StoreClients() {
   }, [clients, searchQuery, statusFilter]);
 
   return (
-    <div className="p-4 sm:p-6 space-y-5 max-w-[1400px] mx-auto w-full">
+    <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-6 p-4 sm:p-6">
       {/* ── Encabezado ─────────────────────────────────────────────── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-[#64748B] mb-1">
-            <span>Tienda</span>
-            <span>/</span>
-            <span className="text-[#2563EB] font-medium">Clientes</span>
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-[#111827]">
-            Base de Clientes
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-[28px]">
+            Gestión de Clientes
           </h1>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-0.5">
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-foregroundMuted">
             Consulta el historial, recurrencia y valor de compras de los
             clientes de tu tienda.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-2.5">
           <button
             type="button"
-            className="flex items-center gap-1.5 text-xs font-semibold text-[#334155] bg-white border border-[#E2E8F0] hover:bg-[#F8FAFC] px-3.5 py-2 rounded-[6px] shadow-2xs transition-colors"
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-control border border-border bg-surface px-3.5 py-2 text-sm font-semibold text-foregroundMuted shadow-subtle transition-colors duration-normal hover:border-borderStrong hover:bg-surfaceMuted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:active:scale-100"
           >
-            <Download className="w-3.5 h-3.5 text-[#64748B]" />
+            <Download className="h-4 w-4 text-foregroundSubtle" aria-hidden="true" />
             <span>Exportar Clientes</span>
           </button>
         </div>
       </div>
 
       {/* ── Tarjetas Resumen (KPIs) ─────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-[8px] bg-white border border-[#E5E7EB] shadow-2xs">
-          <span className="text-l font-medium text-[#64748B]">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-card border border-border bg-surface p-5 shadow-card transition-colors duration-normal hover:border-borderStrong">
+          <span className="text-sm font-semibold text-foregroundMuted">
             Clientes Frecuentes
           </span>
-          <p className="text-2xl font-black text-[#000001] mt-1">
+          <p className="mt-2 text-3xl font-bold leading-tight tracking-tight text-foreground">
             {stats.frecuentes}
           </p>
-          <span className="text-[12px] text-[#000000] font-medium mt-1 inline-block">
+          <span className="mt-1.5 inline-block text-xs leading-5 text-foregroundSubtle">
             Clientes con más de 5 compras
           </span>
         </div>
 
-        <div className="p-4 rounded-[8px] bg-white border border-[#E5E7EB] shadow-2xs">
-          <span className="text-l font-medium text-[#64748B]">
+        <div className="rounded-card border border-border bg-surface p-5 shadow-card transition-colors duration-normal hover:border-borderStrong">
+          <span className="text-sm font-semibold text-foregroundMuted">
             Clientes Nuevos
           </span>
-          <p className="text-2xl font-black text-[#111827] mt-1">
+          <p className="mt-2 text-3xl font-bold leading-tight tracking-tight text-foreground">
             {stats.nuevos}
           </p>
-          <span className="text-[12px] text-[##111827] font-medium mt-1 inline-block">
+          <span className="mt-1.5 inline-block text-xs leading-5 text-foregroundSubtle">
             Clientes nuevos este mes
           </span>
         </div>
       </div>
 
       {/* ── Barra de Búsqueda y Filtros ────────────────────────────── */}
-      <div className="bg-white p-3 rounded-[8px] border border-[#E5E7EB] shadow-2xs flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[#94A3B8]" />
+      <div className="flex flex-col gap-3 rounded-card border border-border bg-surface p-4 shadow-card sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full min-w-0 sm:max-w-md sm:flex-1">
+          <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-foregroundSubtle" aria-hidden="true" />
           <input
             type="text"
             placeholder="Buscar por nombre, correo electrónico o ciudad..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full text-xs pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[6px] focus:outline-none focus:border-[#2563EB]"
+            aria-label="Buscar por nombre, correo electrónico o ciudad"
+            className="h-10 w-full rounded-control border border-border bg-background pl-10 pr-3 text-sm text-foreground outline-none transition-[border-color,box-shadow] duration-normal placeholder:text-foregroundSubtle hover:border-borderStrong focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 w-full sm:w-auto overflow-x-auto">
+        <div className="-mx-1 flex w-full items-center gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:w-auto sm:flex-wrap sm:justify-end sm:overflow-visible sm:px-0 sm:pb-0">
           {["Todos", "Frecuente", "Activo", "Nuevo", "Inactivo"].map((st) => (
             <button
               key={st}
               type="button"
               onClick={() => setStatusFilter(st)}
+              aria-pressed={statusFilter === st}
               className={cn(
-                "px-3 py-1 text-xs rounded-full font-medium transition-colors shrink-0",
+                "min-h-9 shrink-0 rounded-badge border px-3.5 py-1.5 text-xs font-semibold transition-colors duration-normal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:active:scale-100",
                 statusFilter === st
-                  ? "bg-[#2563EB] text-white"
-                  : "bg-[#F1F5F9] text-[#64748B] hover:bg-[#E2E8F0]",
+                  ? "border-primary bg-primary text-primaryForeground"
+                  : "border-border bg-surface text-foregroundMuted hover:border-borderStrong hover:bg-surfaceMuted",
               )}
             >
               {st}
@@ -310,63 +290,63 @@ export default function StoreClients() {
       </div>
 
       {/* ── Tabla de Clientes ──────────────────────────────────────── */}
-      <div className="bg-white rounded-[8px] border border-[#E5E7EB] shadow-2xs overflow-hidden">
+      <div className="overflow-hidden rounded-card border border-border bg-surface shadow-card">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-[#F8FAFC] border-b border-[#E5E7EB] text-[#64748B] text-[11px] font-bold uppercase tracking-wider">
+          <table className="w-full min-w-[900px] text-left text-sm">
+            <thead className="border-b border-border bg-surfaceMuted text-[11px] font-semibold uppercase tracking-[0.08em] text-foregroundSubtle">
               <tr>
-                <th className="py-3 px-4">Cliente</th>
-                <th className="py-3 px-4">Ciudad</th>
-                <th className="py-3 px-4">Pedidos</th>
-                <th className="py-3 px-4">Total Comprado</th>
-                <th className="py-3 px-4">Última Compra</th>
-                <th className="py-3 px-4">Estado</th>
-                <th className="py-3 px-4 text-right">Acciones</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5">Cliente</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5">Ciudad</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5">Pedidos</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5">Total Comprado</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5">Última Compra</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5">Estado</th>
+                <th scope="col" className="whitespace-nowrap px-5 py-3.5 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#F1F5F9] text-[#334155]">
+            <tbody className="divide-y divide-borderMuted text-foregroundMuted">
               {filteredClients.map((client) => (
                 <tr
                   key={client.id}
-                  className="hover:bg-[#F8FAFC] transition-colors"
+                  className="transition-colors duration-fast hover:bg-surfaceMuted"
                 >
-                  <td className="py-3.5 px-4">
-                    <div className="flex items-center gap-2.5">
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
                       <UserAvatar
                         name={client.name}
-                        className="w-8 h-8"
-                        iconClassName="w-4 h-4"
+                        className="h-9 w-9 shrink-0"
+                        iconClassName="h-4 w-4"
                       />
-                      <div>
-                        <p className="font-bold text-[#111827]">
+                      <div className="min-w-0">
+                        <p className="truncate font-semibold text-foreground">
                           {client.name}
                         </p>
-                        <p className="text-[10.5px] text-[#64748B]">
+                        <p className="mt-0.5 truncate text-xs text-foregroundSubtle">
                           {client.email}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3.5 px-4 text-[#475569]">{client.city}</td>
-                  <td className="py-3.5 px-4 font-bold text-[#111827]">
+                  <td className="whitespace-nowrap px-5 py-4 text-foregroundMuted">{client.city}</td>
+                  <td className="whitespace-nowrap px-5 py-4 font-medium text-foreground">
                     {client.ordersCount} pedidos
                   </td>
-                  <td className="py-3.5 px-4 font-black text-[#111827]">
+                  <td className="whitespace-nowrap px-5 py-4 font-semibold tabular-nums text-foreground">
                     $ {client.totalSpent.toLocaleString("es-CO")}
                   </td>
-                  <td className="py-3.5 px-4 text-[#64748B]">
+                  <td className="whitespace-nowrap px-5 py-4 text-foregroundMuted">
                     {client.lastOrderDate}
                   </td>
-                  <td className="py-3.5 px-4">
+                  <td className="px-5 py-4">
                     <StatusDot status={client.status} />
                   </td>
-                  <td className="py-3.5 px-4 text-right">
+                  <td className="px-5 py-4 text-right">
                     <button
                       type="button"
                       onClick={() => setSelectedClient(client)}
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-[#475569] hover:text-[#111827] hover:bg-[#F1F5F9] px-2.5 py-1.5 rounded-[5px] transition-colors"
+                      className="inline-flex min-h-9 items-center justify-center gap-2 rounded-control border border-transparent px-3 text-xs font-semibold text-foregroundMuted transition-colors duration-normal hover:border-border hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2"
                     >
-                      <Eye className="w-3.5 h-3.5" />
+                      <Eye className="h-4 w-4" aria-hidden="true" />
                       <span>Ver historial</span>
                     </button>
                   </td>
@@ -379,20 +359,25 @@ export default function StoreClients() {
 
       {/* ── MODAL: DETALLE Y HISTORIAL DEL CLIENTE ─────────────────── */}
       {selectedClient && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 animate-in fade-in duration-200">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 shadow-2xl border border-[#E2E8F0] space-y-4">
-            <div className="flex items-center justify-between border-b border-[#F1F5F9] pb-3">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/50 p-3 backdrop-blur-sm sm:p-6">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="client-history-title"
+            className="max-h-[calc(100vh-1.5rem)] w-full max-w-xl space-y-5 overflow-y-auto rounded-dialog border border-border bg-surface p-5 shadow-modal sm:max-h-[calc(100vh-3rem)] sm:p-6"
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-borderMuted pb-4">
               <div className="flex items-center gap-3">
                 <UserAvatar
                   name={selectedClient.name}
-                  className="w-10 h-10"
-                  iconClassName="w-5 h-5"
+                  className="h-11 w-11 shrink-0"
+                  iconClassName="h-5 w-5"
                 />
-                <div>
-                  <h2 className="text-base font-bold text-[#111827]">
+                <div className="min-w-0">
+                  <h2 id="client-history-title" className="truncate text-lg font-semibold tracking-tight text-foreground">
                     {selectedClient.name}
                   </h2>
-                  <p className="text-xs text-[#64748B]">
+                  <p className="mt-0.5 text-sm text-foregroundSubtle">
                     Cliente desde {selectedClient.registeredDate}
                   </p>
                 </div>
@@ -400,64 +385,65 @@ export default function StoreClients() {
               <button
                 type="button"
                 onClick={() => setSelectedClient(null)}
-                className="p-1 text-[#94A3B8] hover:text-[#111827] rounded-lg"
+                aria-label="Cerrar historial del cliente"
+                className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control text-foregroundSubtle transition-colors hover:bg-surfaceMuted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
-                <X className="w-5 h-5" />
+                <X className="h-5 w-5" aria-hidden="true" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-[#F8FAFC] p-3 rounded-lg border border-[#E2E8F0] text-xs">
+            <div className="grid grid-cols-1 gap-x-5 gap-y-4 rounded-card border border-border bg-surfaceMuted p-4 text-sm sm:grid-cols-2">
               <div>
-                <span className="text-[10.5px] text-[#64748B] block">
+                <span className="mb-1 block text-xs font-medium text-foregroundSubtle">
                   Email:
                 </span>
-                <span className="font-semibold text-[#111827]">
+                <span className="break-words font-medium text-foreground">
                   {selectedClient.email}
                 </span>
               </div>
               <div>
-                <span className="text-[10.5px] text-[#64748B] block">
+                <span className="mb-1 block text-xs font-medium text-foregroundSubtle">
                   Teléfono:
                 </span>
-                <span className="font-semibold text-[#111827]">
+                <span className="font-medium text-foreground">
                   {selectedClient.phone}
                 </span>
               </div>
               <div>
-                <span className="text-[10.5px] text-[#64748B] block">
+                <span className="mb-1 block text-xs font-medium text-foregroundSubtle">
                   Ciudad:
                 </span>
-                <span className="font-semibold text-[#111827]">
+                <span className="font-medium text-foreground">
                   {selectedClient.city}
                 </span>
               </div>
               <div>
-                <span className="text-[10.5px] text-[#64748B] block">
+                <span className="mb-1 block text-xs font-medium text-foregroundSubtle">
                   Total Invertido:
                 </span>
-                <span className="font-bold text-[#2563EB]">
+                <span className="font-semibold tabular-nums text-primary">
                   $ {selectedClient.totalSpent.toLocaleString("es-CO")}
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2 text-xs">
-              <h3 className="font-bold text-[#111827]">
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-foreground">
                 Compras Recientes ({selectedClient.recentPurchases.length})
               </h3>
-              <div className="border border-[#E2E8F0] rounded-lg divide-y divide-[#F1F5F9]">
+              <div className="divide-y divide-borderMuted overflow-hidden rounded-card border border-border">
                 {selectedClient.recentPurchases.map((pur) => (
                   <div
                     key={pur.id}
-                    className="p-3 flex items-center justify-between"
+                    className="flex flex-col gap-2 p-4 transition-colors even:bg-surfaceMuted sm:flex-row sm:items-center sm:justify-between"
                   >
-                    <div>
-                      <p className="font-semibold text-[#111827]">{pur.item}</p>
-                      <p className="text-[10.5px] text-[#64748B]">
+                    <div className="min-w-0">
+                      <p className="font-medium text-foreground">{pur.item}</p>
+                      <p className="mt-1 text-xs text-foregroundSubtle">
                         {pur.id} • {pur.date}
                       </p>
                     </div>
-                    <span className="font-bold text-[#111827]">
+                    <span className="shrink-0 font-semibold tabular-nums text-foreground">
                       $ {pur.total.toLocaleString("es-CO")}
                     </span>
                   </div>
@@ -465,11 +451,11 @@ export default function StoreClients() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-[#F1F5F9] flex justify-end">
+            <div className="flex justify-end border-t border-borderMuted pt-4">
               <button
                 type="button"
                 onClick={() => setSelectedClient(null)}
-                className="px-4 py-2 bg-[#2563EB] text-white text-xs font-bold rounded-[6px] hover:bg-[#1D4ED8]"
+                className="inline-flex min-h-10 items-center justify-center rounded-control border border-transparent bg-primary px-5 py-2 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors duration-normal hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2 active:scale-[0.98] motion-reduce:active:scale-100"
               >
                 Cerrar
               </button>

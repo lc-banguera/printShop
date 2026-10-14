@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '@/shared/ui/sidebar';
 import { Topbar } from '@/shared/ui/topbar';
+import './admin-visual.css';
 
 const SIDEBAR_STORAGE_KEY = 'admin-sidebar-collapsed';
 

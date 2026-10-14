@@ -9,6 +9,7 @@ import {
   EyeOff,
   FlipHorizontal,
   FlipVertical,
+  Grid2X2,
   ImagePlus,
   Layers3,
   Lock,
@@ -44,6 +45,7 @@ import { useCanvasStore } from '@/store/canvas-store';
 import { getDesigner2ProductModel } from '../data/designer-2-product-models';
 import type { CanvasElement } from '@/types/canvas';
 import type { PrintableZoneConfig } from '@/types/product';
+import './designer-2-workspace.css';
 
 const tools = [
   { id: 'designs', label: 'Diseños', icon: Sparkles },
@@ -329,9 +331,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
   const setMaterialBrightness = useViewerStore((state) => state.setMaterialBrightness);
   const resetMaterialAppearance = useViewerStore((state) => state.resetMaterialAppearance);
   const showGrid = useViewerStore((state) => state.showGrid);
-  const showGuides = useViewerStore((state) => state.showGuides);
   const setShowGrid = useViewerStore((state) => state.setShowGrid);
-  const setShowGuides = useViewerStore((state) => state.setShowGuides);
 
   const addElement = useCanvasStore((state) => state.addElement);
   const updateElement = useCanvasStore((state) => state.updateElement);
@@ -556,12 +556,12 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
   };
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-background text-foreground">
+    <div className="designer-2-workspace flex h-[100dvh] flex-col bg-background text-foreground">
       <header className="z-20 flex min-h-[72px] flex-wrap items-center gap-3 border-b border-border bg-surface px-4 py-3 sm:px-6">
        
         <div className="min-w-0 flex-1 border-l border-border pl-3 sm:pl-5">
           <p className="truncate text-sm font-semibold text-foreground">Camiseta Oversize Premium</p>
-          <p className="text-xs text-foregroundSubtle">Diseñador 2 <span aria-hidden="true">·</span> Producto desde cero</p>
+          <p className="text-xs text-foregroundSubtle">Diseñador de producto desde cero</p>
         </div>
         <div className="order-3 flex w-full items-center justify-end gap-2 border-t border-border pt-3 sm:order-none sm:w-auto sm:border-0 sm:pt-0">
           <Button
@@ -636,7 +636,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                       key={tab}
                       type="button"
                       onClick={() => setLibraryTab(tab as 'all' | 'printshop' | 'uploads')}
-                      className={`border-none px-2.5 py-1.5 font-medium transition-colors ${libraryTab === tab ? 'bg-primary text-primaryForeground' : 'bg-surfaceMuted text-foregroundMuted'}`}
+                      className={`rounded-control border-none px-2.5 py-1.5 font-medium transition-colors ${libraryTab === tab ? 'bg-primary text-primaryForeground' : 'bg-surfaceMuted text-foregroundMuted'}`}
                     >
                       {tab === 'all' ? 'Todo' : tab === 'printshop' ? 'PrintShop' : 'Subidos'}
                     </button>
@@ -686,7 +686,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                     const file = event.dataTransfer.files?.[0];
                     handleUpload(file);
                   }}
-                  className={`flex w-full flex-col items-center justify-center rounded-2xl border border-dashed p-4 text-center transition-colors ${isDragging ? 'border-primary bg-[var(--accent-muted)]' : 'border-border bg-surfaceMuted'}`}
+                  className={`flex w-full flex-col items-center justify-center rounded-control border border-dashed p-4 text-center transition-colors ${isDragging ? 'border-primary bg-[var(--accent-muted)]' : 'border-border bg-surfaceMuted'}`}
                 >
                   <span className="grid h-11 w-11 place-items-center rounded-full bg-surface text-primary">
                     <ImagePlus className="h-5 w-5" />
@@ -714,7 +714,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                   />
                   <Button className="mt-4" size="sm" onClick={() => inputRef.current?.click()}>
                     <Upload className="h-4 w-6" />
-                    Seleccionar archivo
+                    Seleccionar
                   </Button>
                 </div>
                 {uploading && <p className="mt-3 text-xs text-foregroundSubtle">Preparando vista previa…</p>}
@@ -1011,14 +1011,18 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
         </aside>
 
         <main className="flex min-h-[430px] min-w-0 flex-1 flex-col bg-surfaceMuted p-3 sm:p-5 lg:min-h-0">
-          <div className="relative h-[min(72vh,860px)] min-h-[420px] flex-1 overflow-hidden rounded-card border border-border bg-surface">
+          <div className="relative min-h-[420px] flex-1 overflow-hidden rounded-card border border-border bg-surface">
             <div className="absolute inset-0">
               <ProductViewer
                 artwork={modelArtwork}
                 selectedArtworkId={selectedElementId?.startsWith('designer-2-') ? selectedElementId : null}
                 onSelectArtwork={selectElement}
                 onMoveArtwork={moveArtwork}
-                showPrintArea
+                showPrintArea={false}
+                showGuides={false}
+                cameraDistanceScale={0.08}
+                cameraMinDistance={0.35}
+                constrainToPrintArea={false}
                 showSelection
               />
             </div>
@@ -1041,26 +1045,17 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
               </button>
               <button
                 type="button"
-                aria-label={showGuides ? 'Ocultar guías de impresión' : 'Mostrar guías de impresión'}
-                onClick={() => setShowGuides(!showGuides)}
-                className={`grid h-9 w-9 place-items-center rounded-control text-xs font-semibold transition-colors ${showGuides ? 'bg-[var(--accent-muted)] text-primary' : 'text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground'}`}
-                title="Guías de impresión"
-              >
-                G
-              </button>
-              <button
-                type="button"
                 aria-label={showGrid ? 'Ocultar cuadrícula' : 'Mostrar cuadrícula'}
                 onClick={() => setShowGrid(!showGrid)}
                 className={`grid h-9 w-9 place-items-center rounded-control text-xs font-semibold transition-colors ${showGrid ? 'bg-[var(--accent-muted)] text-primary' : 'text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground'}`}
                 title="Cuadrícula"
               >
-                ⊞
+                <Grid2X2 className="h-4 w-4" />
               </button>
             </div>
 
             {selectedArtwork && (
-              <div className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-surface/95 px-2 py-1.5 shadow-subtle">
+              <div className="absolute left-1/2 top-4 z-10 flex -translate-x-1/2 items-center gap-1 rounded-control border border-border bg-surface/95 px-2 py-1.5 shadow-subtle">
                 <button type="button" onClick={centerArtwork} className="grid h-8 w-8 place-items-center rounded-full text-foregroundMuted hover:bg-surfaceMuted hover:text-foreground" title="Centrar diseño">
                   <Move className="h-3.5 w-3.5" />
                 </button>
@@ -1271,7 +1266,7 @@ export function Designer2Workspace({ categoryId }: Designer2WorkspaceProps) {
                       <label key={key} className="block text-[10px] font-medium text-foregroundMuted">
                         <span className="flex items-center justify-between">
                           <span>{label}</span>
-                          <span>{formatArtworkFilterValue(key as keyof typeof DEFAULT_ARTWORK_FILTERS, selectedArtwork.filters?.[key as keyof typeof DEFAULT_ARTWORK_FILTERS] ?? DEFAULT_ARTWORK_FILTERS[key as keyof typeof DEFAULT_ARTWORK_FILTERS])}</span>
+                          <span>{formatArtworkFilterValue(key as keyof typeof DEFAULT_ARTWORK_FILTERS, (selectedArtwork.filters?.[key as keyof typeof DEFAULT_ARTWORK_FILTERS] ?? DEFAULT_ARTWORK_FILTERS[key as keyof typeof DEFAULT_ARTWORK_FILTERS]) as number)}</span>
                         </span>
                         <input
                           type="range"

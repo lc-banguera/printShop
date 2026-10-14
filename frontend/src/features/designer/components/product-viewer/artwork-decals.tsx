@@ -24,6 +24,9 @@ export interface Designer2ArtworkProps {
   showGuides?: boolean;
   showGrid?: boolean;
   showSelection?: boolean;
+  constrainToPrintArea?: boolean;
+  cameraDistanceScale?: number;
+  cameraMinDistance?: number;
   className?: string;
 }
 
@@ -34,6 +37,7 @@ interface ArtworkDecalsProps {
   printableArea: PrintableZoneConfig;
   showPrintArea: boolean;
   showSelection: boolean;
+  constrainToPrintArea: boolean;
   onSelect?: (id: string) => void;
   onMove?: (id: string, x: number, y: number) => void;
 }
@@ -45,6 +49,7 @@ interface ArtworkDecalProps {
   mesh: THREE.Mesh;
   printableArea: PrintableZoneConfig;
   interactive: boolean;
+  constrainToPrintArea: boolean;
   onSelect?: (id: string) => void;
   onMove?: (id: string, x: number, y: number) => void;
 }
@@ -172,6 +177,7 @@ function ArtworkDecal({
   mesh,
   printableArea,
   interactive,
+  constrainToPrintArea,
   onSelect,
   onMove,
 }: ArtworkDecalProps) {
@@ -273,22 +279,14 @@ function ArtworkDecal({
     if (!start || start.pointerId !== event.pointerId) return;
 
     const bounds = gl.domElement.getBoundingClientRect();
-    const next = {
-      x: Math.max(
-        printableArea.x,
-        Math.min(
-          printableArea.x + printableArea.width - element.width,
-          start.x + ((event.nativeEvent.clientX - start.clientX) / bounds.width) * printableArea.width,
-        ),
-      ),
-      y: Math.max(
-        printableArea.y,
-        Math.min(
-          printableArea.y + printableArea.height - element.height,
-          start.y + ((event.nativeEvent.clientY - start.clientY) / bounds.height) * printableArea.height,
-        ),
-      ),
-    };
+    const nextX = start.x + ((event.nativeEvent.clientX - start.clientX) / bounds.width) * printableArea.width;
+    const nextY = start.y + ((event.nativeEvent.clientY - start.clientY) / bounds.height) * printableArea.height;
+    const next = constrainToPrintArea
+      ? {
+          x: Math.max(printableArea.x, Math.min(printableArea.x + printableArea.width - element.width, nextX)),
+          y: Math.max(printableArea.y, Math.min(printableArea.y + printableArea.height - element.height, nextY)),
+        }
+      : { x: nextX, y: nextY };
     setDragPosition(next);
   };
 
@@ -347,6 +345,7 @@ export function ArtworkDecals({
   printableArea,
   showPrintArea,
   showSelection,
+  constrainToPrintArea = true,
   onSelect,
   onMove,
 }: ArtworkDecalsProps) {
@@ -369,6 +368,7 @@ export function ArtworkDecals({
           interactive={showSelection && Boolean(onSelect && onMove)}
           onSelect={onSelect}
           onMove={onMove}
+          constrainToPrintArea={constrainToPrintArea}
         />
       ))}
     </>

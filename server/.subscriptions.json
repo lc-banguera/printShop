@@ -59,7 +59,7 @@
     "updatedAt": "2026-09-08T10:14:20.720Z"
   },
   {
-    "id": "sub-1788862460741-e9ac136d",
+    "id": "sub-1791775999238-167ae62f",
     "userId": "usr-test-10",
     "planId": "basic",
     "billingPeriod": "monthly",
@@ -69,8 +69,8 @@
     "paymentId": null,
     "amount": 49900,
     "currency": "COP",
-    "createdAt": "2026-09-08T10:14:20.741Z",
-    "updatedAt": "2026-09-08T10:14:20.741Z"
+    "createdAt": "2026-10-12T03:33:19.238Z",
+    "updatedAt": "2026-10-12T03:33:19.238Z"
   },
   {
     "id": "sub-1788862492052-000bffaa",

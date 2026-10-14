@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import {
   Heart,
   ShoppingCart,
-  ArrowRight,
   Check,
   Search,
   ChevronDown,
@@ -12,6 +11,7 @@ import {
 import { Header } from "@/features/landing/components/Header";
 import { Footer } from "@/features/landing/components/Footer";
 import { Container } from "@/shared/components/Container/Container";
+import { cn } from "@/shared/utils/cn";
 import { useAuthStore } from "@/features/auth";
 import { useFavoritesStore } from "./favorites-store";
 import { useCartStore } from "@/features/cart";
@@ -23,14 +23,14 @@ import {
 
 interface FavoriteItemRowProps {
   product: Product;
-  userId: string;
   onRemove: (productId: string) => void;
+  showAddedDate: boolean;
 }
 
 const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
   product,
-  userId,
   onRemove,
+  showAddedDate,
 }) => {
   const addItem = useCartStore((s) => s.addItem);
   const [isAdded, setIsAdded] = React.useState(false);
@@ -128,10 +128,11 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
             </span>
           </div>
 
-          {/* Fecha de agregado */}
-          <span className="text-[11px] text-[var(--text-muted)] mt-2">
-            Agregado el 3 de septiembre de 2026
-          </span>
+          {showAddedDate && (
+            <span className="mt-2 text-[11px] text-[var(--text-muted)]">
+              Agregado el 3 de septiembre de 2026
+            </span>
+          )}
         </div>
       </div>
 
@@ -242,7 +243,9 @@ const FavoriteItemRow: React.FC<FavoriteItemRowProps> = ({
   );
 };
 
-export const FavoritesPage: React.FC = () => {
+export const FavoritesPage: React.FC<{ embedded?: boolean }> = ({
+  embedded = false,
+}) => {
   const { user, isAuthenticated, openAuthModal } = useAuthStore();
   const { getUserFavoriteProducts, removeFavorite } = useFavoritesStore();
 
@@ -250,9 +253,8 @@ export const FavoritesPage: React.FC = () => {
     "todos"
   );
   const [searchTerm, setSearchTerm] = React.useState("");
-  const [sortBy, setSortBy] = React.useState<
-    "recientes" | "precio-asc" | "precio-desc" | "nombre-asc"
-  >("recientes");
+  type FavoriteSortBy = "recientes" | "precio-asc" | "precio-desc" | "nombre-asc";
+  const [sortBy, setSortBy] = React.useState<FavoriteSortBy  >("recientes");
 
   const userId = user?.id || "usr-client-01";
   const rawFavoriteProducts = isAuthenticated
@@ -278,53 +280,52 @@ export const FavoritesPage: React.FC = () => {
   ).length;
 
   // Filtrado y Ordenamiento
-  const filteredProducts = React.useMemo(() => {
-    let list = [...rawFavoriteProducts];
+  let filteredProducts = [...rawFavoriteProducts];
 
-    // Filtro por tab
-    if (activeTab === "disponibles") {
-      list = list.filter((p) => p.availability !== "Agotado");
-    }
+  // Filtro por tab
+  if (activeTab === "disponibles") {
+    filteredProducts = filteredProducts.filter((p) => p.availability !== "Agotado");
+  }
 
-    // Filtro por buscador
-    if (searchTerm.trim()) {
-      const q = searchTerm.toLowerCase().trim();
-      list = list.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.category.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
-      );
-    }
+  // Filtro por buscador
+  if (searchTerm.trim()) {
+    const q = searchTerm.toLowerCase().trim();
+    filteredProducts = filteredProducts.filter(
+      (p) =>
+        p.name.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q)
+    );
+  }
 
-    // Ordenamiento
-    if (sortBy === "precio-asc") {
-      list.sort((a, b) => {
-        const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10) || 0;
-        const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10) || 0;
-        return pA - pB;
-      });
-    } else if (sortBy === "precio-desc") {
-      list.sort((a, b) => {
-        const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10) || 0;
-        const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10) || 0;
-        return pB - pA;
-      });
-    } else if (sortBy === "nombre-asc") {
-      list.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    return list;
-  }, [rawFavoriteProducts, activeTab, searchTerm, sortBy]);
+  // Ordenamiento
+  if (sortBy === "precio-asc") {
+    filteredProducts.sort((a, b) => {
+      const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10) || 0;
+      const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10) || 0;
+      return pA - pB;
+    });
+  } else if (sortBy === "precio-desc") {
+    filteredProducts.sort((a, b) => {
+      const pA = parseInt(a.price.replace(/[^0-9]/g, ""), 10) || 0;
+      const pB = parseInt(b.price.replace(/[^0-9]/g, ""), 10) || 0;
+      return pB - pA;
+    });
+  } else if (sortBy === "nombre-asc") {
+    filteredProducts.sort((a, b) => a.name.localeCompare(b.name));
+  }
 
   return (
-    <div className="min-h-screen flex min-w-0 flex-col bg-background">
+    <div className={embedded ? "min-w-0" : "flex min-h-screen min-w-0 flex-col bg-background"}>
       {/* ── Header actual de PrintShop ────────────────────────────── */}
-      <Header />
+      {!embedded && <Header />}
 
       {/* ── Contenido Principal ───────────────────────────────────── */}
-      <main className="min-w-0 flex-1 py-8 sm:py-10">
-        <Container variant="wide" className="space-y-7">
+      <main className={cn("min-w-0 flex-1", embedded ? "py-0" : "py-8 sm:py-10")}>
+        <Container
+          variant={embedded ? "full" : "wide"}
+          className={cn("space-y-7", embedded && "px-0")}
+        >
           {/* ── Encabezado y Breadcrumb ─────────────────────────────── */}
           <div>
             <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)] mb-2">
@@ -335,7 +336,7 @@ export const FavoritesPage: React.FC = () => {
               <span className="text-[var(--text-primary)] font-medium">Favoritos</span>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4">
+            <div className={cn("flex flex-col sm:flex-row sm:items-center justify-between gap-4", embedded ? "pb-0" : "pb-4")}>
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -360,8 +361,7 @@ export const FavoritesPage: React.FC = () => {
               )}
             </div>
 
-            {/* Línea divisoria horizontal */}
-            <div className="border-b border-[var(--border)]" />
+            {!embedded && <div className="border-b border-[var(--border)]" />}
           </div>
 
           {/* ── Estado 1: Usuario no autenticado ────────────────────── */}
@@ -385,30 +385,55 @@ export const FavoritesPage: React.FC = () => {
             </div>
           ) : rawFavoriteProducts.length === 0 ? (
             /* ── Estado 2: Lista vacía ──────────────────────────────── */
-            <div className="bg-white rounded-[6px] border border-[var(--border)] p-10 sm:p-16 flex flex-col items-center text-center shadow-2xs max-w-xl mx-auto my-8">
-              <div className="h-16 w-16 rounded-full bg-[var(--border-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] mb-4">
-                <Heart className="h-8 w-8" />
+            embedded ? (
+              <section className="mx-auto flex w-full max-w-3xl flex-col items-center gap-6 rounded-card border border-border bg-surface p-6 shadow-subtle sm:flex-row sm:p-8 sm:text-left">
+                <div className="relative flex h-24 w-24 shrink-0 items-center justify-center" aria-hidden="true">
+                  <span className="absolute h-16 w-16 -translate-x-2 translate-y-2 rounded-2xl border border-border bg-surfaceMuted" />
+                  <span className="absolute flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary shadow-subtle">
+                    <Heart className="h-8 w-8" strokeWidth={1.7} />
+                  </span>
+                </div>
+                <div className="min-w-0 text-center sm:text-left">
+                  <h2 className="text-base font-bold tracking-tight text-foreground">
+                    Aún no tienes productos favoritos
+                  </h2>
+                  <p className="mt-1.5 max-w-lg text-sm leading-relaxed text-foregroundMuted">
+                    Explora productos y guarda tus favoritos para encontrarlos aquí.
+                  </p>
+                  <Link
+                    to="/"
+                    className="mt-5 inline-flex h-10 items-center justify-center gap-2 rounded-control bg-primary px-5 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <span>Explorar productos</span>
+                  </Link>
+                </div>
+              </section>
+            ) : (
+              <div className="bg-white rounded-[6px] border border-[var(--border)] p-10 sm:p-16 flex flex-col items-center text-center shadow-2xs max-w-xl mx-auto my-8">
+                <div className="h-16 w-16 rounded-full bg-[var(--border-muted)] border border-[var(--border)] flex items-center justify-center text-[var(--text-muted)] mb-4">
+                  <Heart className="h-8 w-8" />
+                </div>
+                <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] mb-2">
+                  Aún no tienes productos favoritos
+                </h2>
+                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-6 max-w-md leading-relaxed">
+                  Explora nuestro catálogo y guarda los productos que más te gusten para comprarlos después.
+                </p>
+                <Link
+                  to="/"
+                  className="flex h-11 items-center justify-center gap-2 rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                >
+                  <span>Explorar productos</span>
+                </Link>
               </div>
-              <h2 className="text-lg sm:text-xl font-bold text-[var(--text-primary)] mb-2">
-                Aún no tienes productos favoritos
-              </h2>
-              <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-6 max-w-md leading-relaxed">
-                Explora nuestro catálogo y guarda los productos que más te gusten para comprarlos después.
-              </p>
-              <Link
-                to="/"
-                className="flex h-11 items-center justify-center gap-2 rounded-control bg-primary px-6 text-sm font-semibold text-primaryForeground shadow-subtle transition-colors hover:bg-primaryHover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              >
-                <span>Explorar productos</span>
-              </Link>
-            </div>
+            )
           ) : (
             /* ── Estado 3: Lista de Favoritos (Estructura Horizontal) ─ */
             <div className="space-y-5">
               {/* ── Controles Superiores: Tabs + Buscador + Orden ─────── */}
-              <div className="flex flex-col justify-between gap-4 border-b border-border pb-4 md:flex-row md:items-center">
+              <div className={cn("flex flex-col justify-between gap-4 md:flex-row md:items-center", !embedded && "border-b border-border pb-4")}>
                 {/* Tabs */}
-                <div className="flex items-center gap-6 border-b border-borderMuted md:border-0">
+                <div className={cn("flex items-center gap-6", !embedded && "border-b border-borderMuted md:border-0")}>
                   <button
                     type="button"
                     onClick={() => setActiveTab("todos")}
@@ -462,7 +487,7 @@ export const FavoritesPage: React.FC = () => {
                     <div className="relative flex-1 sm:flex-none">
                       <select
                         value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value as any)}
+                        onChange={(e) => setSortBy(e.target.value as FavoriteSortBy)}
                         className="h-10 w-full appearance-none rounded-control border border-border bg-surface pl-3 pr-8 text-xs font-medium text-foreground shadow-subtle outline-none transition-all focus:border-primary focus-visible:ring-2 focus-visible:ring-primary sm:w-auto"
                       >
                         <option value="recientes">
@@ -491,10 +516,10 @@ export const FavoritesPage: React.FC = () => {
                 <div className="flex flex-col gap-4">
                   {filteredProducts.map((product) => (
                     <FavoriteItemRow
-                      key={product.id}
-                      product={product}
-                      userId={userId}
-                      onRemove={handleRemoveProduct}
+                        key={product.id}
+                        product={product}
+                        onRemove={handleRemoveProduct}
+                        showAddedDate={!embedded}
                     />
                   ))}
                 </div>
@@ -505,7 +530,7 @@ export const FavoritesPage: React.FC = () => {
       </main>
 
       {/* ── Footer actual de PrintShop ────────────────────────────── */}
-      <Footer />
+      {!embedded && <Footer />}
     </div>
   );
 };

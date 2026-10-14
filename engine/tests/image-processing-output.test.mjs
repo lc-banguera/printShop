@@ -141,6 +141,20 @@ test('print dimensions and effective DPI convert physical units without involvin
   });
 });
 
+test('printDimensionsToPixels converts physical dimensions to pixels preserving exact 58x100cm at 300 DPI', () => {
+  const dtfRoll = { width: 58, height: 100, unit: 'cm' };
+  const dtfPixels = engine.printDimensionsToPixels(dtfRoll, { dpiX: 300, dpiY: 300 });
+  // (58 / 2.54) * 300 = 6850.3937... -> 6850 px
+  // (100 / 2.54) * 300 = 11811.0236... -> 11811 px
+  assert.equal(dtfPixels.widthPx, 6850);
+  assert.equal(dtfPixels.heightPx, 11811);
+
+  // Conversion back preserves dimensions
+  const printSizeBack = engine.pixelsToPrintDimensions(dtfPixels, { dpiX: 300, dpiY: 300 }, 'cm');
+  assert.equal(Math.round(printSizeBack.width * 10) / 10, 58);
+  assert.equal(Math.round(printSizeBack.height * 10) / 10, 100);
+});
+
 test('bilinear raster resizing interpolates premultiplied alpha without color fringes', () => {
   const source = engine.createImageBuffer(2, 1, new Uint8Array([
     255, 0, 0, 0,

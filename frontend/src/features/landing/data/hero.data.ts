@@ -21,7 +21,7 @@ export interface HeroData {
 }
 
 export const heroData: HeroData = {
-  eyebrow: 'Diseña, personaliza y hazlo realidad',
+  eyebrow: '',
   titleLines: ['Tus ideas,', 'productos únicos'],
   accentTitle: 'sin límites',
   description:

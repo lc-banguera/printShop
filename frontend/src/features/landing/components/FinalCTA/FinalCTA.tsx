@@ -1,54 +1,74 @@
 import * as React from "react";
 import { Link } from "react-router-dom";
 import { Container } from "@/shared/components/Container/Container";
-import ctaImage from "@/resources/landing_principal/images/img_cta.png";
+import { CheckCircle2 } from "lucide-react";
+import workshopBg from "@/resources/landing_principal/images/cta_workshop_bg.jpg";
 
 export const FinalCTA: React.FC = () => {
   return (
-    <section className="w-full overflow-hidden bg-background py-16 sm:py-20 lg:py-24">
-      <Container variant="wide">
-        {/* Superficie blanca integrada con difuminado perimetral hacia #F4F5FB */}
-        <div className="relative flex w-full flex-col items-stretch overflow-hidden rounded-[22px] border border-borderMuted bg-white shadow-elevated md:flex-row">
-          {/* Difuminado perimetral suave de los extremos hacia #F4F5FB */}
-          <div
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 z-20 bg-[linear-gradient(90deg,rgba(255,255,255,0.35),transparent_36%)]"
+    <section className="relative w-full overflow-hidden bg-white py-20 sm:py-24 lg:py-28">
+      <Container variant="wide" className="px-4 sm:px-6 lg:px-8">
+        {/* Contenedor Completo con Imagen de Fondo Real del Taller textil PrintShop */}
+        <div className="relative flex min-h-[480px] items-center overflow-hidden rounded-[5px] border border-slate-800 bg-[#0D1014] text-white shadow-[0_28px_70px_-30px_rgba(15,23,42,0.8)]">
+          {/* Imagen de fondo a lo ancho del bloque completo */}
+          <img
+            src={workshopBg}
+            alt="Taller de personalización textil y estampado PrintShop"
+            className="absolute inset-0 h-full w-full object-cover object-center"
           />
 
-          {/* Izquierda: texto + botón */}
-          <div className="relative z-10 flex min-w-0 flex-1 flex-col justify-center gap-5 p-7 sm:p-10 md:p-12 lg:p-14">
-            <h2 className="max-w-[560px] text-2xl font-bold leading-[1.12] text-[var(--text-primary)] sm:text-3xl lg:text-[2.5rem]">
-              ¿Tienes una idea?{" "}
-              <span className="text-primary">
-                Nosotros la hacemos realidad.
-              </span>
+          {/* Capa de contraste sólida (Strictly NO gradients) */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 bg-[#0B091A]/88 backdrop-blur-[2px]"
+          />
+
+          {/* Borde interior luminoso discreto */}
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 rounded-[5px] ring-1 ring-inset ring-white/10"
+          />
+
+          {/* Contenido integrado directamente sobre la imagen de fondo */}
+          <div className="relative z-10 w-full max-w-3xl p-8 sm:p-12 lg:p-16 space-y-6">
+            <h2 className="text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl lg:text-2xl">
+              ¿Tienes una idea? Conviertela en un producto real.
             </h2>
-            <p className="max-w-[420px] text-base leading-7 text-[var(--text-secondary)]">
-              Crea productos personalizados únicos con nuestra herramienta fácil
-              de usar y la más alta calidad de impresión.
+
+            <p className="max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg">
+              Empieza hoy en nuestro diseñador 3D gratuito. Visualiza tu prenda,
+              exporta tus archivos con calidad de taller y recibe tus productos
+              listos para usar o vender.
             </p>
-            <div>
+
+            {/* Puntos informativos conservados exactamente */}
+            <div className="space-y-2.5 pt-1 text-sm text-white/90">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />
+                <span>Sin costo inicial para empezar a diseñar</span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />
+                <span>
+                  Producción en DTF, serigrafía y sublimación y muchas técnicas
+                  más.
+                </span>
+              </div>
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-white" />
+                <span>Envíos seguros a todo el país</span>
+              </div>
+            </div>
+
+            {/* Acción Principal Única: Color sólido distintivo (Esmeralda/Teal vibrante de alta visibilidad) */}
+            <div className="pt-4 flex items-center">
               <Link
-                to="/designer/new"
-                className="inline-flex min-h-12 items-center rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primaryForeground shadow-subtle transition-[background-color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:bg-primaryHover hover:shadow-card active:translate-y-0 active:scale-[0.98]"
+                to="/designer/new?product=camisetas"
+                className="inline-flex min-h-[52px] items-center justify-center rounded-[5px] bg-white px-8 py-3.5 text-sm font-bold text-[#0D1014] transition-colors duration-150 hover:bg-slate-200 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#0D1014]"
               >
-                Comenzar a diseñar
+                <span>Comenzar a diseñar gratis</span>
               </Link>
             </div>
-          </div>
-
-          {/* Derecha: imagen */}
-          <div className="relative flex h-56 w-full shrink-0 self-stretch overflow-hidden sm:h-72 md:h-auto md:w-[44%] md:max-w-[520px]">
-            <img
-              src={ctaImage}
-              alt="PrintShop — personaliza tus productos"
-              className="w-full h-full object-cover object-left"
-            />
-            {/* Fade suave en el borde izquierdo */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute inset-y-0 left-0 hidden w-20 bg-gradient-to-r from-white to-transparent md:block"
-            />
           </div>
         </div>
       </Container>

@@ -8,14 +8,14 @@ interface ProductActionsProps {
 export const ProductActions: React.FC<ProductActionsProps> = ({ href }) => {
   return (
     <div className="grid grid-cols-2 gap-2 pt-2 w-full">
-      {/* Personalizar: purple/pink gradient button */}
+      {/* Personalizar: solid purple button */}
       <Link
         to="/designer/personalize"
         className="
           inline-flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:ring-offset-2
           px-3 py-2 text-xs font-bold text-white
-          bg-gradient-to-r from-[#5D46E8] via-[#8534E0] to-[#E50C74]
-          hover:opacity-95 rounded-lg shadow-xs
+          bg-primary hover:bg-[#503cd4]
+          rounded-lg shadow-xs
           transition-all duration-200 text-center
         "
       >

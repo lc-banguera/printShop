@@ -55,6 +55,7 @@ export {
   calculateEffectiveResolution,
   calculateRasterDimensions,
   pixelsToPrintDimensions,
+  printDimensionsToPixels,
 } from './image-scaling';
 export type {
   ImageDimensionsPx,
@@ -85,6 +86,8 @@ export type {
 export { combineSelectionMasks, invertSelectionMask } from './mask-refinement';
 export { applyHalftone } from './halftone';
 export type { HalftoneOptions } from './halftone';
+export { applyImageAdjustments } from './image-adjustments';
+export type { ImageAdjustmentOptions } from './image-adjustments';
 export { createConnectedColorMask, createSimilarColorMask, eraseWithAlphaMask } from './magic-eraser';
 export type { ConnectedRegionOptions, SimilarColorSelectionOptions } from './magic-eraser';
 export { cleanupSemitransparency } from './semitransparency';
@@ -97,8 +100,14 @@ export { analyzeColors } from './color-analysis';
 export type { ColorAnalysisOptions, ColorAnalysisResult } from './color-analysis';
 export { recolorImage } from './recolor';
 export type { RecolorOptions, RecolorResult } from './recolor';
-export { upscaleImage } from './upscaling';
-export type { UpscalingProcessor, UpscalingResult } from './upscaling';
+export {
+  resizeBicubic,
+  resizeLanczos,
+  upscaleImage,
+  upscaleImageLocal,
+  upscaleImageLocalToTarget,
+} from './upscaling';
+export type { UpscaleMethod, UpscaleTarget, UpscalingProcessor, UpscalingResult } from './upscaling';
 export { compositeImageBuffer } from './image-compositing';
 export type { ImageBlendMode, ImageCompositeOptions } from './image-compositing';
 export { transformImageBuffer } from './image-transform';

@@ -10,11 +10,29 @@ export interface AuthUser {
   accessToken?: string;
   // Optional method to indicate how the user authenticated (MANUAL | GOOGLE)
   authMethod?: 'MANUAL' | 'GOOGLE';
+  role?: 'CLIENT' | 'STORE' | 'SUPER_ADMIN';
+  sellerProfile?: SellerProfile;
+}
+
+export interface StoreWorkspace {
+  id: string;
+  name: string;
+  logoUrl?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
+}
+
+export interface SellerProfile {
+  status: 'PENDING' | 'ACTIVE' | 'INACTIVE';
+  membershipStatus?: 'PENDING' | 'ACTIVE' | 'INACTIVE';
+  planId?: string;
+  stores: StoreWorkspace[];
+  createStorePath?: string;
 }
 
 interface AuthStore {
   user: AuthUser | null;
   isAuthenticated: boolean;
+  activeStoreId: string | null;
   pendingCartItem: Omit<CartItem, 'id'> | null;
   isAuthModalOpen: boolean;
 
@@ -26,18 +44,28 @@ interface AuthStore {
   login: (userData?: Partial<AuthUser>) => void;
   logout: () => void;
   setPendingCartItem: (item: Omit<CartItem, 'id'> | null) => void;
+  setActiveStoreId: (storeId: string | null) => void;
 }
 
 const STORAGE_KEY = 'printshop_auth_v1';
 
-// Authentication in this frontend is mock/local-only and should not be rehydrated from
-// persisted browser storage after a refresh. Rehydrating a stale `isAuthenticated` value
-// causes the landing header to hide the login action even when the user is effectively unauthenticated.
-const initialUser: AuthUser | null = null;
+const getInitialAuth = (): { user: AuthUser | null; isAuthenticated: boolean; activeStoreId: string | null } => {
+  // La autenticación actual es temporal y local. No rehidratamos sesiones de prueba
+  // para que una recarga siempre empiece como visitante no autenticado.
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Ignore storage errors.
+  }
+  return { user: null, isAuthenticated: false, activeStoreId: null };
+};
+
+const initialAuth = getInitialAuth();
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
-  user: initialUser,
-  isAuthenticated: false,
+  user: initialAuth.user,
+  isAuthenticated: initialAuth.isAuthenticated,
+  activeStoreId: initialAuth.activeStoreId,
   pendingCartItem: null,
   isAuthModalOpen: false,
 
@@ -53,27 +81,22 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   login: (userData) => {
+    const email = userData?.email || '';
     const user: AuthUser = {
       id: userData?.id || `usr-${Date.now()}`,
-      name: userData?.name || 'Cliente PrintShop',
-      email: userData?.email || 'cliente@printshop.com',
+      name: userData?.name || email,
+      email,
       avatar: userData?.avatar,
       accessToken: userData?.accessToken,
-      authMethod: (userData as any)?.authMethod || 'MANUAL',
+      authMethod: userData?.authMethod || 'MANUAL',
     };
 
     set({
       user,
       isAuthenticated: true,
+      activeStoreId: null,
       isAuthModalOpen: false,
     });
-
-    // persist minimal auth to localStorage so refresh keeps the session
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ user, isAuthenticated: true }));
-    } catch (e) {
-      // ignore storage errors
-    }
 
     // ── Continuar automáticamente con el producto pendiente (sin abrir drawer) ──
     const pending = get().pendingCartItem;
@@ -86,10 +109,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   logout: () => {
     try {
       localStorage.removeItem(STORAGE_KEY);
-    } catch (e) {}
+    } catch {
+      // Ignore storage errors.
+    }
     set({
       user: null,
       isAuthenticated: false,
+      activeStoreId: null,
       pendingCartItem: null,
     });
   },
@@ -97,4 +123,33 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   setPendingCartItem: (item) => {
     set({ pendingCartItem: item });
   },
+
+  setActiveStoreId: (storeId) => {
+    set({ activeStoreId: storeId });
+  },
 }));
+
+export function hasSellerProfile(user: AuthUser | null | undefined): boolean {
+  return Boolean(user?.sellerProfile && user.sellerProfile.status === 'ACTIVE');
+}
+
+export function hasActiveSellerMembership(user: AuthUser | null | undefined): boolean {
+  const profile = user?.sellerProfile;
+  return Boolean(
+    profile &&
+      profile.status === 'ACTIVE' &&
+      profile.membershipStatus !== 'INACTIVE',
+  );
+}
+
+export function getAuthorizedStore(user: AuthUser | null | undefined, storeId: string | null | undefined): StoreWorkspace | null {
+  if (!hasSellerProfile(user) || !storeId) return null;
+  return user?.sellerProfile?.stores.find((store) => store.id === storeId) ?? null;
+}
+
+export function getPostAuthRoute(user: AuthUser | null | undefined, requestedPath?: string): string {
+  if (requestedPath && requestedPath !== '/' && requestedPath.startsWith('/') && !requestedPath.startsWith('//')) {
+    return requestedPath;
+  }
+  return hasSellerProfile(user) ? '/workspace' : '/account';
+}

@@ -14,7 +14,7 @@ export const CTABanner: React.FC = () => {
   return (
     <section className="w-full py-8 md:py-12 bg-surface">
       <Container variant="wide">
-        <div className="relative w-full rounded-3xl md:rounded-[36px] overflow-hidden bg-gradient-to-r from-[#5D46E8] via-[#8534E0] to-[#E50C74] px-6 py-12 md:py-16 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 min-h-[300px]">
+        <div className="relative w-full rounded-3xl md:rounded-[36px] overflow-hidden bg-[#5D46E8] px-6 py-12 md:py-16 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 min-h-[300px]">
           
           {/* Left Decorative Image Mockup */}
           <div className="hidden lg:block w-[180px] shrink-0 relative">
