@@ -2,6 +2,7 @@ import { Stage, Layer } from 'react-konva';
 import Konva from 'konva';
 import { CANVAS_CONFIG } from '../../services';
 import { useCanvasStore } from '@/store/canvas-store';
+import type { ProductSurface } from '@/core/design/types';
 import { CanvasElements } from '../canvas-elements';
 // PrintableAreaManager removed
 import { CanvasSelection } from '../canvas-selection';
@@ -11,8 +12,9 @@ interface CanvasOverlayProps {
   stageScale: number;
   stageX: number;
   stageY: number;
+  surface: Pick<ProductSurface, 'id'>;
   onStageClick: (e: Konva.KonvaEventObject<MouseEvent>) => void;
-  onElementClick: (elementId: string) => void;
+  onElementClick: (elementId: string, additive: boolean) => void;
   onDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
   onDragEnd: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
 }
@@ -32,6 +34,7 @@ export function CanvasOverlay({
   stageScale,
   stageX,
   stageY,
+  surface,
   onStageClick,
   onElementClick,
   onDragMove,
@@ -44,7 +47,7 @@ export function CanvasOverlay({
   }
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 pointer-events-none">
       <Stage
         width={stageSize.width}
         height={stageSize.height}
@@ -55,24 +58,26 @@ export function CanvasOverlay({
         pixelRatio={typeof window !== 'undefined' ? window.devicePixelRatio : 1}
         onClick={onStageClick}
         onTap={onStageClick}
-        className="relative z-10"
+        className="relative z-10 pointer-events-auto"
       >
-      {/* Layer: Content & Multi-Zone Guides */}
-      <Layer name={CANVAS_CONFIG.LAYERS.CONTENT}>
 
-        <CanvasElements
-          elements={elements}
-          onElementClick={onElementClick}
-          onElementDragMove={onDragMove}
-          onElementDragEnd={onDragEnd}
-        />
-      </Layer>
+        {/* Layer: Content & Multi-Zone Guides */}
+        <Layer name={CANVAS_CONFIG.LAYERS.CONTENT}>
 
-      {/* Layer: Selection (Konva Transformer) */}
-      <Layer name={CANVAS_CONFIG.LAYERS.SELECTION}>
-        <CanvasSelection />
-      </Layer>
-    </Stage>
+          <CanvasElements
+            elements={elements}
+            surface={surface}
+            onElementClick={onElementClick}
+            onElementDragMove={onDragMove}
+            onElementDragEnd={onDragEnd}
+          />
+        </Layer>
+
+        {/* Layer: Selection (Konva Transformer) */}
+        <Layer name={CANVAS_CONFIG.LAYERS.SELECTION}>
+          <CanvasSelection />
+        </Layer>
+      </Stage>
     </div>
   );
 }

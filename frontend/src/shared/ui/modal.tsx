@@ -9,7 +9,7 @@ const ModalOverlay = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Ov
   ({ className, ...props }, ref) => (
     <DialogPrimitive.Overlay
       ref={ref}
-      className={cn('fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity duration-200', className)}
+      className={cn('fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity duration-normal', className)}
       {...props}
     />
   )
@@ -23,7 +23,7 @@ const ModalContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.Co
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-[min(90vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-[var(--radius-xl)] border border-border bg-surface p-6 shadow-lg outline-none',
+          'fixed left-1/2 top-1/2 z-50 w-[min(92vw,560px)] -translate-x-1/2 -translate-y-1/2 rounded-dialog border border-[var(--border)] bg-[var(--surface)] p-5 shadow-modal outline-none sm:p-6',
           className
         )}
         {...props}
@@ -41,12 +41,12 @@ const ModalHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDi
 ModalHeader.displayName = 'ModalHeader';
 
 const ModalTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title ref={ref} className={cn('text-xl font-semibold text-text-primary', className)} {...props} />
+  <DialogPrimitive.Title ref={ref} className={cn('text-xl font-semibold tracking-tight text-[var(--text-primary)]', className)} {...props} />
 ));
 ModalTitle.displayName = DialogPrimitive.Title.displayName;
 
 const ModalDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn('text-sm leading-6 text-text-secondary', className)} {...props} />
+  <DialogPrimitive.Description ref={ref} className={cn('text-sm leading-6 text-[var(--text-secondary)]', className)} {...props} />
 ));
 ModalDescription.displayName = DialogPrimitive.Description.displayName;
 

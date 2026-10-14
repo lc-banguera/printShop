@@ -1,0 +1,10 @@
+export { DesignMarketplacePage } from './pages/DesignMarketplacePage';
+export { DesignPackDetailPage } from './pages/DesignPackDetailPage';
+export { DesignAccessPage } from './pages/DesignAccessPage';
+export { DesignLibraryPage } from './pages/DesignLibraryPage';
+export { DesignCreatorGuard, DesignCreatorLayout } from './pages/DesignCreatorLayout';
+export { DesignCreatorDashboardPage } from './pages/DesignCreatorDashboardPage';
+export { DesignCreatorPacksPage } from './pages/DesignCreatorPacksPage';
+export { DesignCreatorPackFormPage } from './pages/DesignCreatorPackFormPage';
+export { DesignCreatorSalesPage } from './pages/DesignCreatorSalesPage';
+export { DesignCreatorProfilePage } from './pages/DesignCreatorProfilePage';

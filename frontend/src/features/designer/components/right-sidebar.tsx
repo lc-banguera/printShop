@@ -1,221 +1,220 @@
-// src/features/designer/components/right-sidebar.tsx
-import { useState } from 'react';
-import {
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  AlignJustify,
-  AlignStartVertical,
-  AlignEndVertical,
-  Link,
-  Eye,
-  Lock,
-  GripVertical,
-  Type,
-  Gamepad2,
-  Sparkles,
-  Square,
-  Plus,
-} from 'lucide-react';
 import { ScrollArea } from '@/shared/ui/scroll-area';
 import { useCanvasStore } from '@/store/canvas-store';
 import { useViewerStore } from '@/store/viewer-store';
-import type { CanvasState } from '@/types/canvas';
-import { useProductSelection } from '@/features/catalog/hooks/useProductSelection';
-import type { ProductDefinition } from '@/types/product';
+import type { CanvasState, CanvasElement } from '@/types/canvas';
+
+// Fallback values for when product doesn't define its own sizes or print methods.
+// These will never be used once the API populates availableSizes / availablePrintMethods
+// per product/store (see ProductDefinition type documentation).
+const FALLBACK_SIZES: string[] = ['S', 'M', 'L', 'XL', 'XXL'];
+const FALLBACK_PRINT_METHODS: string[] = ['DTF', 'Sublimación', 'Vinilo', 'Bordado'];
 
 export function RightSidebar() {
   const selectedElementId = useCanvasStore((state: CanvasState) => state.selectedElementId);
   const elements = useCanvasStore((state: CanvasState) => state.elements);
-  const activeProduct = useViewerStore((state) => state.activeProduct);
-  const [activeTab, setActiveTab] = useState<'properties' | 'layers'>('properties');
+  const updateElement = useCanvasStore((state) => state.updateElement);
 
-  const selectedElement = selectedElementId
+  const activeProduct = useViewerStore((state) => state.activeProduct);
+  const selectedSize = useViewerStore((state) => state.selectedSize ?? 'M');
+  const setSelectedSize = useViewerStore((state) => state.setSelectedSize ?? (() => {}));
+  const selectedPrintMethod = useViewerStore((state) => state.selectedPrintMethod ?? '');
+  const setSelectedPrintMethod = useViewerStore((state) => state.setSelectedPrintMethod ?? (() => {}));
+
+  const aspectLocked = true;
+
+  // Read sizes and print methods from the active product definition.
+  // This is the architecture-ready pattern: when the API is connected, these will
+  // come from the product/offer/store response (availableSizes, availablePrintMethods).
+  const availableSizes = activeProduct.availableSizes ?? FALLBACK_SIZES;
+  const availablePrintMethods = activeProduct.availablePrintMethods ?? FALLBACK_PRINT_METHODS;
+
+  const selectedElement: CanvasElement | undefined = selectedElementId
     ? elements.find((el) => el.id === selectedElementId)
     : undefined;
 
-  const displayX = selectedElement ? `${Math.round(selectedElement.x)} px` : '12.5 cm';
-  const displayY = selectedElement ? `${Math.round(selectedElement.y)} px` : '8.3 cm';
-  const displayW = selectedElement ? `${Math.round(selectedElement.width)} px` : '25.6 cm';
-  const displayH = selectedElement ? `${Math.round(selectedElement.height)} px` : '20.4 cm';
-  const displayRotation = selectedElement ? `${Math.round(selectedElement.rotation ?? 0)}°` : '0°';
-  const displayOpacity = selectedElement ? `${Math.round((selectedElement.opacity ?? 1) * 100)}%` : '100%';
+  // Conversion: 10px = 1cm for garment scale
+  const pxToCm = (px: number) => (px / 10).toFixed(1);
+  const cmToPx = (cm: number) => cm * 10;
 
-  // ---- Catalog hook -----------------------------------------------------------
-  const { products, selectProduct } = useProductSelection();
+  const widthCm = selectedElement ? pxToCm(selectedElement.width) : '0';
+  const heightCm = selectedElement ? pxToCm(selectedElement.height) : '0';
+  const opacityVal = selectedElement ? Math.round((selectedElement.opacity ?? 1) * 100) : 100;
+  const designPalette = selectedElement && selectedElement.type !== 'image'
+    ? [...new Set([selectedElement.fill, selectedElement.stroke].filter((color): color is string => Boolean(color && /^#[0-9a-f]{6}$/i.test(color))))]
+    : [];
 
-
-  // Render each product as a card while preserving the original visual style.
-  const renderProductCard = (product: ProductDefinition) => {
-    const isSelected = activeProduct.id === product.id;
-    return (
-      <div
-        key={product.id}
-        onClick={() => selectProduct(product)}
-        className={`flex items-center gap-2 rounded-xl border p-2 cursor-pointer transition-all ${
-          isSelected
-            ? 'border-[#5046e5]/40 bg-[#eeebff]/50'
-            : 'border-[#e8e8ed] bg-white hover:bg-[#fafafc]'
-        }`}
-      >
-        <img src={product.thumbnail} alt={product.name} className="h-5 w-5 object-cover rounded" />
-        <span className="text-[11px] font-medium text-[#171421]">{product.name}</span>
-      </div>
-    );
+  const handleWidthChange = (valStr: string) => {
+    const val = parseFloat(valStr);
+    if (isNaN(val) || !selectedElement) return;
+    const newW = cmToPx(val);
+    if (aspectLocked && selectedElement.width > 0) {
+      const ratio = selectedElement.height / selectedElement.width;
+      updateElement(selectedElement.id, { width: newW, height: newW * ratio });
+    } else {
+      updateElement(selectedElement.id, { width: newW });
+    }
   };
-  // -----------------------------------------------------------------------------
+
+  const handleHeightChange = (valStr: string) => {
+    const val = parseFloat(valStr);
+    if (isNaN(val) || !selectedElement) return;
+    const newH = cmToPx(val);
+    if (aspectLocked && selectedElement.height > 0) {
+      const ratio = selectedElement.width / selectedElement.height;
+      updateElement(selectedElement.id, { height: newH, width: newH * ratio });
+    } else {
+      updateElement(selectedElement.id, { height: newH });
+    }
+  };
 
   return (
-    <aside className="flex w-[300px] shrink-0 flex-col border-l border-[#e8e8f0] bg-white select-none">
-      {/* Top Header Tabs */}
-      <div className="flex border-b border-[#e8e8f0] px-4 pt-2.5 gap-5">
-        <button
-          type="button"
-          onClick={() => setActiveTab('properties')}
-          className={`pb-2 text-[11px] font-semibold transition-all relative ${
-            activeTab === 'properties' ? 'text-[#5046e5]' : 'text-[#5e5d72] hover:text-[#171421]'
-          }`}
-        >
-          Propiedades
-          {activeTab === 'properties' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#5046e5]" />
-          )}
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('layers')}
-          className={`pb-2 text-[11px] font-semibold transition-all relative ${
-            activeTab === 'layers' ? 'text-[#5046e5]' : 'text-[#5e5d72] hover:text-[#171421]'
-          }`}
-        >
-          Capas ({elements.length > 0 ? elements.length : 5})
-          {activeTab === 'layers' && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 rounded-full bg-[#5046e5]" />
-          )}
-        </button>
+    <aside className="flex w-[290px] shrink-0 flex-col border-l border-[#e8e8f0] bg-white select-none">
+      {/* Header */}
+      <div className="flex border-b border-[#e8e8f0] px-4 py-3 bg-white items-center justify-between">
+        <div>
+          <h3 className="text-xs font-bold text-[#171421]">Propiedades</h3>
+          <p className="text-[10px] text-[#8E96A6] mt-0.5">
+            {selectedElement ? (selectedElement.name || 'Diseño seleccionado') : 'Sin diseño seleccionado'}
+          </p>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
-          {/* Section 1: Posición */}
+        <div className="p-3.5 space-y-4">
+
+          {/* ── SECTION: TAMAÑO (CM) ── */}
           <div className="space-y-1.5">
-            <h4 className="text-[11px] font-semibold text-[#171421]">Posición</h4>
-            {/* Alignment icons toolbar */}
-            <div className="grid grid-cols-6 gap-1 rounded-xl bg-[#f4f4f7] p-1">
-              <button type="button" className="flex h-6 items-center justify-center rounded-lg text-[#5e5d72] hover:bg-white hover:text-[#171421] transition-all">
-                <AlignLeft className="h-3.5 w-3.5" />
-              </button>
-              <button type="button" className="flex h-6 items-center justify-center rounded-lg text-[#5e5d72] hover:bg-white hover:text-[#171421] transition-all">
-                <AlignCenter className="h-3.5 w-3.5" />
-              </button>
-              <button type="button" className="flex h-6 items-center justify-center rounded-lg text-[#5e5d72] hover:bg-white hover:text-[#171421] transition-all">
-                <AlignRight className="h-3.5 w-3.5" />
-              </button>
-              <button type="button" className="flex h-6 items-center justify-center rounded-lg text-[#5e5d72] hover:bg-white hover:text-[#171421] transition-all">
-                <AlignStartVertical className="h-3.5 w-3.5" />
-              </button>
-              <button type="button" className="flex h-6 items-center justify-center rounded-lg text-[#5e5d72] hover:bg-white hover:text-[#171421] transition-all">
-                <AlignJustify className="h-3.5 w-3.5" />
-              </button>
-              <button type="button" className="flex h-6 items-center justify-center rounded-lg text-[#5e5d72] hover:bg-white hover:text-[#171421] transition-all">
-                <AlignEndVertical className="h-3.5 w-3.5" />
-              </button>
+            <div className="flex items-center justify-between">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Tamaño</h4>
             </div>
 
-            {/* X and Y Inputs */}
-            <div className="grid grid-cols-2 gap-1.5 pt-0.5">
-              <div className="flex h-8 items-center justify-between rounded-xl border border-[#e4e4ee] bg-[#fdfdfd] px-2.5">
-                <span className="text-[11px] font-medium text-[#8E96A6]">X</span>
-                <span className="text-[11px] font-medium text-[#171421]">{displayX}</span>
-              </div>
-              <div className="flex h-8 items-center justify-between rounded-xl border border-[#e4e4ee] bg-[#fdfdfd] px-2.5">
-                <span className="text-[11px] font-medium text-[#8E96A6]">Y</span>
-                <span className="text-[11px] font-medium text-[#171421]">{displayY}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Section 2: Tamaño */}
-          <div className="space-y-1.5">
-            <h4 className="text-[11px] font-semibold text-[#171421]">Tamaño</h4>
-            <div className="flex items-center gap-1.5">
-              <div className="flex-1 grid grid-cols-2 gap-1.5">
-                <div className="flex h-8 items-center justify-between rounded-xl border border-[#e4e4ee] bg-[#fdfdfd] px-2.5">
-                  <span className="text-[11px] font-medium text-[#8E96A6]">Ancho</span>
-                  <span className="text-[11px] font-medium text-[#171421]">{displayW}</span>
+            {selectedElement ? (
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex h-8 items-center justify-between rounded-[5px] border border-[#e4e4ee] bg-[#fafafc] px-2.5">
+                  <span className="text-[10px] font-medium text-[#8E96A6]">Ancho</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="1"
+                      max="40"
+                      value={widthCm}
+                      onChange={(e) => handleWidthChange(e.target.value)}
+                      className="w-12 text-right text-[11px] font-semibold text-[#171421] bg-transparent focus:outline-none"
+                    />
+                    <span className="text-[10px] text-[#8E96A6]">cm</span>
+                  </div>
                 </div>
-                <div className="flex h-8 items-center justify-between rounded-xl border border-[#e4e4ee] bg-[#fdfdfd] px-2.5">
-                  <span className="text-[11px] font-medium text-[#8E96A6]">Alto</span>
-                  <span className="text-[11px] font-medium text-[#171421]">{displayH}</span>
+                <div className="flex h-8 items-center justify-between rounded-[5px] border border-[#e4e4ee] bg-[#fafafc] px-2.5">
+                  <span className="text-[10px] font-medium text-[#8E96A6]">Alto</span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      step="0.5"
+                      min="1"
+                      max="50"
+                      value={heightCm}
+                      onChange={(e) => handleHeightChange(e.target.value)}
+                      className="w-12 text-right text-[11px] font-semibold text-[#171421] bg-transparent focus:outline-none"
+                    />
+                    <span className="text-[10px] text-[#8E96A6]">cm</span>
+                  </div>
                 </div>
               </div>
-              <button
-                type="button"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border border-[#e4e4ee] bg-[#f4f4f7] text-[#5e5d72] hover:bg-[#e9e9ee]"
-                title="Bloquear relación de aspecto"
-              >
-                <Link className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Section 3: Rotación */}
-          <div className="space-y-1.5">
-            <h4 className="text-[11px] font-semibold text-[#171421]">Rotación</h4>
-            <div className="flex items-center gap-2.5">
-              <div className="relative flex-1 flex items-center">
-                <div className="h-1.5 w-full rounded-full bg-[#eeeef5]">
-                  <div className="h-full w-0 rounded-full bg-[#5046e5]" />
-                </div>
-                <div className="absolute left-0 h-3.5 w-3.5 rounded-full border-2 border-[#5046e5] bg-white shadow-xs" />
+            ) : (
+              <div className="rounded-[5px] border border-dashed border-[#e4e4ee] bg-[#fafafc] p-2.5 text-center text-[11px] text-[#908fa3]">
+                Sin diseños
               </div>
-              <span className="w-8 text-right text-[11px] font-medium text-[#171421]">
-                {displayRotation}
-              </span>
-            </div>
+            )}
           </div>
 
-          {/* Section 4: Opacidad */}
-          <div className="space-y-1.5">
-            <h4 className="text-[11px] font-semibold text-[#171421]">Opacidad</h4>
-            <div className="flex items-center gap-2.5">
-              <div className="relative flex-1 flex items-center">
-                <div className="h-1.5 w-full rounded-full bg-[#eeeef5]">
-                  <div className="h-full w-full rounded-full bg-[#5046e5]" />
-                </div>
-                <div className="absolute right-0 h-3.5 w-3.5 rounded-full border-2 border-[#5046e5] bg-white shadow-xs" />
+          {/* ── SECTION: OPACIDAD DEL DISEÑO ── */}
+          {selectedElement && (
+            <div className="space-y-1.5 border-t border-[#eeeef5] pt-3">
+              <div className="flex justify-between items-center">
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Opacidad</h4>
+                <span className="text-[11px] font-semibold text-[#171421]">{opacityVal}%</span>
               </div>
-              <span className="w-8 text-right text-[11px] font-medium text-[#171421]">
-                {displayOpacity}
-              </span>
+              <input
+                type="range"
+                min="10"
+                max="100"
+                value={opacityVal}
+                onChange={(e) => updateElement(selectedElement.id, { opacity: Number(e.target.value) / 100 })}
+                className="w-full h-1.5 bg-[#eeeef5] rounded-full accent-[#5046e5] cursor-pointer"
+              />
             </div>
-          </div>
+          )}
 
-          {/* Section 5: Colores */}
-          <div className="space-y-1.5 pt-0.5">
-            <h4 className="text-[11px] font-semibold text-[#171421]">Colores</h4>
-            <p className="text-[10px] text-[#8E96A6]">Colores del diseño</p>
-            <div className="flex items-center gap-1.5">
-              <div className="h-5 w-5 rounded-full bg-[#1a1936] cursor-pointer ring-1 ring-black/10" />
-              <div className="h-5 w-5 rounded-full bg-[#6b46c1] cursor-pointer ring-1 ring-black/10" />
-              <div className="h-5 w-5 rounded-full bg-[#ec4899] cursor-pointer ring-1 ring-black/10" />
-              <div className="h-5 w-5 rounded-full bg-[#f97316] cursor-pointer ring-1 ring-black/10" />
-              <div className="h-5 w-5 rounded-full bg-[#06b6d4] cursor-pointer ring-1 ring-black/10" />
-              <div className="h-5 w-5 rounded-full bg-[#eab308] cursor-pointer ring-1 ring-black/10" />
-              <button
-                type="button"
-                className="flex h-5 w-5 items-center justify-center rounded-full bg-[#5046e5] text-white"
-              >
-                <Plus className="h-3 w-3" />
-              </button>
+          {/* Displays only explicit colors already present on the selected element. */}
+          {selectedElement && (
+            <div className="space-y-2 border-t border-[#eeeef5] pt-3">
+              <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Colores del diseño</h4>
+              {designPalette.length > 0 ? (
+                <div role="group" aria-label="Colores detectados del diseño" className="flex items-center gap-2">
+                  {designPalette.map((color) => <span key={color} title={color} aria-label={color} className="h-5 w-5 rounded-full border border-black/15" style={{ backgroundColor: color }} />)}
+                </div>
+              ) : (
+                <p className="text-[10px] text-[#908fa3] opacity-70">Selección de color disponible para diseños compatibles.</p>
+              )}
             </div>
-          </div>
+          )}
 
-          {/* Section 6: Catálogo de productos (formerly Capas list) */}
-          <div className="space-y-1.5 pt-1.5 border-t border-[#eeeef5]">
-            <h4 className="text-[11px] font-semibold text-[#171421]">Catálogo de productos</h4>
-            <div className="space-y-1">
-              {products.map(renderProductCard)}
+          {/* ── SECTION: CONFIGURACIÓN DE PRENDA ──
+              Tallas disponibles y Técnicas disponibles se leen del producto activo.
+              ARCHITECTURE NOTE: cuando el modelo de negocio esté conectado con la API,
+              estas listas vendrán de activeProduct.availableSizes y
+              activeProduct.availablePrintMethods, que serán populadas por el servidor
+              según el producto y la oferta de la tienda. Ver ProductDefinition en types/product.ts. */}
+          <div className="space-y-3 border-t border-[#eeeef5] pt-3">
+            <h4 className="text-[10px] font-bold uppercase tracking-wider text-[#8E96A6]">Configuración de prenda</h4>
+
+            {/* Tallas disponibles */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-medium text-[#5e5d72]">Tallas disponibles</span>
+              <div className="flex flex-wrap items-center gap-1">
+                {availableSizes.map((sz) => {
+                  const isSelected = selectedSize === sz;
+                  return (
+                    <button
+                      key={sz}
+                      type="button"
+                      onClick={() => setSelectedSize(sz)}
+                      className={`h-7 min-w-[32px] px-2 rounded-[5px] border text-[11px] font-semibold transition-all ${
+                        isSelected
+                          ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
+                          : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:bg-[#fafafc]'
+                      }`}
+                    >
+                      {sz}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Técnicas disponibles */}
+            <div className="space-y-1.5">
+              <span className="text-[11px] font-medium text-[#5e5d72]">Técnicas disponibles</span>
+              <div className="grid grid-cols-2 gap-1.5">
+                {availablePrintMethods.map((m) => {
+                  const isSelected = selectedPrintMethod === m;
+                  return (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setSelectedPrintMethod(m)}
+                      className={`h-7 rounded-[5px] border px-2 text-[10px] font-semibold transition-all text-center ${
+                        isSelected
+                          ? 'border-[#5046e5] bg-[#eeebff] text-[#5046e5]'
+                          : 'border-[#e4e4ee] bg-white text-[#5e5d72] hover:bg-[#fafafc]'
+                      }`}
+                    >
+                      {m}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>

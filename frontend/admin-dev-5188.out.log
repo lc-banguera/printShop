@@ -1,0 +1,27 @@
+
+> printshop-frontend@0.0.1 dev
+> vite --host 127.0.0.1 --port 5188 --strictPort
+
+
+  [32m[1mVITE[22m v5.4.21[39m  [2mready in [0m[1m637[22m[2m[0m ms[22m
+
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m5188[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m5:57:50 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/products.tsx, /src/index.css[22m
+[2m5:57:58 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/stores.tsx, /src/index.css[22m
+[2m5:58:06 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/subscriptions.tsx, /src/index.css[22m
+[2m5:58:14 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/support.tsx, /src/index.css[22m
+[2m5:58:21 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/users.tsx, /src/index.css[22m
+[2m5:58:29 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/templates.tsx, /src/index.css[22m
+[2m6:08:10 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m6:08:35 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shared/ui/sidebar.tsx, /src/index.css[22m
+[2m6:09:08 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shared/ui/topbar.tsx, /src/index.css[22m
+[2m6:09:28 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/shared/ui/table-actions.tsx, /src/index.css[22m
+[2m6:10:02 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/stores.tsx, /src/index.css[22m
+[2m6:10:17 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/orders.tsx, /src/index.css[22m
+[2m6:10:35 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/products.tsx, /src/index.css[22m
+[2m6:10:51 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/users.tsx, /src/index.css[22m
+[2m6:11:06 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/plans.tsx, /src/index.css[22m
+[2m6:11:20 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/features/admin/subscriptions.tsx, /src/index.css[22m
+[2m6:11:53 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m
+[2m6:14:01 p. m.[22m [36m[1m[vite][22m[39m [32mhmr update [39m[2m/src/index.css[22m

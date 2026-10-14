@@ -1,0 +1,10 @@
+import { Link } from 'react-router-dom';
+import { MarketplaceSectionHeading } from '../components/DesignMarketplaceShell';
+import { useDesignMarketplaceStore } from '../store/design-marketplace-store';
+
+export function DesignCreatorSalesPage() {
+  const packs = useDesignMarketplaceStore((state) => state.packs);
+  const sales = useDesignMarketplaceStore((state) => state.sales);
+  const total = sales.reduce((sum, sale) => sum + sale.amount, 0);
+  return <><MarketplaceSectionHeading eyebrow="Actividad de ventas" title="Ventas" description="Consulta los accesos y compras asociados a tus packs." /><div className="marketplace-stat-grid"><div className="marketplace-stat"><span className="marketplace-stat-label">Registros</span><div className="marketplace-stat-value">{sales.length}</div><span className="marketplace-stat-note">Accesos registrados</span></div><div className="marketplace-stat"><span className="marketplace-stat-label">Valor de referencia</span><div className="marketplace-stat-value">$ {total.toLocaleString('en-US')}</div><span className="marketplace-stat-note">USD</span></div></div><div className="marketplace-table-wrap"><table className="marketplace-table"><thead><tr><th>Pack</th><th>Comprador</th><th>Tipo</th><th>Importe de referencia</th><th>Fecha</th></tr></thead><tbody>{sales.map((sale) => { const pack = packs.find((item) => item.id === sale.packId); return <tr key={sale.id}><td><strong>{pack?.title ?? 'Pack eliminado'}</strong></td><td>{sale.buyerEmail}</td><td>{sale.kind === 'free_access' ? 'Gratis' : 'Compra'}</td><td>$ {sale.amount.toLocaleString('en-US')} {sale.currency}</td><td>{new Date(sale.createdAt).toLocaleDateString('es-MX')}</td></tr>; })}</tbody></table></div>{sales.length === 0 ? <section className="marketplace-empty"><h2>Aún no hay adquisiciones</h2><p>Cuando alguien adquiera uno de tus packs, el registro aparecerá aquí.</p><Link to="/designs/creator/packs/new" className="marketplace-button marketplace-button-primary mt-5">Crear un pack</Link></section> : null}</>;
+}

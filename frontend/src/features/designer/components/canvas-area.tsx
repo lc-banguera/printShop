@@ -1,6 +1,6 @@
 export function CanvasArea() {
   return (
-    <main className="flex-1 overflow-hidden bg-gradient-to-br from-background to-background/50">
+    <main className="flex-1 overflow-hidden rounded-lg bg-gradient-to-br from-indigo-200 via-purple-200 to-pink-100" onDoubleClick={() => { const { requestFit } = require('@/store/viewer-store').useViewerStore.getState(); requestFit(); }}>
       <div className="flex h-full items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           {/* Canvas Placeholder */}

@@ -1,0 +1,389 @@
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-move" viewBox="0 0 24 24"><path d="M6 3.5l12.5 7-5.6 1.8-1.9 5.7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
+    <symbol id="i-hand" viewBox="0 0 24 24"><path d="M8 12V6.2a1.4 1.4 0 012.8 0V11m0-1.5V4.7a1.4 1.4 0 012.8 0V10m0-3.3a1.4 1.4 0 012.8 0V14a6 6 0 01-6 6h-.6a5.4 5.4 0 01-4.4-2.3l-2.7-4.2a1.4 1.4 0 012.3-1.6L8 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cut" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V4.5A1.5 1.5 0 014.5 3H8M16 3h3.5A1.5 1.5 0 0121 4.5V8M21 16v3.5a1.5 1.5 0 01-1.5 1.5H16M8 21H4.5A1.5 1.5 0 013 19.5V16"/><circle cx="12" cy="10" r="2.6"/><path d="M6.8 18c.7-2.6 2.8-4 5.2-4s4.5 1.4 5.2 4"/></g></symbol>
+    <symbol id="i-eraser" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 14.6l8.3-8.3a2 2 0 012.8 0l2.4 2.4a2 2 0 010 2.8L11.6 18.4H8z"/><path d="M5.2 14.6a2 2 0 000 2.8L6.6 18.4M11 18.4h9.5M9.4 10l5.6 5.6"/></g></symbol>
+    <symbol id="i-trace" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21l-5.2-8.6L12 3l5.2 9.4z"/><circle cx="12" cy="11" r="1.6"/><path d="M12 12.6V21"/></g></symbol>
+    <symbol id="i-scale" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-7 7M10 20H4v-6M4 20l7-7" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-enhance" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M10 4l1.9 5.1L17 11l-5.1 1.9L10 18l-1.9-5.1L3 11l5.1-1.9z"/><path d="M18 14l.9 2.1L21 17l-2.1.9L18 20l-.9-2.1L15 17l2.1-.9z"/></g></symbol>
+    <symbol id="i-dots" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5.5" cy="5.5" r="2.4"/><circle cx="12" cy="5.5" r="1.7"/><circle cx="18.5" cy="5.5" r="1"/><circle cx="5.5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.3"/><circle cx="18.5" cy="12" r=".8"/><circle cx="5.5" cy="18.5" r="1"/><circle cx="12" cy="18.5" r=".8"/><circle cx="18.5" cy="18.5" r=".5"/></g></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5M3 16.5L12 21l9-4.5"/></g></symbol>
+    <symbol id="i-frame" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="5" y="6" width="14" height="12" rx="1"/><path d="M2 9h3M2 15h3M19 9h3M19 15h3M9 2v4M15 2v4M9 18v4M15 18v4"/></g></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10.5a5.5 5.5 0 010 11H11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-redo" viewBox="0 0 24 24"><path d="M15 14l5-5-5-5M20 9H9.5a5.5 5.5 0 000 11H13" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M2 12s3.8-7 10-7 10 7 10 7-3.8 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+    <symbol id="i-eyeoff" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A9.7 9.7 0 0112 5c6.2 0 10 7 10 7a17 17 0 01-3.2 4M6.4 6.5C3.9 8.2 2 12 2 12s3.8 7 10 7c1.4 0 2.7-.3 3.8-.8"/></g></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.5 7h15M9.5 7V4.5h5V7M6.5 7l.9 13h9.2l.9-13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0014.5 4h-9A1.5 1.5 0 004 5.5v9A1.5 1.5 0 005.5 16H8"/></g></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-fliph" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M12 3v18"/><path d="M9 7L3.5 12 9 17zM15 7l5.5 5-5.5 5z"/></g></symbol>
+    <symbol id="i-flipv" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 12h18"/><path d="M7 9l5-5.5L17 9zM7 15l5 5.5 5-5.5z"/></g></symbol>
+    <symbol id="i-center" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/></g></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V5h4M20 9V5h-4M4 15v4h4M20 15v4h-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><g fill="currentColor"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></g></symbol>
+    <symbol id="i-reg" viewBox="0 0 32 32"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="16" cy="16" r="8"/><path d="M16 2v9M16 21v9M2 16h9M21 16h9"/></g><circle cx="16" cy="16" r="2.6" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<header class="top">
+  <div class="brand">
+    <svg aria-hidden="true"><use href="#i-reg"/></svg>
+    <div class="wm">PRINTSHOP</div>
+  </div>
+  <div class="pal" id="palette" aria-label="Colores del diseño"></div>
+  <div class="top-actions">
+    <input type="file" id="fileIn" accept="image/*,.svg" multiple hidden>
+    <button class="btn" id="btnImport" title="Importar imágenes (o arrástralas / pégalas)"><svg><use href="#i-import"/></svg>Importar</button>
+    <button class="btn icon" id="btnUndo" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg><use href="#i-undo"/></svg></button>
+    <button class="btn icon" id="btnRedo" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer"><svg><use href="#i-redo"/></svg></button>
+    <button class="btn primary" id="btnExport"><svg><use href="#i-export"/></svg>Exportar</button>
+    <div class="mode-picker" id="modePicker">
+      <button class="btn icon" id="btnModeMenu" title="Cambiar de modo" aria-label="Cambiar de modo" aria-haspopup="menu" aria-expanded="false" aria-controls="modeMenu"><svg><use href="#i-more"/></svg></button>
+      <div class="mode-menu" id="modeMenu" role="menu" aria-label="Modo del editor" hidden>
+        <button type="button" id="modeEasy" role="menuitemradio" aria-checked="true"><span>Modo Fácil</span></button>
+        <button type="button" id="modeAdvanced" role="menuitemradio" aria-checked="false"><span>Cambiar a modo avanzado</span></button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<nav class="rail" id="rail" aria-label="Herramientas">
+  <button data-tool="move" aria-pressed="true" title="Mover y transformar (V)"><svg><use href="#i-move"/></svg>Mover</button>
+  <button data-tool="hand" aria-pressed="false" title="Mano: desplazar la vista (H o barra espaciadora)"><svg><use href="#i-hand"/></svg>Mano</button>
+  <hr>
+  <button data-tool="remove" aria-pressed="false" title="Quitar fondo (B)"><svg><use href="#i-cut"/></svg>Fondo</button>
+  <button data-tool="erase" aria-pressed="false" title="Borrador mágico (E)"><svg><use href="#i-eraser"/></svg>Borrador</button>
+  <button data-tool="clean" aria-pressed="false" title="Limpiar diseño: quitar marcas de agua y manchas"><svg><use href="#i-eraser"/></svg>Limpiar</button>
+  <button data-tool="vector" aria-pressed="false" title="Vectorizar (T)"><svg><use href="#i-trace"/></svg>Vector</button>
+  <button data-tool="scale" aria-pressed="false" title="Escalar a tamaño de impresión (S)"><svg><use href="#i-scale"/></svg>Escalar</button>
+  <button data-tool="enhance" aria-pressed="false" title="Mejorar resolución (U)"><svg><use href="#i-enhance"/></svg>Mejorar</button>
+  <button data-tool="halftone" aria-pressed="false" title="Semitonos (D)"><svg><use href="#i-dots"/></svg>Semitono</button>
+  <button data-tool="alpha" aria-pressed="false" title="Semitransparencias: analizar y tratar el canal alfa"><svg><use href="#i-layers"/></svg>Alfa</button>
+  <button data-tool="magic" aria-pressed="false" title="Capas mágicas (M)"><svg><use href="#i-layers"/></svg>Capas</button>
+  <hr>
+  <button data-tool="canvas" aria-pressed="false" title="Lienzo (C)"><svg><use href="#i-frame"/></svg>Lienzo</button>
+</nav>
+
+<main class="stage" id="stage">
+  <canvas id="view" aria-label="Lienzo de trabajo"></canvas>
+  <div class="empty" id="empty" hidden><div><b>Lienzo vacío</b>Arrastra una imagen aquí, pégala o pulsa Importar.</div></div>
+  <div class="dropring" id="dropring" hidden></div>
+  <div class="hudtag" id="hudtag"></div>
+  <div class="zoombar">
+    <button class="btn icon sm" id="zOut" aria-label="Alejar"><svg><use href="#i-minus"/></svg></button>
+    <span class="z" id="zVal">100%</span>
+    <button class="btn icon sm" id="zIn" aria-label="Acercar"><svg><use href="#i-plus"/></svg></button>
+    <button class="btn icon sm" id="zFit" title="Ajustar a la vista (0)" aria-label="Ajustar a la vista"><svg><use href="#i-fit"/></svg></button>
+    <button class="btn icon sm" id="bgSw" title="Color del lienzo (fondo del documento)" aria-label="Color del lienzo"><i class="swdot tr" id="bgDot"></i></button>
+    <div class="bgpop" id="bgPop" hidden><input type="color" id="bgColor" value="#ffffff" aria-label="Color del lienzo"><input type="text" id="bgHex" maxlength="7" placeholder="#RRGGBB" style="width:78px" aria-label="Color del lienzo en hexadecimal"><button class="btn" id="bgClear">Transparente</button></div>
+  </div>
+</main>
+
+<aside class="panel" id="panel">
+  <!-- Opciones por herramienta -->
+  <section class="card" data-tool="move">
+    <h3>Mover y transformar</h3>
+    <p class="hint">Haz clic en una capa para seleccionarla. Arrastra para moverla, usa las esquinas para escalar y el punto superior para girar. <b>Flechas</b> mueven 1 px (Mayús: 10 px). <b>Supr</b> elimina la capa.</p>
+    <div class="fld"><span class="lab">Color de capa</span><div class="inline"><input type="color" id="lcColor" value="#000000" aria-label="Color de capa"><input type="text" id="lcHex" value="#000000" maxlength="7" style="width:78px" aria-label="Color de capa en hexadecimal"><button class="btn" id="lcApply">Aplicar</button></div><p class="hint">Capas de un solo color: se sustituye el color y se conservan forma, bordes suaves y transparencia. Capas multicolor: pide confirmación y tiñe conservando luces y sombras.</p></div>
+  </section>
+  <section class="card" data-tool="hand" hidden>
+    <h3>Mano</h3>
+    <p class="hint">Arrastra para desplazar la vista. Con la rueda del ratón o con pellizco en pantalla táctil haces zoom. Mantén <b>barra espaciadora</b> para usar la mano temporalmente.</p>
+  </section>
+
+  <label class="chk card" id="newRow" style="padding:9px 12px;flex-direction:row" hidden>
+    <input type="checkbox" id="optNew"> Conservar el original: aplicar en una capa nueva
+  </label>
+
+  <section class="card" data-tool="remove" hidden>
+    <h3>Quitar fondo</h3>
+    <div class="seg" id="rbMode">
+      <button data-v="auto" aria-pressed="true">Automático</button>
+      <button data-v="color" aria-pressed="false">Por color (clic)</button>
+    </div>
+    <p class="hint" id="rbHint">Detecta el color de los bordes de la imagen y lo elimina. Funciona mejor con fondos lisos.</p>
+    <div class="inline" id="rbKeyRow" hidden>
+      <input type="color" id="rbKey" value="#ffffff" aria-label="Color a quitar">
+      <span class="hint">Haz clic en la imagen sobre el color que quieres quitar.</span>
+    </div>
+    <div class="fld"><label for="rbTol">Tolerancia <output id="rbTolV">14</output></label><input type="range" id="rbTol" min="1" max="80" value="14"></div>
+    <div class="fld"><label for="rbSoft">Suavizado del borde <output id="rbSoftV">40</output></label><input type="range" id="rbSoft" min="0" max="100" value="40"></div>
+    <div class="fld"><label for="rbChoke">Contraer borde (px) <output id="rbChokeV">0</output></label><input type="range" id="rbChoke" min="0" max="6" value="0"></div>
+    <label class="chk"><input type="checkbox" id="rbContig" checked> <span id="rbContigLab">Solo la zona conectada con el borde</span></label>
+    <label class="chk"><input type="checkbox" id="rbDecon" checked> Limpiar el halo del color de fondo</label>
+    <button class="btn primary wide" id="rbRun">Quitar fondo</button>
+    <h3 style="margin-top:12px">Limpiar bordes</h3>
+    <div class="fld"><label for="rbGrow">Contraer (−) / expandir (+) px <output id="rbGrowV">0</output></label><input type="range" id="rbGrow" min="-8" max="8" value="0"></div>
+    <label class="chk"><input type="checkbox" id="rbHard" checked> Borde duro (sin semitransparencia)</label>
+    <button class="btn wide" id="rbClean">Limpiar bordes</button>
+  </section>
+
+  <section class="card" data-tool="erase" hidden>
+    <h3>Borrador mágico</h3>
+    <div class="seg" id="erMode">
+      <button data-v="wand" aria-pressed="true">Varita</button>
+      <button data-v="global" aria-pressed="false">Global</button>
+      <button data-v="brush" aria-pressed="false">Pincel</button>
+      <button data-v="restore" aria-pressed="false">Restaurar</button>
+    </div>
+    <p class="hint" id="erHint">Haz clic en la imagen: borra la zona contigua de color parecido.</p>
+    <div id="erWandOpts">
+      <div class="fld"><label for="erTol">Tolerancia <output id="erTolV">22</output></label><input type="range" id="erTol" min="1" max="80" value="22"></div>
+      <div class="fld"><label for="erSoft">Suavizado del borde <output id="erSoftV">30</output></label><input type="range" id="erSoft" min="0" max="100" value="30"></div>
+    </div>
+    <div id="erBrushOpts" hidden>
+      <div class="fld"><label for="erSize">Tamaño del pincel <output id="erSizeV">60</output></label><input type="range" id="erSize" min="4" max="500" value="60"></div>
+      <div class="fld"><label for="erHard">Dureza <output id="erHardV">70</output></label><input type="range" id="erHard" min="0" max="100" value="70"></div>
+    </div>
+  </section>
+
+  <section class="card" data-tool="clean" hidden>
+    <h3>Limpiar diseño</h3>
+    <p class="hint">Pinta sobre la marca de agua, mancha o texto que quieras quitar. Al soltar, la zona se rellena con los colores de alrededor. Funciona mejor sobre fondos lisos o degradados; en texturas finas puede quedar difuminado. Úsalo solo en imágenes tuyas o con derechos de uso.</p>
+    <div class="fld"><label for="clSize">Tamaño del pincel <output id="clSizeV">40</output></label><input type="range" id="clSize" min="4" max="300" value="40"></div>
+    <p class="hint">Si quedan restos, vuelve a pintar encima. Puedes deshacer con Ctrl+Z.</p>
+  </section>
+
+  <section class="card" data-tool="vector" hidden>
+    <h3>Vectorizar</h3>
+    <div class="seg" id="vkMode">
+      <button data-v="color" aria-pressed="true">Varios colores</button>
+      <button data-v="mono" aria-pressed="false">Un color</button>
+    </div>
+    <div id="vkColorOpts">
+      <div class="fld"><label for="vkK">Colores <output id="vkKV">6</output></label><input type="range" id="vkK" min="2" max="24" value="6"></div>
+      <label class="chk"><input type="checkbox" id="vkBg" checked> Ignorar el color de fondo de los bordes</label>
+    </div>
+    <div id="vkMonoOpts" hidden>
+      <div class="grid2">
+        <div class="fld"><span class="lab">Color de relleno</span><input type="color" id="vkInk" value="#000000" aria-label="Color de relleno"></div>
+        <div class="fld"><span class="lab">Origen</span><select id="vkSrc" aria-label="Origen"><option value="dark">Zonas oscuras</option><option value="alpha">Opacidad</option></select></div>
+      </div>
+      <div class="fld"><label for="vkThr">Umbral <output id="vkThrV">128</output></label><input type="range" id="vkThr" min="1" max="254" value="128"></div>
+    </div>
+    <div class="grid2">
+      <div class="fld"><span class="lab">Detalle</span><select id="vkDet" aria-label="Detalle"><option value="500">Bajo</option><option value="800">Medio</option><option value="1200" selected>Alto</option><option value="2000">Máximo</option></select></div>
+      <div class="fld"><span class="lab">Salida en capa</span><select id="vkOut" aria-label="Resolución de salida"><option value="1">×1</option><option value="2" selected>×2</option><option value="3">×3</option></select></div>
+    </div>
+    <div class="fld"><label for="vkSmooth">Suavizado <output id="vkSmoothV">50</output></label><input type="range" id="vkSmooth" min="0" max="100" value="50"></div>
+    <div class="fld"><label for="vkSpeck">Ignorar manchas pequeñas <output id="vkSpeckV">8</output></label><input type="range" id="vkSpeck" min="0" max="80" value="8"></div>
+    <button class="btn primary wide" id="vkRun">Vectorizar</button>
+    <div id="vkResult" hidden>
+      <div class="vecprev" id="vkPrev"></div>
+      <p class="hint" id="vkStats" style="margin:6px 0"></p>
+      <div class="grid2">
+        <button class="btn" id="vkInsert">Insertar como capa</button>
+        <button class="btn" id="vkSave">Descargar SVG</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="card" data-tool="scale" hidden>
+    <h3>Escalar <span id="scDpi"></span></h3>
+    <p class="hint">Define el tamaño final de impresión de la capa. Cambiar el tamaño no toca los píxeles; usa «Remuestrear» para que quede a la resolución del lienzo.</p>
+    <div class="grid2">
+      <div class="fld"><label for="scW">Ancho <output class="un"></output></label><input type="number" id="scW" step="any" min="0"></div>
+      <div class="fld"><label for="scH">Alto <output class="un"></output></label><input type="number" id="scH" step="any" min="0"></div>
+    </div>
+    <label class="chk"><input type="checkbox" id="scLock" checked> Mantener proporción</label>
+    <div class="grid2">
+      <button class="btn" id="scFitW">Ajustar al ancho</button>
+      <button class="btn" id="scFitAll">Ajustar al lienzo</button>
+    </div>
+    <div class="fld"><span class="lab">Método de remuestreo</span>
+      <select id="scMethod" aria-label="Método de remuestreo"><option value="lanczos">Lanczos (nítido, recomendado)</option><option value="bilinear">Suave (bilineal)</option><option value="nearest">Píxel exacto (pixel art)</option></select></div>
+    <button class="btn primary wide" id="scResample">Remuestrear a la resolución del lienzo</button>
+    <div class="inline"><div class="fld" style="flex:1"><span class="lab">O remuestrear a píxeles (ancho × alto)</span><div class="inline"><input type="number" id="scPxW" min="1" placeholder="ancho"><input type="number" id="scPxH" min="1" placeholder="alto"></div></div><button class="btn" id="scPxRun">Aplicar</button></div>
+    <p class="hint">Para ampliar más de ×2 usa «Mejorar»: lo hace por pasos y conserva mejor los bordes.</p>
+    <div class="inline"><div class="fld" style="flex:1"><span class="lab">O escalar los píxeles ×</span><input type="number" id="scFactor" value="2" step="0.25" min="0.1" max="8"></div><button class="btn" id="scFactorRun" style="align-self:flex-end">Escalar píxeles</button></div>
+  </section>
+
+  <section class="card" data-tool="enhance" hidden>
+    <h3>Mejorar resolución</h3>
+    <p class="hint">Aumenta los píxeles con interpolación de alta calidad, afila y limpia. Ideal para logos y fotos pequeñas antes de imprimir.</p>
+    <div class="seg" id="enF">
+      <button data-v="2" aria-pressed="true">×2</button>
+      <button data-v="3" aria-pressed="false">×3</button>
+      <button data-v="4" aria-pressed="false">×4</button>
+    </div>
+    <div class="fld"><label for="enSharp">Nitidez <output id="enSharpV">60</output></label><input type="range" id="enSharp" min="0" max="200" value="60"></div>
+    <div class="fld"><label for="enDen">Reducir ruido y artefactos JPG <output id="enDenV">0</output></label><input type="range" id="enDen" min="0" max="60" value="0"></div>
+    <label class="chk"><input type="checkbox" id="enClean"> Bordes limpios (suaviza escaleras en logos)</label>
+    <div class="inline"><div class="fld" style="flex:1"><label for="enTarget">O ampliar a este tamaño (lado largo, px)</label><input type="number" id="enTarget" value="1080" min="16" max="12000"></div><button class="btn" id="enTargetRun">Ampliar</button></div>
+    <div class="estimate" id="enEst">—</div>
+    <button class="btn primary wide" id="enRun">Mejorar resolución</button>
+  </section>
+
+  <section class="card" data-tool="halftone" hidden>
+    <h3>Semitonos <span id="htCell"></span></h3>
+    <div class="seg" id="htMode">
+      <button data-v="ink" aria-pressed="true">Tinta única</button>
+      <button data-v="color" aria-pressed="false">Color original</button>
+      <button data-v="cmyk" aria-pressed="false">CMYK (4 ángulos)</button>
+    </div>
+    <div class="grid2">
+      <div class="fld" id="htInkWrap"><span class="lab">Color</span><input type="color" id="htInk" value="#000000" aria-label="Color de tinta"></div>
+      <div class="fld"><span class="lab">Origen del tono</span><select id="htSrc" aria-label="Origen del tono"><option value="lum">Luminosidad</option><option value="alpha">Opacidad</option></select></div>
+    </div>
+    <div class="fld"><span class="lab">Color de prenda (solo vista previa; no se exporta)</span><div class="inline"><select id="htGar" aria-label="Color de prenda"><option value="#ffffff">Blanco</option><option value="#111111">Negro</option><option value="#8a8a8a">Gris</option><option value="custom">Personalizado</option></select><input type="color" id="htGarColor" value="#c8102e" hidden aria-label="Color de prenda personalizado"><input type="text" id="htGarHex" value="#c8102e" maxlength="7" style="width:78px" hidden aria-label="Color de prenda en hexadecimal"></div></div>
+    <p class="hint" id="htWarn" hidden></p>
+    <div class="grid2">
+      <div class="fld"><span class="lab">Forma</span><select id="htShape" aria-label="Forma del punto"><option value="circle">Círculo</option><option value="square">Cuadrado</option><option value="diamond">Rombo</option><option value="line">Línea</option></select></div>
+      <label class="chk" style="align-self:flex-end;min-height:30px"><input type="checkbox" id="htInv"> Invertir tonos</label>
+    </div>
+    <div class="fld"><label for="htLpi">Trama (líneas por pulgada) <output id="htLpiV">40</output></label><input type="range" id="htLpi" min="10" max="100" value="40"></div>
+    <div class="fld"><label for="htAng">Ángulo <span><output id="htAngV">45</output>°</span></label><input type="range" id="htAng" min="0" max="89" value="45"></div>
+    <div class="fld"><label for="htCon">Contraste <output id="htConV">100</output></label><input type="range" id="htCon" min="40" max="260" value="100"></div>
+    <div class="fld"><label for="htGam">Gamma <output id="htGamV">1.0</output></label><input type="range" id="htGam" min="40" max="220" value="100"></div>
+    <div class="fld"><label for="htMin">Punto mínimo (px) <output id="htMinV">1.2</output></label><input type="range" id="htMin" min="0" max="40" value="12"></div>
+    <div class="estimate" id="htPrevInfo">La vista previa se actualiza al mover los controles.</div>
+    <button class="btn primary wide" id="htRun">Aplicar semitono</button>
+    <div class="inline"><button class="btn" id="htCancel">Cancelar vista previa</button><button class="btn" id="htRestore">Recuperar original</button></div>
+  </section>
+
+  <section class="card" data-tool="alpha" hidden>
+    <h3>Semitransparencias</h3>
+    <p class="hint">Trata la opacidad parcial del canal alfa (no es Semitono). La base blanca la genera tu RIP o tu flujo de impresión; esta herramienta no la crea. Cómo responde cada RIP a la transparencia parcial varía: valida con una prueba.</p>
+    <div class="estimate" id="apStats">—</div>
+    <div class="fld"><span class="lab">Tratamiento</span><select id="apMode" aria-label="Tratamiento"><option value="keep">Conservar (sin cambios)</option><option value="clean">Limpiar bordes (quita halos tenues)</option><option value="harden">Endurecer transparencia (umbral)</option><option value="compose">Componer sobre un color sólido</option></select></div>
+    <div class="fld"><label for="apThr">Umbral <output id="apThrV">50</output> %</label><input type="range" id="apThr" min="1" max="99" value="50"></div>
+    <div class="fld" id="apRWrap"><label for="apR">Radio de limpieza <output id="apRV">1</output> px</label><input type="range" id="apR" min="1" max="4" value="1"></div>
+    <div class="inline" id="apColWrap" hidden><span class="lab">Color de composición</span><input type="color" id="apCol" value="#ffffff"></div>
+    <div class="fld"><span class="lab">Prenda (solo vista previa; no se exporta)</span><select id="apGar" aria-label="Color de prenda"><option value="#ffffff">Blanco</option><option value="#111111">Negro</option><option value="#8a8a8a">Gris</option></select></div>
+    <label class="chk"><input type="checkbox" id="apCmp"> Ver original</label>
+    <div class="estimate" id="apInfo"></div>
+    <button class="btn primary wide" id="apApply">Aplicar</button>
+    <button class="btn wide" id="apCancel">Cancelar vista previa</button>
+  </section>
+
+  <section class="card" data-tool="magic" hidden>
+    <h3>Capas mágicas</h3>
+    <div class="seg" id="mlMode">
+      <button data-v="color" aria-pressed="true">Por color</button>
+      <button data-v="obj" aria-pressed="false">Por objetos</button>
+    </div>
+    <p class="hint" id="mlHint">Separa la imagen en una capa por cada color dominante. Al apilarlas se obtiene la imagen original.</p>
+    <div id="mlColorOpts">
+      <div class="fld"><label for="mlK">Número de colores <output id="mlKV">6</output></label><input type="range" id="mlK" min="2" max="16" value="6"></div>
+      <label class="chk"><input type="checkbox" id="mlClean" checked> Limpiar manchas sueltas</label>
+      <label class="chk"><input type="checkbox" id="mlFlat"> Color plano (una tinta por capa)</label>
+    </div>
+    <div id="mlObjOpts" hidden>
+      <div class="fld"><label for="mlGap">Unir piezas cercanas (px) <output id="mlGapV">6</output></label><input type="range" id="mlGap" min="0" max="80" value="6"></div>
+      <div class="fld"><label for="mlMinA">Ignorar piezas menores a <span><output id="mlMinAV">0.05</output>%</span></label><input type="range" id="mlMinA" min="0" max="100" value="5"></div>
+    </div>
+    <button class="btn primary wide" id="mlRun">Separar en capas</button>
+  </section>
+
+  <section class="card" data-tool="canvas" hidden>
+    <h3>Lienzo <span id="cvInfo"></span></h3>
+    <div class="fld"><span class="lab">Formato</span>
+      <select id="cvPreset" aria-label="Formato del lienzo">
+        <option value="">Personalizado</option>
+        <option value="30x40">Hoja DTF 30 × 40 cm</option>
+        <option value="30x100">Rollo 30 cm × 1 m</option>
+        <option value="60x100">Rollo 60 cm × 1 m</option>
+        <option value="60x200">Rollo 60 cm × 2 m</option>
+        <option value="29.7x42">A3 (29,7 × 42 cm)</option>
+        <option value="21x29.7">A4 (21 × 29,7 cm)</option>
+        <option value="28x35">Pecho de camiseta 28 × 35 cm</option>
+        <option value="10x10">Logo de pecho 10 × 10 cm</option>
+        <option value="20x9.5">Taza 11 oz (20 × 9,5 cm)</option><option value="23x9.5">Taza 15 oz (23 × 9,5 cm)</option><option value="24x20">Mousepad 24 × 20 cm</option><option value="61x100">Rollo sublimación 61 cm × 1 m</option><option value="91x100">Rollo sublimación 91 cm × 1 m</option>
+      </select></div>
+    <div class="grid3">
+      <div class="fld"><label for="cvW">Ancho</label><input type="number" id="cvW" step="any" min="0.1"></div>
+      <div class="fld"><label for="cvH">Alto</label><input type="number" id="cvH" step="any" min="0.1"></div>
+      <div class="fld"><span class="lab">Unidad</span><select id="cvUnit" aria-label="Unidad"><option value="cm">cm</option><option value="mm">mm</option><option value="in">in</option><option value="px">px</option></select></div>
+    </div>
+    <div class="fld"><span class="lab">Resolución (DPI)</span>
+      <select id="cvDpi" aria-label="Resolución en DPI"><option>72</option><option>150</option><option selected>300</option><option>400</option><option>600</option></select></div>
+    <button class="btn primary wide" id="cvApply">Aplicar tamaño</button>
+    <div class="grid2">
+      <button class="btn" id="cvTrim">Ajustar al contenido</button>
+      <button class="btn" id="cvCenter">Centrar capas</button>
+    </div>
+    <div class="fld"><span class="lab">Vista previa sobre</span>
+      <div class="inline">
+        <select id="cvPrev" aria-label="Fondo de vista previa"><option value="checker">Transparente (cuadros)</option><option value="#ffffff">Blanco</option><option value="#111111">Negro</option><option value="#1f3a5f">Azul marino</option><option value="#8a8a8a">Gris</option><option value="#b3261e">Rojo</option><option value="custom">Otro color…</option></select>
+        <input type="color" id="cvPrevColor" value="#ffd23f" aria-label="Color de vista previa" hidden>
+      </div></div>
+    <label class="chk"><input type="checkbox" id="cvGrid"> Mostrar cuadrícula cada <input type="number" id="cvGridStep" value="5" min="0.1" step="any" style="width:64px;min-height:26px"> <span class="un"></span></label>
+    <div class="inline"><label class="chk" style="flex:1"><input type="checkbox" id="cvMarginOn"> Margen de seguridad</label><input type="number" id="cvMargin" value="5" min="0" step="1" style="width:70px"><span class="hint">mm</span></div>
+  </section>
+
+  <!-- Propiedades de la capa -->
+  <section class="card" id="propCard">
+    <h3>Capa seleccionada <span id="propDpi"></span></h3>
+    <div class="fld"><label for="pName">Nombre</label><input type="text" id="pName" maxlength="60"></div>
+    <div class="grid3">
+      <div class="fld"><label for="pX">X <output class="un"></output></label><input type="number" id="pX" step="any"></div>
+      <div class="fld"><label for="pY">Y <output class="un"></output></label><input type="number" id="pY" step="any"></div>
+      <div class="fld"><label for="pRot">Giro °</label><input type="number" id="pRot" step="any"></div>
+    </div>
+    <div class="fld"><label for="pOp">Opacidad <span><output id="pOpV">100</output>%</span></label><input type="range" id="pOp" min="0" max="100" value="100"></div>
+    <div class="inline" style="flex-wrap:wrap">
+      <button class="btn icon sm" id="pFlipH" title="Voltear horizontal" aria-label="Voltear horizontal"><svg><use href="#i-fliph"/></svg></button>
+      <button class="btn icon sm" id="pFlipV" title="Voltear vertical" aria-label="Voltear vertical"><svg><use href="#i-flipv"/></svg></button>
+      <button class="btn sm" id="pCenter"><svg><use href="#i-center"/></svg>Centrar</button>
+      <button class="btn sm" id="pRot0">Giro 0°</button>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>Capas <span id="layerCount"></span></h3>
+    <div class="layers" id="layerList" role="listbox" aria-label="Capas"></div>
+  </section>
+</aside>
+
+<footer class="status" id="status">
+  <span>Lienzo <b id="stDoc">—</b></span>
+  <span>Cursor <b id="stCur">—</b></span>
+  <span id="stSel"></span>
+</footer>
+
+<div class="modal" id="exModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="exTitle">
+    <h2 id="exTitle">Exportar<button class="btn icon sm" id="exClose" aria-label="Cerrar"><svg style="width:14px;height:14px"><use href="#i-plus" transform="rotate(45 12 12)"/></svg></button></h2>
+    <div class="seg" id="exFmt">
+      <button data-v="png" aria-pressed="true">PNG</button>
+      <button data-v="pdf" aria-pressed="false">PDF para imprenta</button>
+    </div>
+    <div class="grid2">
+      <div class="fld"><span class="lab">Resolución (DPI)</span>
+        <select id="exDpi" aria-label="DPI de exportación"><option value="150">150</option><option value="300" selected>300</option><option value="600">600</option></select></div>
+      <div class="fld"><span class="lab">Área</span>
+        <select id="exArea" aria-label="Área a exportar"><option value="doc">Lienzo completo</option><option value="trim">Recortar al diseño</option></select></div>
+    </div>
+    <div class="grid2">
+      <div class="fld"><span class="lab">Fondo</span>
+        <select id="exBg" aria-label="Fondo"><option value="none">Transparente</option><option value="#ffffff">Blanco</option><option value="#000000">Negro</option><option value="custom">Otro color…</option></select></div>
+      <div class="fld" id="exBgColorWrap" hidden><span class="lab">Color</span><input type="color" id="exBgColor" value="#ffffff" aria-label="Color de fondo"></div>
+      <div class="fld" id="exMarginWrap" hidden><label for="exMargin">Margen (mm)</label><input type="number" id="exMargin" value="3" min="0" step="1"></div>
+    </div>
+    <div class="fld"><span class="lab">Modo de impresión</span><select id="exMode" aria-label="Modo de impresión"><option value="dtf">DTF</option><option value="sub">Sublimación (papel de transferencia)</option></select></div>
+    <div id="exSubOpts" hidden>
+      <div class="inline"><label for="exBoost" style="flex:1">Compensar colores apagados (%)</label><input type="number" id="exBoost" value="15" min="0" max="60" style="width:64px"></div>
+      <label class="chk"><input type="checkbox" id="exBleed"> Estirar los bordes del diseño en el sangrado (solo diseños rectangulares a sangre completa)</label>
+      <label class="chk"><input type="checkbox" id="exMarks" checked> Marcas de corte (usa margen mínimo de 8 mm como sangrado)</label>
+      <p class="hint">En sublimación el blanco no se imprime y no hay transparencia: se exporta sobre fondo blanco y en espejo.</p>
+    </div>
+    <label class="chk"><input type="checkbox" id="exMirror"> Espejo horizontal (impresión sobre film)</label>
+    <label class="chk"><input type="checkbox" id="exHard"> Borde sin semitransparencia (evita halos en la base blanca) · umbral <input type="number" id="exCut" value="50" min="1" max="254" style="width:60px"> %</label>
+    <div class="estimate" id="exEst">—</div>
+    <p class="hint" id="exNote"></p>
+    <div class="foot">
+      <button class="btn" id="exCancel">Cancelar</button>
+      <button class="btn primary" id="exGo"><svg><use href="#i-export"/></svg>Exportar</button>
+    </div>
+    <div class="fallback" id="exFallback" hidden></div>
+  </div>
+</div>
+
+<div class="busy" id="busy" hidden><div class="box"><div class="spin"></div><div id="busyTxt">Procesando…</div><div class="bar"><i id="busyBar"></i></div></div></div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>

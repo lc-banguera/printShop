@@ -1,0 +1,75 @@
+{
+  "generatedAt": "2026-10-12T08:06:36.716Z",
+  "inputs": {
+    "upscale": {
+      "file": "before-upscale-img2.png",
+      "width": 1152,
+      "height": 2048
+    },
+    "illustration": {
+      "file": "before-illustration-img4.png",
+      "width": 590,
+      "height": 337
+    }
+  },
+  "operations": {
+    "upscale4k": {
+      "output": "after-upscale-img2-4k-lanczos.png",
+      "method": "lanczos",
+      "targetMaxDimension": 3840,
+      "width": 2160,
+      "height": 3840,
+      "reopened": {
+        "width": 2160,
+        "height": 3840
+      },
+      "changedRatio": 1
+    },
+    "adjustments": {
+      "output": "after-adjust-img4.png",
+      "parameters": {
+        "brightness": 12,
+        "contrast": 18,
+        "saturation": 14,
+        "temperature": 6,
+        "hue": 3,
+        "sharpen": 22
+      },
+      "changedRatio": 0.552048232158125,
+      "reopened": true
+    },
+    "halftone": {
+      "output": "after-halftone-img4.png",
+      "parameters": {
+        "cellSize": 8,
+        "angle": 35,
+        "intensity": 92,
+        "contrast": 118,
+        "shape": "circle",
+        "invert": false
+      },
+      "changedRatio": 0.8560541668762259,
+      "reopened": true
+    },
+    "vectorize": {
+      "output": "after-vectorize-img4.svg",
+      "paths": 1591,
+      "colors": [
+        "#fffdfe",
+        "#110108",
+        "#2c0316",
+        "#4f092b",
+        "#900b4f",
+        "#ef51ad",
+        "#e62e96",
+        "#6c0838",
+        "#d54c95",
+        "#f490cf",
+        "#eb6cb3",
+        "#cb1175"
+      ],
+      "containsRasterImageTag": false,
+      "status": "succeeded"
+    }
+  }
+}

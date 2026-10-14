@@ -1,4 +1,7 @@
 import { useToolsStore } from '@/store/tools-store';
+import { toolRegistry } from '@/core/design/tools';
+import type { DesignerCapabilities } from '@/core/design/types';
+import type { ToolContext } from '@/core/design/tools';
 import { getTool } from '../services/tools-config';
 import type { ToolsState, ToolType, Tool } from '@/types/tools';
 
@@ -19,11 +22,22 @@ export function useActiveTool() {
   const setActiveTool = useToolsStore((state: ToolsState) => state.setActiveTool);
 
   const activeToolData: Tool | undefined = getTool(activeTool);
+  const activateTool = <TCommandContext,>(
+    toolId: ToolType,
+    context: ToolContext<TCommandContext>
+  ) => {
+    toolRegistry.transition(activeTool, toolId, context);
+    setActiveTool(toolId);
+  };
+  const getAvailableTools = (capabilities: DesignerCapabilities) =>
+    toolRegistry.getAvailableTools(capabilities);
 
   return {
     activeTool,
     activeToolData,
     setActiveTool,
+    activateTool,
+    getAvailableTools,
     isToolActive: (toolId: ToolType) => activeTool === toolId,
   };
 }

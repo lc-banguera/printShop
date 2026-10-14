@@ -6,9 +6,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const badgeVariants = {
-  default: 'inline-flex items-center rounded-full bg-accent px-2.5 py-1 text-xs font-semibold text-white',
-  secondary: 'inline-flex items-center rounded-full bg-surface text-text-primary ring-1 ring-border',
-  outline: 'inline-flex items-center rounded-full border border-border bg-transparent px-2.5 py-1 text-xs text-text-secondary'
+  default:
+    'inline-flex items-center gap-1.5 rounded-full bg-[var(--primary)] px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-[var(--text-inverse)] uppercase',
+  secondary:
+    'inline-flex items-center gap-1.5 rounded-full bg-[var(--surface-muted)] px-2.5 py-1 text-[11px] font-semibold tracking-[0.08em] text-[var(--text-secondary)] uppercase ring-1 ring-[var(--border)]',
+  outline:
+    'inline-flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-transparent px-2.5 py-1 text-[11px] font-medium tracking-[0.08em] text-[var(--text-secondary)] uppercase',
 };
 
 const Badge = React.forwardRef<HTMLDivElement, BadgeProps>(({ className, variant = 'default', ...props }, ref) => (

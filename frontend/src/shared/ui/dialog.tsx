@@ -9,7 +9,7 @@ const DialogOverlay = React.forwardRef<React.ElementRef<typeof DialogPrimitive.O
   ({ className, ...props }, ref) => (
     <DialogPrimitive.Overlay
       ref={ref}
-      className={cn('fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity duration-200', className)}
+      className={cn('fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity duration-normal', className)}
       {...props}
     />
   )
@@ -23,7 +23,7 @@ const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.C
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          'fixed left-1/2 top-1/2 z-50 w-[min(90vw,450px)] -translate-x-1/2 -translate-y-1/2 rounded-3xl border border-border bg-surface p-6 shadow-lg outline-none',
+          'fixed left-1/2 top-1/2 z-50 w-[min(92vw,460px)] -translate-x-1/2 -translate-y-1/2 rounded-dialog border border-[var(--border)] bg-[var(--surface)] p-5 shadow-modal outline-none sm:p-6',
           className
         )}
         {...props}
@@ -36,17 +36,17 @@ const DialogContent = React.forwardRef<React.ElementRef<typeof DialogPrimitive.C
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn('flex flex-col space-y-2 text-center sm:text-left', className)} {...props} />
+  <div ref={ref} className={cn('flex flex-col gap-2 text-center sm:text-left', className)} {...props} />
 ));
 DialogHeader.displayName = 'DialogHeader';
 
 const DialogTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title ref={ref} className={cn('text-lg font-semibold text-text-primary', className)} {...props} />
+  <DialogPrimitive.Title ref={ref} className={cn('text-lg font-semibold tracking-tight text-[var(--text-primary)]', className)} {...props} />
 ));
 DialogTitle.displayName = DialogPrimitive.Title.displayName;
 
 const DialogDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(({ className, ...props }, ref) => (
-  <DialogPrimitive.Description ref={ref} className={cn('text-sm leading-6 text-text-secondary', className)} {...props} />
+  <DialogPrimitive.Description ref={ref} className={cn('text-sm leading-6 text-[var(--text-secondary)]', className)} {...props} />
 ));
 DialogDescription.displayName = DialogPrimitive.Description.displayName;
 

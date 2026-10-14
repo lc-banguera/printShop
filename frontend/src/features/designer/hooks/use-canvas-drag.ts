@@ -1,72 +1,60 @@
 import Konva from 'konva';
 import { useCanvasStore } from '@/store/canvas-store';
 import { useViewerStore } from '@/store/viewer-store';
-import type { CanvasState } from '@/types/canvas';
-
-function clampToActiveZone(
-  x: number,
-  y: number,
-  elementWidth: number,
-  elementHeight: number,
-  area: { x: number; y: number; width: number; height: number }
-): { x: number; y: number } {
-  const minX = area.x - elementWidth + 1;
-  const maxX = area.x + area.width - 1;
-  const minY = area.y - elementHeight + 1;
-  const maxY = area.y + area.height - 1;
-
-  return {
-    x: Math.round(Math.min(Math.max(x, minX), maxX)),
-    y: Math.round(Math.min(Math.max(y, minY), maxY)),
-  };
-}
+import { getElementGeometry } from '@/core/design/transform';
 
 export function useCanvasDrag() {
-  const updateElement = useCanvasStore((state: CanvasState) => state.updateElement);
   const activeProduct = useViewerStore((state) => state.activeProduct);
   const activeZoneId = useViewerStore((state) => state.activeZoneId);
 
-  const activeZone = activeProduct.printableAreas[activeZoneId] || {
-    x: 197,
-    y: 180,
-    width: 400,
-    height: 500,
-  };
+  const activeZone = activeProduct.printableAreas[activeZoneId];
 
-  const handleDragMove = (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => {
+  const handleElementDrag = (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => {
     const node = e.target as Konva.Shape;
-    const clamped = clampToActiveZone(
-      node.x(),
-      node.y(),
-      node.width() * node.scaleX(),
-      node.height() * node.scaleY(),
-      activeZone
+    const state = useCanvasStore.getState();
+    const draggedElement = state.elements.find((element) => element.id === elementId);
+    if (!draggedElement || draggedElement.locked) return;
+
+    const selectedIds = state.selectedElementIds.includes(elementId)
+      ? new Set(state.selectedElementIds)
+      : new Set([elementId]);
+    const movingElements = state.elements.filter(
+      (element) =>
+        selectedIds.has(element.id) &&
+        element.zoneId === draggedElement.zoneId &&
+        !element.locked
     );
+    if (movingElements.length === 0) return;
 
-    node.x(clamped.x);
-    node.y(clamped.y);
+    const geometries = movingElements.map(getElementGeometry);
+    const left = Math.min(...geometries.map(({ bounds }) => bounds.x));
+    const top = Math.min(...geometries.map(({ bounds }) => bounds.y));
+    const right = Math.max(...geometries.map(({ bounds }) => bounds.x + bounds.width));
+    const bottom = Math.max(...geometries.map(({ bounds }) => bounds.y + bounds.height));
+    const draggedGeometry = getElementGeometry(draggedElement);
+    const proposedDeltaX = node.x() - draggedGeometry.center.x;
+    const proposedDeltaY = node.y() - draggedGeometry.center.y;
+    const deltaX = Math.round(Math.min(
+      Math.max(proposedDeltaX, activeZone.x - right + 1),
+      activeZone.x + activeZone.width - left - 1
+    ));
+    const deltaY = Math.round(Math.min(
+      Math.max(proposedDeltaY, activeZone.y - bottom + 1),
+      activeZone.y + activeZone.height - top - 1
+    ));
 
-    updateElement(elementId, clamped);
-  };
-
-  const handleDragEnd = (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => {
-    const node = e.target as Konva.Shape;
-    const clamped = clampToActiveZone(
-      node.x(),
-      node.y(),
-      node.width() * node.scaleX(),
-      node.height() * node.scaleY(),
-      activeZone
-    );
-
-    node.x(clamped.x);
-    node.y(clamped.y);
-
-    updateElement(elementId, clamped);
+    node.x(draggedGeometry.center.x + deltaX);
+    node.y(draggedGeometry.center.y + deltaY);
+    if (deltaX !== 0 || deltaY !== 0) {
+      state.moveElements(
+        movingElements.map((element) => element.id),
+        { x: deltaX, y: deltaY }
+      );
+    }
   };
 
   return {
-    handleDragMove,
-    handleDragEnd,
+    handleDragMove: handleElementDrag,
+    handleDragEnd: handleElementDrag,
   };
 }

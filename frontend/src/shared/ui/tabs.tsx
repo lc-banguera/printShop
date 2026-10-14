@@ -5,7 +5,11 @@ import { cn } from '@/shared/utils/cn';
 const Tabs = TabsPrimitive.Root;
 const TabsList = React.forwardRef<React.ElementRef<typeof TabsPrimitive.List>, React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>>(
   ({ className, ...props }, ref) => (
-    <TabsPrimitive.List ref={ref} className={cn('inline-flex h-11 items-center rounded-full border border-border bg-surface p-1', className)} {...props} />
+    <TabsPrimitive.List
+      ref={ref}
+      className={cn('inline-flex h-11 items-center rounded-card border border-[var(--border)] bg-[var(--surface-muted)] p-1 shadow-subtle', className)}
+      {...props}
+    />
   )
 );
 TabsList.displayName = TabsPrimitive.List.displayName;
@@ -15,7 +19,7 @@ const TabsTrigger = React.forwardRef<React.ElementRef<typeof TabsPrimitive.Trigg
     <TabsPrimitive.Trigger
       ref={ref}
       className={cn(
-        'inline-flex min-w-[100px] items-center justify-center rounded-full px-4 py-2 text-sm font-medium transition-colors data-[state=active]:bg-accent data-[state=active]:text-white data-[state=active]:shadow-sm data-[state=inactive]:text-text-secondary hover:bg-surface-muted',
+        'inline-flex min-w-[100px] items-center justify-center rounded-control px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-all duration-normal hover:bg-[var(--surface)] hover:text-[var(--text-primary)] data-[state=active]:bg-[var(--surface)] data-[state=active]:text-[var(--text-primary)] data-[state=active]:shadow-subtle',
         className
       )}
       {...props}

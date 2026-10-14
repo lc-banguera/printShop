@@ -8,5 +8,7 @@ export * from './input';
 export * from './modal';
 export * from './scroll-area';
 export * from './separator';
+export * from './table-actions';
 export * from './tabs';
 export * from './tooltip';
+export * from './confirmation-modal';

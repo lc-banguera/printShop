@@ -2,41 +2,37 @@ import { useEffect, useState } from 'react';
 import { Image as KonvaImage } from 'react-konva';
 import Konva from 'konva';
 import { useCanvasSelection } from '../hooks';
-import type { CanvasElement } from '@/types/canvas';
-import { useCanvasStore } from '@/store/canvas-store';
-import { useViewerStore } from '@/store/viewer-store';
+import type { DesignElement, ProductSurface } from '@/core/design/types';
+import { konvaRenderer } from '../renderer/konva-renderer';
 
 interface CanvasElementsProps {
-  elements: CanvasElement[];
-  onElementClick: (elementId: string) => void;
+  elements: DesignElement[];
+  surface: Pick<ProductSurface, 'id'>;
+  onElementClick: (elementId: string, additive: boolean) => void;
   onElementDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
   onElementDragEnd: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
 }
 
 interface CanvasImageElementProps {
-  element: CanvasElement;
+  item: Extract<ReturnType<typeof konvaRenderer.renderElement>, { kind: 'image' }>;
+  locked: boolean;
   isSelected: boolean;
-  onElementClick: (elementId: string) => void;
+  onElementClick: (elementId: string, additive: boolean) => void;
   onElementDragMove: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
   onElementDragEnd: (elementId: string, e: Konva.KonvaEventObject<DragEvent>) => void;
 }
 
 function CanvasImageElement({
-  element,
+  item,
+  locked,
   isSelected,
   onElementClick,
   onElementDragMove,
   onElementDragEnd,
 }: CanvasImageElementProps) {
   const [image, setImage] = useState<HTMLImageElement | null>(null);
-  const updateElement = useCanvasStore((state) => state.updateElement);
 
   useEffect(() => {
-    // High-resolution image quality guarantee:
-    // Always prefer originalImageSrc (full resolution original asset)
-    const src = element.originalImageSrc ?? element.image;
-    if (!src) return;
-
     const nextImage = new window.Image();
     nextImage.crossOrigin = 'anonymous';
 
@@ -44,94 +40,76 @@ function CanvasImageElement({
     nextImage.onerror = () => {
       const fallback = new window.Image();
       fallback.onload = () => setImage(fallback);
-      fallback.src = src;
+      fallback.src = item.source;
     };
-    nextImage.src = src;
+    nextImage.src = item.source;
 
     return () => {
       nextImage.onload = null;
       nextImage.onerror = null;
     };
-  }, [element.originalImageSrc, element.image]);
+  }, [item.source]);
 
   if (!image) return null;
 
   return (
     <KonvaImage
-      key={element.id}
-      id={element.id}
+      key={item.id}
+      id={item.id}
       image={image}
-      x={element.x}
-      y={element.y}
-      width={element.width}
-      height={element.height}
-      opacity={element.opacity ?? 1}
-      rotation={element.rotation ?? 0}
-      scaleX={1}
-      scaleY={1}
-      visible={element.visible ?? true}
+      x={item.centerX}
+      y={item.centerY}
+      width={item.width}
+      height={item.height}
+      offsetX={item.offsetX}
+      offsetY={item.offsetY}
+      opacity={item.opacity}
+      rotation={item.rotation}
+      scaleX={item.scaleX}
+      scaleY={item.scaleY}
+      visible={item.visible}
       stroke={isSelected ? '#5046e5' : undefined}
       strokeWidth={isSelected ? 1 : 0}
-      draggable={isSelected}
-      onClick={() => onElementClick(element.id)}
-      onTap={() => onElementClick(element.id)}
-      onDragMove={(e) => onElementDragMove(element.id, e)}
-      onDragEnd={(e) => onElementDragEnd(element.id, e)}
-      onTransformEnd={(e) => {
-        const node = e.target;
-        const newWidth = Math.round(node.width() * node.scaleX());
-        const newHeight = Math.round(node.height() * node.scaleY());
-        const newX = Math.round(node.x());
-        const newY = Math.round(node.y());
-
-        node.scaleX(1);
-        node.scaleY(1);
-
-        updateElement(element.id, {
-          x: newX,
-          y: newY,
-          width: newWidth,
-          height: newHeight,
-          scaleX: 1,
-          scaleY: 1,
-        });
-      }}
+      draggable={isSelected && !locked}
+      onClick={(event) =>
+        onElementClick(
+          item.id,
+          event.evt.shiftKey || event.evt.ctrlKey || event.evt.metaKey
+        )
+      }
+      onTap={() => onElementClick(item.id, false)}
+      onDragMove={(e) => onElementDragMove(item.id, e)}
+      onDragEnd={(e) => onElementDragEnd(item.id, e)}
     />
   );
 }
 
 export function CanvasElements({
   elements,
+  surface,
   onElementClick,
   onElementDragMove,
   onElementDragEnd,
 }: CanvasElementsProps) {
-  const { selectedElementId } = useCanvasSelection();
-  const activeZoneId = useViewerStore((state) => state.activeZoneId);
-
-  // Filter elements to display ONLY those belonging to the currently active zone/surface
-  const visibleElements = elements.filter(
-    (el) => !el.zoneId || el.zoneId === activeZoneId
-  );
+  const { selectedElementIds } = useCanvasSelection();
 
   return (
     <>
-      {visibleElements.map((element) => {
-        if (element.type === 'image') {
-          const isSelected = element.id === selectedElementId;
-          return (
-            <CanvasImageElement
-              key={element.id}
-              element={element}
-              isSelected={isSelected}
-              onElementClick={onElementClick}
-              onElementDragMove={onElementDragMove}
-              onElementDragEnd={onElementDragEnd}
-            />
-          );
-        }
+      {elements.map((element) => {
+        const item = konvaRenderer.renderElement(element, surface);
+        if (!item || item.kind !== 'image') return null;
 
-        return null;
+        return (
+          <CanvasImageElement
+            key={item.id}
+            item={item}
+            locked={Boolean(element.locked)}
+            isSelected={selectedElementIds.includes(item.id)}
+            onElementClick={onElementClick}
+            onElementDragMove={onElementDragMove}
+            onElementDragEnd={onElementDragEnd}
+          />
+        );
       })}
     </>
   );

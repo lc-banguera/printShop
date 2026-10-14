@@ -1,17 +1,7 @@
-/**
- * Designer tool types and interfaces
- */
+import type { ToolDescriptor, ToolId } from '@/core/design/tools';
 
-export type ToolType = 'select' | 'rectangle' | 'ellipse' | 'line' | 'text' | 'image' | 'hand' | 'zoom';
-
-export interface Tool {
-  id: ToolType;
-  name: string;
-  icon: string;
-  description: string;
-  category: 'selection' | 'shape' | 'drawing' | 'view' | 'asset';
-  cursor: string;
-}
+export type ToolType = ToolId;
+export type Tool = ToolDescriptor;
 
 export interface ToolsState {
   activeTool: ToolType;

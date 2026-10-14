@@ -1,4 +1,7 @@
 import type { DesignResource } from "@/types/design-resource";
+import { AssetManager, type DesignAsset } from '@/core/design/assets';
+
+const assetManager = new AssetManager();
 
 const localResourceModules = import.meta.glob(
   "../../../resources/designs/*.{png,jpg,jpeg,webp,svg}",
@@ -16,22 +19,54 @@ function formatResourceName(fileName: string) {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+for (const [path, image] of Object.entries(localResourceModules)) {
+  const fileName = path.split('/').pop() ?? path;
+  const asset: DesignAsset = {
+    id: fileName.replace(/\.[^.]+$/, ''),
+    name: formatResourceName(fileName),
+    url: image as string,
+    origin: 'library',
+    category: 'Local',
+  };
+  assetManager.register(asset);
+}
+
+function toDesignResource(asset: DesignAsset): DesignResource {
+  return {
+    id: asset.id,
+    name: asset.name,
+    image: asset.url,
+    category: asset.category,
+  };
+}
+
 export function getDesignResources(): DesignResource[] {
-  const resources = Object.entries(localResourceModules)
-    .map(([path, image]) => {
-      const fileName = path.split("/").pop() ?? path;
-      const id = fileName.replace(/\.[^.]+$/, "");
+  return assetManager
+    .list('library')
+    .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+    .map(toDesignResource);
+}
 
-      return {
-        id,
-        name: formatResourceName(fileName),
-        image: image as string,
-        category: "Local",
-      };
-    })
-    .sort((a, b) => a.name.localeCompare(b.name, undefined, {
-      numeric: true,
-    }));
+export function registerUploadedDesign(file: File): DesignResource {
+  const url = URL.createObjectURL(file);
+  try {
+    const asset = assetManager.register({
+      id: `upload-${crypto.randomUUID()}`,
+      name: file.name,
+      url,
+      origin: 'upload',
+      category: 'Subidos',
+    });
+    return toDesignResource(asset);
+  } catch (error) {
+    URL.revokeObjectURL(url);
+    throw error;
+  }
+}
 
-  return resources;
+export function releaseUploadedDesign(id: string): void {
+  const asset = assetManager.unregisterUpload(id);
+  if (asset?.url.startsWith('blob:')) {
+    URL.revokeObjectURL(asset.url);
+  }
 }

@@ -1,0 +1,23 @@
+{
+  "name": "image-processing",
+  "version": "1.0.0",
+  "description": "PrintShop Image Processing Pipeline",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node src/index.ts",
+    "audit": "ts-node audit.ts",
+    "build": "tsc"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "sharp": "^0.33.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.19",
+    "@types/sharp": "^0.32.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

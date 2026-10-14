@@ -2,8 +2,9 @@
 import { useRef, useEffect, type ReactNode } from 'react';
 import { useViewerStore } from '@/store/viewer-store';
 import { ProductModel } from './product-model';
+import type { Designer2ArtworkProps } from './artwork-decals';
 
-function ProductColorApplier({ color, modelUrl, children }: { color: string; modelUrl: string; children: ReactNode }) {
+function ProductColorApplier({ color, modelUrl, materialBrightness, children }: { color: string; modelUrl: string; materialBrightness: number; children: ReactNode }) {
   const groupRef = useRef<THREE.Group>(null);
   // Cache garment materials (three.js Material instances) to avoid repeated traversals
   const cachedMatsRef = useRef<THREE.Material[]>([]);
@@ -35,20 +36,23 @@ function ProductColorApplier({ color, modelUrl, children }: { color: string; mod
     });
   }, [modelUrl]);
 
-  // Apply color immediately to cached materials whenever color changes
+  // Apply color immediately to cached materials whenever the garment appearance changes.
   useEffect(() => {
     const mats = cachedMatsRef.current;
     if (!mats || mats.length === 0) return;
-    const col = new THREE.Color(color);
+    const base = new THREE.Color(color);
+    const adjusted = base.clone().offsetHSL(0, 0, (materialBrightness - 1) * 0.8);
     mats.forEach((mat) => {
       const anyMat = mat as any;
       if (anyMat && anyMat.color && typeof anyMat.color.set === 'function') {
-        anyMat.color.set(col);
-        // ensure three.js updates internals if necessary
+        anyMat.color.set(adjusted);
+        if (typeof anyMat.emissive?.set === 'function') {
+          anyMat.emissive.set(adjusted.clone().multiplyScalar(0.08));
+        }
         if (typeof anyMat.needsUpdate !== 'undefined') anyMat.needsUpdate = true;
       }
     });
-  }, [color]);
+  }, [color, materialBrightness]);
 
   return <group ref={groupRef}>{children}</group>;
 }
@@ -58,9 +62,11 @@ function ProductColorApplier({ color, modelUrl, children }: { color: string; mod
  * active ProductViewConfig for the selected printable zone. If no explicit view
  * config is available, fall back to a simple Y rotation map to preserve previous behavior.
  */
-export function ProductPivot() {
+export function ProductPivot({ showPrintArea, showSelection, constrainToPrintArea, ...artworkProps }: Designer2ArtworkProps) {
   const activeZoneId = useViewerStore((s) => s.activeZoneId);
+  const frontPrintableArea = useViewerStore((s) => s.activeProduct.printableAreas.front);
   const productColor = useViewerStore((s) => s.currentGarmentColor);
+  const materialBrightness = useViewerStore((s) => s.materialBrightness);
   const modelUrl = useViewerStore((s) => s.activeProduct.modelUrl ?? '');
   const viewConfig = useViewerStore((s) => s.activeProduct.viewConfigs?.[s.activeZoneId]);
 
@@ -80,8 +86,17 @@ export function ProductPivot() {
   return (
     <group>
       <group position={[offset.x, offset.y, offset.z]} rotation={[rotationRad.x, rotationRad.y, rotationRad.z]} scale={scale}>
-        <ProductColorApplier color={productColor} modelUrl={modelUrl}>
-          {modelUrl ? <ProductModel modelUrl={modelUrl} /> : null}
+        <ProductColorApplier color={productColor} modelUrl={modelUrl} materialBrightness={materialBrightness}>
+          {modelUrl ? (
+            <ProductModel
+              modelUrl={modelUrl}
+              printableArea={frontPrintableArea}
+              showPrintArea={showPrintArea}
+              showSelection={showSelection}
+              constrainToPrintArea={constrainToPrintArea}
+              {...artworkProps}
+            />
+          ) : null}
         </ProductColorApplier>
       </group>
     </group>
